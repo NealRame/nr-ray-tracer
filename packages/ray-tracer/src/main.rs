@@ -15,10 +15,18 @@ use color_print::{
     cstr,
 };
 
+use glam::{
+    DVec3,
+    DVec4,
+    U8Vec4,
+};
+use glam::swizzles::Vec4Swizzles;
+
 use once_cell::sync::Lazy;
 
 use regex::Regex;
 
+use nr_ray_tracer_lib::ray::Ray;
 use nr_ray_tracer_lib::ppm::write_ppm;
 
 const DEFAULT_IMAGE_WIDTH: usize = 300;
@@ -127,30 +135,69 @@ struct Cli {
     #[command(flatten)]
     image_size: ImageSize,
 
-    /// Output file path
-    #[arg(short, long, value_name = "FILE")]
-    output: Option<PathBuf>,
+    /// Focal length
+    #[arg(short = 'F', long, value_name = "FOCAL_LENGTH", default_value_t = 1.0)]
+    focal_length: f64,
 
     /// Force output overwrite
     #[arg(short, long)]
     force_overwrite: bool,
+
+    /// Output file path
+    #[arg(short, long, value_name = "FILE")]
+    output: Option<PathBuf>,
+}
+
+fn ray_color(ray: &Ray) -> U8Vec4 {
+    let d = ray.get_direction().normalize();
+    let a = (d.y + 1.)/2.;
+    let c = DVec4::ONE.xyzw().with_xyz((1. - a)*DVec3::ONE + a*DVec3::Z);
+
+    (255.*c).as_u8vec4()
 }
 
 fn main() {
     let cli = Cli::parse();
 
-    let (width, height, _) = cli.image_size.validate();
+    // Image
+    let (image_width, image_height, aspect_ratio) = cli.image_size.validate();
 
-    let pixels: Vec<u8> =
-        Itertools::cartesian_product(0..height, 0..width)
+    // Camera
+    let camera_center = DVec3::ZERO;
+    let focal_length = cli.focal_length;
+
+    let viewport_height = 2.0;
+    let viewport_width = aspect_ratio*viewport_height;
+
+    let viewport_u =  DVec3::X*viewport_width;
+    let viewport_v = -DVec3::Y*viewport_height;
+
+    let viewport_pixel_delta_u = viewport_u/(image_width as f64);
+    let viewport_pixel_delta_v = viewport_v/(image_height as f64);
+
+    let viewport_top_left =
+            camera_center
+                - DVec3::Z*focal_length
+                - viewport_u/2.
+                - viewport_v/2.
+                + (viewport_pixel_delta_u + viewport_pixel_delta_v)/2.
+            ;
+
+    // Render
+    let pixels: Vec<U8Vec4> =
+        Itertools::cartesian_product(0..image_height, 0..image_width)
             .map(|(y, x)| {
-                let r = 255.*(x as f64)/((width - 1).max(1) as f64);
-                let g = 255.*(y as f64)/((height - 1).max(1) as f64);
-                let b = 255. - r;
+                let pixel =
+                    viewport_top_left
+                        + (x as f64)*viewport_pixel_delta_u
+                        + (y as f64)*viewport_pixel_delta_v
+                    ;
 
-                vec![r as u8, g as u8, b as u8, 255u8]
+                let direction = pixel - camera_center;
+                let ray = Ray::new(camera_center, direction);
+
+                ray_color(&ray)
             })
-            .flatten()
             .collect();
 
     let mut ppm_out = File::options()
@@ -161,6 +208,6 @@ fn main() {
         .open(cli.output.unwrap_or("out.ppm".try_into().unwrap()))
         .expect("Fail to open {} for writing");
 
-    write_ppm(&mut ppm_out, width, height, pixels.as_slice())
+    write_ppm(&mut ppm_out, image_width, image_height, pixels.as_slice())
         .expect("Fail to write ppm");
 }

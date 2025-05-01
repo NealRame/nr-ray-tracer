@@ -5,13 +5,15 @@ use anyhow::{
     Result,
 };
 
+use glam::U8Vec4;
+
 pub fn write_ppm<T: Write>(
     out: &mut T,
     width: usize,
     height: usize,
-    pixels: &[u8],
+    pixels: &[U8Vec4],
 ) -> Result<()> {
-    if width*height != pixels.len()/4 {
+    if width*height != pixels.len() {
         return Err(anyhow!("Invalid sized"));
     }
 
@@ -19,8 +21,8 @@ pub fn write_ppm<T: Write>(
     writeln!(out, "{width} {height}")?;
     writeln!(out, "255")?;
 
-    for chunk in pixels.chunks_exact(4) {
-        writeln!(out, "{:03} {:03} {:03}", chunk[0], chunk[1], chunk[2])?;
+    for color in pixels {
+        writeln!(out, "{:03} {:03} {:03}", color.x, color.y, color.z)?;
     }
 
     Ok(())
