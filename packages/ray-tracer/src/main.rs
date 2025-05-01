@@ -151,9 +151,28 @@ struct Cli {
 fn ray_color(ray: &Ray) -> U8Vec4 {
     let d = ray.get_direction().normalize();
     let a = (d.y + 1.)/2.;
-    let c = DVec4::ONE.xyzw().with_xyz((1. - a)*DVec3::ONE + a*DVec3::Z);
+    let c = DVec4::ONE.xyzw().with_xyz((1. - a)*DVec3::ONE + a*DVec3::new(0.5, 0.7, 1.0));
 
     (255.*c).as_u8vec4()
+}
+
+fn open_file(cli: &Cli) -> File {
+    let filepath = cli.output.clone().unwrap_or("out.ppm".try_into().unwrap());
+    let file = File::options()
+        .create(true)
+        .create_new(if cli.force_overwrite { false } else { true })
+        .truncate(if cli.force_overwrite { true } else { false })
+        .write(true)
+        .open(filepath.as_path());
+
+    if let Ok(file) = file {
+        file
+    } else {
+        Cli::command().error(ErrorKind::Io, format!(
+            "Fail to open '{}' for writing",
+            filepath.to_string_lossy(),
+        )).exit()
+    }
 }
 
 fn main() {
@@ -200,13 +219,8 @@ fn main() {
             })
             .collect();
 
-    let mut ppm_out = File::options()
-        .create(true)
-        .create_new(if cli.force_overwrite { false } else { true })
-        .truncate(if cli.force_overwrite { true } else { false })
-        .write(true)
-        .open(cli.output.unwrap_or("out.ppm".try_into().unwrap()))
-        .expect("Fail to open {} for writing");
+    // Dump image
+    let mut ppm_out = open_file(&cli);
 
     write_ppm(&mut ppm_out, image_width, image_height, pixels.as_slice())
         .expect("Fail to write ppm");
