@@ -22,4 +22,8 @@ impl Ray {
     pub fn get_direction(&self) -> DVec3 {
         self.direction
     }
+
+    pub fn get_origin(&self) -> DVec3 {
+        self.origin
+    }
 }
