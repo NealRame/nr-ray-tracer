@@ -47,12 +47,32 @@ fn dump_image(cli: &Cli, image: &Image) {
         });
 }
 
-fn ray_color(ray: &Ray) -> U8Vec4 {
-    let d = ray.get_direction().normalize();
-    let a = (d.y + 1.)/2.;
-    let c = DVec4::ONE.xyzw().with_xyz((1. - a)*DVec3::ONE + a*DVec3::new(0.5, 0.7, 1.0));
+fn hit_sphere(
+    ray: &Ray,
+    center: &DVec3,
+    radius: f64,
+) -> bool {
+    let dir = ray.get_direction();
+    let eye = ray.get_origin();
+    let ec = center - eye;
 
-    (255.*c).as_u8vec4()
+    let a = dir.dot(dir);
+    let b = -2.0*ec.dot(dir);
+    let c = ec.dot(ec) - radius*radius;
+
+    b*b - 4.0*a*c >= 0.0
+}
+
+fn ray_color(ray: &Ray) -> U8Vec4 {
+    if hit_sphere(ray, &DVec3::new(0., 0., -1.), 0.5) {
+        U8Vec4::new(255, 0, 0, 255)
+    } else {
+        let d = ray.get_direction().normalize();
+        let a = (d.y + 1.)/2.;
+        let c = DVec4::ONE.xyzw().with_xyz((1. - a)*DVec3::ONE + a*DVec3::new(0.5, 0.7, 1.0));
+
+        (255.*c).as_u8vec4()
+    }
 }
 
 fn main() {
