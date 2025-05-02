@@ -149,14 +149,6 @@ struct Cli {
     output: Option<PathBuf>,
 }
 
-fn ray_color(ray: &Ray) -> U8Vec4 {
-    let d = ray.get_direction().normalize();
-    let a = (d.y + 1.)/2.;
-    let c = DVec4::ONE.xyzw().with_xyz((1. - a)*DVec3::ONE + a*DVec3::new(0.5, 0.7, 1.0));
-
-    (255.*c).as_u8vec4()
-}
-
 fn dump_image(cli: &Cli, image: &Image) {
     let overwrite = cli.force_overwrite;
     let filepath = cli.output.clone().unwrap_or("out.ppm".try_into().unwrap());
@@ -182,6 +174,14 @@ fn dump_image(cli: &Cli, image: &Image) {
                 err.to_string(),
             )).exit();
         });
+}
+
+fn ray_color(ray: &Ray) -> U8Vec4 {
+    let d = ray.get_direction().normalize();
+    let a = (d.y + 1.)/2.;
+    let c = DVec4::ONE.xyzw().with_xyz((1. - a)*DVec3::ONE + a*DVec3::new(0.5, 0.7, 1.0));
+
+    (255.*c).as_u8vec4()
 }
 
 fn main() {
