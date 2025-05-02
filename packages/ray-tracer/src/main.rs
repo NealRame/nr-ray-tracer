@@ -26,9 +26,7 @@ use once_cell::sync::Lazy;
 
 use regex::Regex;
 
-use nr_ray_tracer_lib::image::Image;
-use nr_ray_tracer_lib::ray::Ray;
-use nr_ray_tracer_lib::ppm::write_ppm;
+use nr_ray_tracer_lib::prelude::*;
 
 const DEFAULT_IMAGE_WIDTH: usize = 300;
 const DEFAULT_IMAGE_HEIGHT: usize = 200;
@@ -188,43 +186,16 @@ fn main() {
     let cli = Cli::parse();
 
     // Image
-    let mut image = cli.image_size.validate();
+    let image = cli.image_size.validate();
 
     // Camera
-    let camera_center = DVec3::ZERO;
-    let focal_length = cli.focal_length;
-
-    let viewport_height = 2.0;
-    let viewport_width = image.get_aspect_ratio()*viewport_height;
-
-    let viewport_u =  DVec3::X*viewport_width;
-    let viewport_v = -DVec3::Y*viewport_height;
-
-    let viewport_pixel_delta_u = viewport_u/(image.get_width() as f64);
-    let viewport_pixel_delta_v = viewport_v/(image.get_height() as f64);
-
-    let viewport_top_left =
-            camera_center
-                - DVec3::Z*focal_length
-                - viewport_u/2.
-                - viewport_v/2.
-                + (viewport_pixel_delta_u + viewport_pixel_delta_v)/2.
-            ;
+    let mut camera = Camera::new_with_image(image, DVec3::ZERO, cli.focal_length);
 
     // Render
-    image.map(|x, y| {
-        let pixel =
-            viewport_top_left
-                + (x as f64)*viewport_pixel_delta_u
-                + (y as f64)*viewport_pixel_delta_v
-            ;
-
-        let direction = pixel - camera_center;
-        let ray = Ray::new(camera_center, direction);
-
+    camera.map(|ray, _| {
         ray_color(&ray)
     });
 
     // Dump image
-    dump_image(&cli, &image);
+    dump_image(&cli, &camera.take_image());
 }
