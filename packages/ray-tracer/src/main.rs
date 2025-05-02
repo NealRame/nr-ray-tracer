@@ -46,7 +46,7 @@ fn hit_sphere(
     ray: &Ray,
     center: &DVec3,
     radius: f64,
-) -> bool {
+) -> f64 {
     let dir = ray.get_direction();
     let eye = ray.get_origin();
     let ec = center - eye;
@@ -55,17 +55,31 @@ fn hit_sphere(
     let b = -2.0*ec.dot(dir);
     let c = ec.dot(ec) - radius*radius;
 
-    b*b - 4.0*a*c >= 0.0
+    match b*b - 4.0*a*c {
+        discriminant if discriminant >= 0.0 => {
+            // return the smallest t i.d. the closest point
+            (-b - discriminant.sqrt())/(2.0*a)
+        },
+        _ => -1.0
+    }
 }
 
 fn ray_color(ray: &Ray) -> DVec3 {
-    if hit_sphere(ray, &DVec3::new(0., 0., -1.), 0.5) {
-        DVec3::X
-    } else {
-        let d = ray.get_direction().normalize();
-        let a = (d.y + 1.)/2.;
+    let sphere_center = DVec3::new(0., 0., -1.);
 
-        (1. - a)*DVec3::ONE + a*DVec3::new(0.5, 0.7, 1.0)
+    match hit_sphere(ray, &sphere_center, 0.5) {
+        t if t >= 0.0 => {
+            let p = ray.at(t);
+            let n = (p - sphere_center).normalize();
+
+            (n + DVec3::ONE)/2.0
+        },
+        _ => {
+            let d = ray.get_direction().normalize();
+            let a = (d.y + 1.)/2.;
+
+            (1. - a)*DVec3::ONE + a*DVec3::new(0.5, 0.7, 1.0)
+        }
     }
 }
 
