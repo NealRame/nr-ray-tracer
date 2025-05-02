@@ -1,4 +1,4 @@
-use glam::U8Vec4;
+use glam::DVec3;
 
 use itertools::Itertools;
 
@@ -6,7 +6,7 @@ pub struct Image {
     aspect_ratio: f64,
     height: usize,
     width: usize,
-    pixels: Vec<U8Vec4>,
+    pixels: Vec<DVec3>,
 }
 
 impl Image {
@@ -15,7 +15,7 @@ impl Image {
         height: usize,
     ) -> Self {
         let aspect_ratio = (width as f64)/(height as f64);
-        let pixels = vec![U8Vec4::ZERO; width*height];
+        let pixels = vec![DVec3::ZERO; width*height];
 
         Self {
             aspect_ratio,
@@ -55,11 +55,11 @@ impl Image {
         self.width
     }
 
-    pub fn get_pixels(&self) -> &[U8Vec4] {
+    pub fn get_pixels(&self) -> &[DVec3] {
         &self.pixels[..]
     }
 
-    pub fn get_pixels_mut(&mut self) -> &mut [U8Vec4] {
+    pub fn get_pixels_mut(&mut self) -> &mut [DVec3] {
         &mut self.pixels[..]
     }
 
@@ -67,7 +67,7 @@ impl Image {
         &self,
         x: usize,
         y: usize,
-    ) -> Option<&U8Vec4> {
+    ) -> Option<&DVec3> {
         if (0..self.width).contains(&x) && (0..self.height).contains(&y) {
             self.pixels.get(y*self.width + x)
         } else {
@@ -79,7 +79,7 @@ impl Image {
         &mut self,
         x: usize,
         y: usize,
-    ) -> Option<&mut U8Vec4> {
+    ) -> Option<&mut DVec3> {
         if (0..self.width).contains(&x) && (0..self.height).contains(&y) {
             self.pixels.get_mut(y*self.width + x)
         } else {
@@ -89,7 +89,7 @@ impl Image {
 
     pub fn iter(
         &self,
-    ) -> impl Iterator<Item = ((usize, usize), &U8Vec4)> {
+    ) -> impl Iterator<Item = ((usize, usize), &DVec3)> {
         self.pixels.iter().enumerate().map(|(index, pixel)| {
             let x = index%self.width;
             let y = index/self.width;
@@ -100,7 +100,7 @@ impl Image {
 
     pub fn iter_mut(
         &mut self,
-    ) -> impl Iterator<Item = ((usize, usize), &mut U8Vec4)> {
+    ) -> impl Iterator<Item = ((usize, usize), &mut DVec3)> {
         self.pixels.iter_mut().enumerate().map(|(index, pixel)| {
             let x = index%self.width;
             let y = index/self.width;
@@ -112,7 +112,7 @@ impl Image {
     pub fn map<F>(
         &mut self,
         mut f: F
-    ) -> &mut Self where F: FnMut(usize, usize) -> U8Vec4  {
+    ) -> &mut Self where F: FnMut(usize, usize) -> DVec3  {
         Itertools::cartesian_product(0..self.height, 0..self.width)
             .for_each(|(y, x)| {
                 self.pixels[y*self.width + x] = f(x, y);

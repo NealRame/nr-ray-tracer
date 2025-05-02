@@ -12,8 +12,9 @@ pub fn write_ppm<T: Write>(
     writeln!(out, "{} {}", image.get_width(), image.get_height())?;
     writeln!(out, "255")?;
 
-    for (_, pixel) in image.iter() {
-        writeln!(out, "{:03} {:03} {:03}", pixel.x, pixel.y, pixel.z)?;
+    for (_, color) in image.iter() {
+        let color = (255.*color).as_u8vec3();
+        writeln!(out, "{:03} {:03} {:03}", color.x, color.y, color.z)?;
     }
 
     Ok(())

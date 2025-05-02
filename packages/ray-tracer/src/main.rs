@@ -9,12 +9,7 @@ use clap::{
 };
 use clap::error::ErrorKind;
 
-use glam::{
-    DVec3,
-    DVec4,
-    U8Vec4,
-};
-use glam::swizzles::Vec4Swizzles;
+use glam::DVec3;
 
 use nr_ray_tracer_lib::prelude::*;
 
@@ -63,15 +58,14 @@ fn hit_sphere(
     b*b - 4.0*a*c >= 0.0
 }
 
-fn ray_color(ray: &Ray) -> U8Vec4 {
+fn ray_color(ray: &Ray) -> DVec3 {
     if hit_sphere(ray, &DVec3::new(0., 0., -1.), 0.5) {
-        U8Vec4::new(255, 0, 0, 255)
+        DVec3::X
     } else {
         let d = ray.get_direction().normalize();
         let a = (d.y + 1.)/2.;
-        let c = DVec4::ONE.xyzw().with_xyz((1. - a)*DVec3::ONE + a*DVec3::new(0.5, 0.7, 1.0));
 
-        (255.*c).as_u8vec4()
+        (1. - a)*DVec3::ONE + a*DVec3::new(0.5, 0.7, 1.0)
     }
 }
 

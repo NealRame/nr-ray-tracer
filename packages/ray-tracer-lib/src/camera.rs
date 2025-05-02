@@ -1,7 +1,5 @@
 use glam::{
-    DVec2,
-    DVec3,
-    U8Vec4, Vec3Swizzles,
+    DVec2, DVec3, Vec3Swizzles
 };
 
 use crate::image::Image;
@@ -55,7 +53,7 @@ impl Camera {
     pub fn map<F>(
         &mut self,
         mut f: F
-    ) -> &mut Self where F: FnMut(&Ray, DVec2) -> U8Vec4 {
+    ) -> &mut Self where F: FnMut(&Ray, DVec2) -> DVec3 {
         self.image.map(|x, y| {
             let pixel =
                 self.viewport_top_left
