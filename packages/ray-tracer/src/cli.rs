@@ -46,24 +46,24 @@ fn report_image_size_missing_arg_error(
 ) -> ! {
     Cli::command().error(ErrorKind::ArgumentConflict, format!(
         "When '{}' or '{}' are specified, one of '{}', '{}', '{}', '{}' must be specified too.",
-        cformat!(r#"<yellow>{_1}</yellow>"#),
-        cformat!(r#"<yellow>{_2}</yellow>"#),
-        cformat!(r#"<yellow>{_3}</yellow>"#),
-        cformat!(r#"<yellow>{_4}</yellow>"#),
-        cformat!(r#"<yellow>{_5}</yellow>"#),
-        cformat!(r#"<yellow>{_6}</yellow>"#),
+        cformat!("<yellow>{_1}</yellow>"),
+        cformat!("<yellow>{_2}</yellow>"),
+        cformat!("<yellow>{_3}</yellow>"),
+        cformat!("<yellow>{_4}</yellow>"),
+        cformat!("<yellow>{_5}</yellow>"),
+        cformat!("<yellow>{_6}</yellow>"),
     )).exit();
 }
 
 fn report_image_size_conflicting_args_error() -> ! {
     Cli::command().error(ErrorKind::ArgumentConflict, format!(
         "When '{}' or '{}' are specified, '{}' or '{}' and '{}' or '{}' are mutually exclusive.",
-        cstr!(r#"<yellow>-R,</yellow>"#),
-        cstr!(r#"<yellow>--aspect-ratio</yellow>"#),
-        cstr!(r#"<yellow>-W</yellow>"#),
-        cstr!(r#"<yellow>--width</yellow>"#),
-        cstr!(r#"<yellow>-H</yellow>"#),
-        cstr!(r#"<yellow>--height</yellow>"#),
+        cstr!("<yellow>-R,</yellow>"),
+        cstr!("<yellow>--aspect-ratio</yellow>"),
+        cstr!("<yellow>-W</yellow>"),
+        cstr!("<yellow>--width</yellow>"),
+        cstr!("<yellow>-H</yellow>"),
+        cstr!("<yellow>--height</yellow>"),
     )).exit();
 }
 
