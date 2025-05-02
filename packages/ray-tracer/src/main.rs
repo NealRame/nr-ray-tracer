@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::path::PathBuf;
 
-use itertools::Itertools;
+use anyhow::Result;
 
 use clap::{
     Args,
@@ -26,6 +26,7 @@ use once_cell::sync::Lazy;
 
 use regex::Regex;
 
+use nr_ray_tracer_lib::image::Image;
 use nr_ray_tracer_lib::ray::Ray;
 use nr_ray_tracer_lib::ppm::write_ppm;
 
@@ -95,17 +96,19 @@ struct ImageSize {
 }
 
 impl ImageSize {
-    fn validate(&self) -> (usize, usize, f64) {
-        let (w, h) = match (self.width, self.height, self.aspect_ratio) {
-            (None, None, None) => (DEFAULT_IMAGE_WIDTH, DEFAULT_IMAGE_HEIGHT),
-            (Some(w), Some(h), None) => (w, h),
-            (Some(w), None, Some(r)) => (w, (((w as f64)/r) as usize).max(1)),
-            (None, Some(h), Some(r)) => ((((h as f64)*r) as usize).max(1), h),
-            (Some(_), None, None) => report_image_size_missing_arg_error(
-                "-W", "--width",
-                "-H", "--height",
-                "-R", "--aspect-ratio",
-            ),
+    fn validate(&self) -> Image {
+        match (self.width, self.height, self.aspect_ratio) {
+            (None,    None,    None) => Image::new(DEFAULT_IMAGE_WIDTH, DEFAULT_IMAGE_HEIGHT),
+            (Some(w), Some(h), None) => Image::new(w, h),
+            (Some(w), None, Some(r)) => Image::new_with_width_and_aspect_ratio(w, r),
+            (None, Some(h), Some(r)) => Image::new_with_height_and_aspect_ratio(h, r),
+            (Some(_), None, None) => {
+                report_image_size_missing_arg_error(
+                    "-W", "--width",
+                    "-H", "--height",
+                    "-R", "--aspect-ratio",
+                );
+            },
             (None, Some(_), None) => {
                 report_image_size_missing_arg_error(
                     "-H", "--height",
@@ -123,9 +126,7 @@ impl ImageSize {
             (Some(_), Some(_), Some(_)) => {
                 report_image_size_conflicting_args_error();
             },
-        };
-
-        (w, h, (w as f64)/(h as f64))
+        }
     }
 }
 
@@ -156,43 +157,51 @@ fn ray_color(ray: &Ray) -> U8Vec4 {
     (255.*c).as_u8vec4()
 }
 
-fn open_file(cli: &Cli) -> File {
+fn dump_image(cli: &Cli, image: &Image) {
+    let overwrite = cli.force_overwrite;
     let filepath = cli.output.clone().unwrap_or("out.ppm".try_into().unwrap());
-    let file = File::options()
-        .create(true)
-        .create_new(if cli.force_overwrite { false } else { true })
-        .truncate(if cli.force_overwrite { true } else { false })
-        .write(true)
-        .open(filepath.as_path());
 
-    if let Ok(file) = file {
-        file
-    } else {
-        Cli::command().error(ErrorKind::Io, format!(
-            "Fail to open '{}' for writing",
-            filepath.to_string_lossy(),
-        )).exit()
-    }
+    let mut file = File::options()
+        .create_new(!overwrite)
+        .create(true)
+        .truncate(true)
+        .write(true)
+        .open(filepath.as_path())
+        .unwrap_or_else(|err| {
+            Cli::command().error(ErrorKind::Io, format!(
+                "Fail to open '{}' for writing. {}.",
+                filepath.to_string_lossy(),
+                err.to_string(),
+            )).exit();
+        });
+
+    write_ppm(image, &mut file)
+        .unwrap_or_else(|err| {
+            Cli::command().error(ErrorKind::Io, format!(
+                "Fail to write image. {}.",
+                err.to_string(),
+            )).exit();
+        });
 }
 
 fn main() {
     let cli = Cli::parse();
 
     // Image
-    let (image_width, image_height, aspect_ratio) = cli.image_size.validate();
+    let mut image = cli.image_size.validate();
 
     // Camera
     let camera_center = DVec3::ZERO;
     let focal_length = cli.focal_length;
 
     let viewport_height = 2.0;
-    let viewport_width = aspect_ratio*viewport_height;
+    let viewport_width = image.get_aspect_ratio()*viewport_height;
 
     let viewport_u =  DVec3::X*viewport_width;
     let viewport_v = -DVec3::Y*viewport_height;
 
-    let viewport_pixel_delta_u = viewport_u/(image_width as f64);
-    let viewport_pixel_delta_v = viewport_v/(image_height as f64);
+    let viewport_pixel_delta_u = viewport_u/(image.get_width() as f64);
+    let viewport_pixel_delta_v = viewport_v/(image.get_height() as f64);
 
     let viewport_top_left =
             camera_center
@@ -203,25 +212,19 @@ fn main() {
             ;
 
     // Render
-    let pixels: Vec<U8Vec4> =
-        Itertools::cartesian_product(0..image_height, 0..image_width)
-            .map(|(y, x)| {
-                let pixel =
-                    viewport_top_left
-                        + (x as f64)*viewport_pixel_delta_u
-                        + (y as f64)*viewport_pixel_delta_v
-                    ;
+    image.map(|x, y| {
+        let pixel =
+            viewport_top_left
+                + (x as f64)*viewport_pixel_delta_u
+                + (y as f64)*viewport_pixel_delta_v
+            ;
 
-                let direction = pixel - camera_center;
-                let ray = Ray::new(camera_center, direction);
+        let direction = pixel - camera_center;
+        let ray = Ray::new(camera_center, direction);
 
-                ray_color(&ray)
-            })
-            .collect();
+        ray_color(&ray)
+    });
 
     // Dump image
-    let mut ppm_out = open_file(&cli);
-
-    write_ppm(&mut ppm_out, image_width, image_height, pixels.as_slice())
-        .expect("Fail to write ppm");
+    dump_image(&cli, &image);
 }

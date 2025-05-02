@@ -1,28 +1,19 @@
 use std::io::Write;
 
-use anyhow::{
-    anyhow,
-    Result,
-};
+use anyhow::Result;
 
-use glam::U8Vec4;
+use crate::image::Image;
 
 pub fn write_ppm<T: Write>(
+    image: &Image,
     out: &mut T,
-    width: usize,
-    height: usize,
-    pixels: &[U8Vec4],
 ) -> Result<()> {
-    if width*height != pixels.len() {
-        return Err(anyhow!("Invalid sized"));
-    }
-
     writeln!(out, "P3")?;
-    writeln!(out, "{width} {height}")?;
+    writeln!(out, "{} {}", image.get_width(), image.get_height())?;
     writeln!(out, "255")?;
 
-    for color in pixels {
-        writeln!(out, "{:03} {:03} {:03}", color.x, color.y, color.z)?;
+    for (_, pixel) in image.iter() {
+        writeln!(out, "{:03} {:03} {:03}", pixel.x, pixel.y, pixel.z)?;
     }
 
     Ok(())
