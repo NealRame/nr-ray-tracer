@@ -2,6 +2,7 @@ use glam::{
     DVec2, DVec3, Vec3Swizzles
 };
 
+use crate::hitable::HitableList;
 use crate::image::Image;
 use crate::ray::Ray;
 
@@ -50,7 +51,7 @@ impl Camera {
 }
 
 impl Camera {
-    pub fn map<F>(
+    fn map<F>(
         &mut self,
         mut f: F
     ) -> &mut Self where F: FnMut(&Ray, DVec2) -> DVec3 {
@@ -65,6 +66,17 @@ impl Camera {
             let ray = Ray::new(self.eye, direction);
 
             f(&ray, pixel.xy())
+        });
+        self
+    }
+
+    pub fn render<F>(
+        &mut self,
+        world: &HitableList,
+        mut f: F
+    ) -> &mut Self where F: FnMut(&Ray, &HitableList) -> DVec3 {
+        self.map(|ray, _| {
+            f(&ray, &world)
         });
         self
     }

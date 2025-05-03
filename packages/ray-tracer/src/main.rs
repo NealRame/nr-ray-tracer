@@ -72,9 +72,7 @@ fn main() {
     world.add(Box::new(Sphere::new(DVec3::new(0.0, -100.5, -1.0), 100.0)));
 
     // Render
-    camera.map(|ray, _| {
-        ray_color(&ray, &world)
-    });
+    camera.render(&world, ray_color);
 
     // Dump image
     dump_image(&cli, &camera.take_image());
