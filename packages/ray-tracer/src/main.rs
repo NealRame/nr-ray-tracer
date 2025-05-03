@@ -51,14 +51,14 @@ fn hit_sphere(
     let eye = ray.get_origin();
     let ec = center - eye;
 
-    let a = dir.dot(dir);
-    let b = -2.0*ec.dot(dir);
-    let c = ec.dot(ec) - radius*radius;
+    let a = dir.length_squared();
+    let h = ec.dot(dir);
+    let c = ec.length_squared() - radius*radius;
 
-    match b*b - 4.0*a*c {
+    match h*h - a*c {
         discriminant if discriminant >= 0.0 => {
             // return the smallest t i.d. the closest point
-            (-b - discriminant.sqrt())/(2.0*a)
+            (h - discriminant.sqrt())/a
         },
         _ => -1.0
     }
