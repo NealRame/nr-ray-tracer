@@ -1,5 +1,3 @@
-use std::ops::Range;
-
 use glam::DVec3;
 
 use crate::hitable::{
@@ -7,6 +5,7 @@ use crate::hitable::{
     Hitable,
 };
 
+use crate::interval::Interval;
 use crate::ray::Ray;
 
 pub struct Sphere {
@@ -24,7 +23,7 @@ impl Sphere {
 }
 
 impl Hitable for Sphere {
-    fn hit(&self, ray: &Ray, hit_range: Range<f64>) -> Option<HitRecord> {
+    fn hit(&self, ray: &Ray, hit_range: Interval) -> Option<HitRecord> {
         let dir = ray.get_direction();
         let eye = ray.get_origin();
         let ec = self.center - eye;
@@ -44,24 +43,27 @@ impl Hitable for Sphere {
         None
             .or_else(|| {
                 let t = (h - sqrtd)/a;
-                if hit_range.contains(&t) {
+
+                if hit_range.surrounds(t) {
                     Some(t)
-                } else { None }
+                } else {
+                    None
+                }
             })
             .or_else(|| {
                 let t = (h + sqrtd)/a;
-                if hit_range.contains(&t) {
+
+                if hit_range.surrounds(t) {
                     Some(t)
-                } else { None }
+                } else {
+                    None
+                }
             })
-            .and_then(|t| {
+            .map(|t| {
                 let point = ray.at(t);
                 let normal = (point - self.center).normalize();
-                Some(HitRecord {
-                    point,
-                    normal,
-                    t,
-                })
+
+                HitRecord::new(ray, point, normal, t)
             })
     }
 }

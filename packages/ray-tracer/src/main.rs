@@ -42,10 +42,8 @@ fn dump_image(cli: &Cli, image: &Image) {
         });
 }
 
-fn ray_color(ray: &Ray) -> DVec3 {
-    let sphere = Sphere::new(DVec3::new(0., 0., -1.), 0.5);
-
-    match sphere.hit(ray, 0.0..10.0) {
+fn ray_color(ray: &Ray, hitable: &impl Hitable) -> DVec3 {
+    match hitable.hit(ray, Interval::POSITIVE) {
         Some(hit_record) => {
             (hit_record.normal + DVec3::ONE)/2.0
         },
@@ -67,9 +65,15 @@ fn main() {
     // Camera
     let mut camera = Camera::new_with_image(image, DVec3::ZERO, cli.focal_length);
 
+    // World
+    let mut world = HitableList::new();
+
+    world.add(Box::new(Sphere::new(DVec3::new(0.0,    0.0, -1.0),   0.5)));
+    world.add(Box::new(Sphere::new(DVec3::new(0.0, -100.5, -1.0), 100.0)));
+
     // Render
     camera.map(|ray, _| {
-        ray_color(&ray)
+        ray_color(&ray, &world)
     });
 
     // Dump image
