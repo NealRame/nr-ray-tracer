@@ -42,37 +42,12 @@ fn dump_image(cli: &Cli, image: &Image) {
         });
 }
 
-fn hit_sphere(
-    ray: &Ray,
-    center: &DVec3,
-    radius: f64,
-) -> f64 {
-    let dir = ray.get_direction();
-    let eye = ray.get_origin();
-    let ec = center - eye;
-
-    let a = dir.length_squared();
-    let h = ec.dot(dir);
-    let c = ec.length_squared() - radius*radius;
-
-    match h*h - a*c {
-        discriminant if discriminant >= 0.0 => {
-            // return the smallest t i.d. the closest point
-            (h - discriminant.sqrt())/a
-        },
-        _ => -1.0
-    }
-}
-
 fn ray_color(ray: &Ray) -> DVec3 {
-    let sphere_center = DVec3::new(0., 0., -1.);
+    let sphere = Sphere::new(DVec3::new(0., 0., -1.), 0.5);
 
-    match hit_sphere(ray, &sphere_center, 0.5) {
-        t if t >= 0.0 => {
-            let p = ray.at(t);
-            let n = (p - sphere_center).normalize();
-
-            (n + DVec3::ONE)/2.0
+    match sphere.hit(ray, 0.0..10.0) {
+        Some(hit_record) => {
+            (hit_record.normal + DVec3::ONE)/2.0
         },
         _ => {
             let d = ray.get_direction().normalize();
