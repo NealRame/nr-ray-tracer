@@ -66,10 +66,10 @@ fn main() {
     let mut camera = Camera::new_with_image(image, DVec3::ZERO, cli.focal_length);
 
     // World
-    let mut world = HitableList::new();
-
-    world.add(Box::new(Sphere::new(DVec3::new(0.0,    0.0, -1.0),   0.5)));
-    world.add(Box::new(Sphere::new(DVec3::new(0.0, -100.5, -1.0), 100.0)));
+    let world = HitableList::from(vec![
+        Box::new(Sphere::new(DVec3::new(0.0,    0.0, -1.0),   0.5)),
+        Box::new(Sphere::new(DVec3::new(0.0, -100.5, -1.0), 100.0)),
+    ]);
 
     // Render
     camera.render(&world, ray_color);

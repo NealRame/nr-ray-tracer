@@ -42,7 +42,10 @@ pub struct HitableList {
 
 impl HitableList {
     pub fn new() -> Self {
-        let items = Vec::default();
+        Self { items: Vec::new() }
+    }
+
+    pub fn from(items: Vec<Box<dyn Hitable>>) -> Self {
         Self { items }
     }
 
