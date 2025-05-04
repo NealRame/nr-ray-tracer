@@ -6,3 +6,4 @@ pub mod ppm;
 pub mod prelude;
 pub mod ray;
 pub mod sphere;
+pub mod vector;

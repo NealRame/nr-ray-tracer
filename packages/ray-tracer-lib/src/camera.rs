@@ -1,12 +1,14 @@
 use std::usize;
 
-use glam::DVec3;
-
-use rand::Rng;
+use glam::{
+    DVec2,
+    DVec3,
+};
 
 use crate::hitable::HitableList;
 use crate::image::Image;
 use crate::ray::Ray;
+use crate::vector::FromRng;
 
 pub struct Camera {
     eye: DVec3,
@@ -104,15 +106,12 @@ impl Camera {
 
         self.image.map(|x, y| {
             let s = (0..sample_per_pixels).map(|_| {
-                let (offset_x, offset_y) = (
-                    rng.random_range(-0.5..0.5),
-                    rng.random_range(-0.5..0.5),
-                );
+                let offset = DVec2::from_rng_ranged(&mut rng, -0.5..0.5);
 
                 let pixel =
                     self.viewport_top_left
-                        + (x as f64 + offset_x)*self.viewport_pixel_delta_u
-                        + (y as f64 + offset_y)*self.viewport_pixel_delta_v
+                        + (x as f64 + offset.x)*self.viewport_pixel_delta_u
+                        + (y as f64 + offset.y)*self.viewport_pixel_delta_v
                     ;
 
                 let direction = pixel - self.eye;
