@@ -63,12 +63,11 @@ fn main() {
     let image = cli.image_size.validate();
 
     // Camera
-    let mut camera = Camera::new_with_image(
-        image,
-        DVec3::ZERO,
-        cli.focal_length,
-        cli.anti_aliasing,
-    );
+    let mut camera = CameraBuilder::new()
+        .with_eye_at(DVec3::ZERO)
+        .with_focal_length(cli.focal_length)
+        .with_sample_per_pixels(cli.anti_aliasing)
+        .build(image);
 
     // World
     let world = HitableList::from(vec![
