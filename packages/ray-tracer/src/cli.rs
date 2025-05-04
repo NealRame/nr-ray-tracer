@@ -133,8 +133,20 @@ pub struct Cli {
     #[command(flatten)]
     pub image_size: ImageSize,
 
+    /// How many samples per pixels anti-aliasing will use
+    #[arg(
+        short = 'A', long,
+        value_name = "SAMPLES_PER_PIXELS",
+        default_value_t = DEFAULT_SAMPLES_PER_PIXELS
+    )]
+    pub anti_aliasing: usize,
+
     /// Focal length
-    #[arg(short = 'F', long, value_name = "FOCAL_LENGTH", default_value_t = 1.0)]
+    #[arg(
+        short = 'F', long,
+        value_name = "FOCAL_LENGTH",
+        default_value_t = DEFAULT_CAMERA_FOCAL_LENGTH
+    )]
     pub focal_length: f64,
 
     /// Force output overwrite

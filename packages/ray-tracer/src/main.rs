@@ -63,7 +63,12 @@ fn main() {
     let image = cli.image_size.validate();
 
     // Camera
-    let mut camera = Camera::new_with_image(image, DVec3::ZERO, cli.focal_length);
+    let mut camera = Camera::new_with_image(
+        image,
+        DVec3::ZERO,
+        cli.focal_length,
+        cli.anti_aliasing,
+    );
 
     // World
     let world = HitableList::from(vec![

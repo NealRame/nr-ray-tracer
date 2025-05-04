@@ -1,6 +1,8 @@
-use glam::{
-    DVec2, DVec3, Vec3Swizzles
-};
+use std::usize;
+
+use glam::DVec3;
+
+use rand::Rng;
 
 use crate::hitable::HitableList;
 use crate::image::Image;
@@ -10,6 +12,8 @@ pub struct Camera {
     eye: DVec3,
 
     image: Image,
+
+    sample_per_pixels: usize,
 
     viewport_pixel_delta_u: DVec3,
     viewport_pixel_delta_v: DVec3,
@@ -21,6 +25,7 @@ impl Camera {
         image: Image,
         eye: DVec3,
         focal_length: f64,
+        sample_per_pixels: usize,
     ) -> Self {
         let viewport_height = 2.0;
         let viewport_width = image.get_aspect_ratio()*viewport_height;
@@ -43,6 +48,8 @@ impl Camera {
 
             image,
 
+            sample_per_pixels,
+
             viewport_pixel_delta_u,
             viewport_pixel_delta_v,
             viewport_top_left,
@@ -51,32 +58,35 @@ impl Camera {
 }
 
 impl Camera {
-    fn map<F>(
-        &mut self,
-        mut f: F
-    ) -> &mut Self where F: FnMut(&Ray, DVec2) -> DVec3 {
-        self.image.map(|x, y| {
-            let pixel =
-                self.viewport_top_left
-                    + (x as f64)*self.viewport_pixel_delta_u
-                    + (y as f64)*self.viewport_pixel_delta_v
-                ;
-
-            let direction = pixel - self.eye;
-            let ray = Ray::new(self.eye, direction);
-
-            f(&ray, pixel.xy())
-        });
-        self
-    }
-
     pub fn render<F>(
         &mut self,
         world: &HitableList,
         mut f: F
     ) -> &mut Self where F: FnMut(&Ray, &HitableList) -> DVec3 {
-        self.map(|ray, _| {
-            f(&ray, &world)
+        let mut rng = rand::rng();
+
+        self.image.map(|x, y| {
+            let s = (0..self.sample_per_pixels)
+                .map(|_| {
+                    let (offset_x, offset_y) = (
+                        rng.random_range(-0.5..0.5),
+                        rng.random_range(-0.5..0.5),
+                    );
+
+                    let pixel =
+                        self.viewport_top_left
+                            + (x as f64 + offset_x)*self.viewport_pixel_delta_u
+                            + (y as f64 + offset_y)*self.viewport_pixel_delta_v
+                        ;
+
+                    let direction = pixel - self.eye;
+                    let ray = Ray::new(self.eye, direction);
+
+                    f(&ray, &world)
+                })
+                .sum::<DVec3>();
+
+            s/(self.sample_per_pixels as f64)
         });
         self
     }
