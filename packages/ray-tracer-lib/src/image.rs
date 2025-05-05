@@ -2,6 +2,7 @@ use glam::DVec3;
 
 use itertools::Itertools;
 
+#[derive(Default)]
 pub struct Image {
     aspect_ratio: f64,
     height: usize,

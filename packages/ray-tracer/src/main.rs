@@ -42,20 +42,6 @@ fn dump_image(cli: &Cli, image: &Image) {
         });
 }
 
-fn ray_color(ray: &Ray, hitable: &impl Hitable) -> DVec3 {
-    match hitable.hit(ray, Interval::POSITIVE) {
-        Some(hit_record) => {
-            (hit_record.normal + DVec3::ONE)/2.0
-        },
-        _ => {
-            let d = ray.get_direction().normalize();
-            let a = (d.y + 1.)/2.;
-
-            (1. - a)*DVec3::ONE + a*DVec3::new(0.5, 0.7, 1.0)
-        }
-    }
-}
-
 fn main() {
     let cli = Cli::parse();
 
@@ -76,7 +62,7 @@ fn main() {
     ]);
 
     // Render
-    camera.render(&world, ray_color);
+    camera.render(&world);
 
     // Dump image
     dump_image(&cli, &camera.take_image());

@@ -53,3 +53,23 @@ impl FromRng for DVec2 {
         }
     }
 }
+
+pub fn random_in_unit_sphere<T: Rng>(rng: &mut T) -> DVec3 {
+    loop {
+        let p = DVec3::from_rng_ranged(rng, -1.0..1.0);
+        let length_squared = p.length_squared();
+
+        if 1e-160 < length_squared && length_squared <= 1.0 {
+            break p/length_squared
+        }
+    }
+}
+
+pub fn random_on_hemisphere<T: Rng>(
+    rng: &mut T,
+    normal: DVec3,
+) -> DVec3 {
+    let on_unit_sphere = random_in_unit_sphere(rng);
+
+    on_unit_sphere.dot(normal).signum()*on_unit_sphere
+}
