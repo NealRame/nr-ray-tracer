@@ -1,3 +1,4 @@
+use std::f64::INFINITY;
 use std::usize;
 
 use glam::{
@@ -124,7 +125,7 @@ impl Camera {
             return DVec3::ZERO;
         }
 
-        match hitable.hit(ray, Interval::POSITIVE) {
+        match hitable.hit(ray, Interval::new(0.001, INFINITY)) {
             Some(hit_record) => {
                 let reflected_direction = random_on_hemisphere(&mut self.rng, hit_record.normal);
                 let reflected_ray = Ray::new(hit_record.point, reflected_direction);
