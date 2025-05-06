@@ -149,6 +149,14 @@ pub struct Cli {
     )]
     pub focal_length: f64,
 
+    /// Maximum ray bounce count
+    #[arg(
+        short = 'D', long,
+        value_name = "MAX_DEPTH",
+        default_value_t = DEFAULT_RAY_MAX_DEPTH
+    )]
+    pub max_depth: usize,
+
     /// Force output overwrite
     #[arg(short, long)]
     pub force_overwrite: bool,
