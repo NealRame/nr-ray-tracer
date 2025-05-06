@@ -2,62 +2,79 @@ use glam::DVec3;
 
 use itertools::Itertools;
 
-#[derive(Default)]
-pub struct Image {
-    aspect_ratio: f64,
-    height: usize,
-    width: usize,
-    pixels: Vec<DVec3>,
+#[derive(Clone, Copy, Default)]
+pub struct ImageSize {
+    pub height: usize,
+    pub width: usize,
 }
 
-impl Image {
+impl ImageSize {
     pub fn new(
         width: usize,
         height: usize,
     ) -> Self {
-        let aspect_ratio = (width as f64)/(height as f64);
-        let pixels = vec![DVec3::ZERO; width*height];
-
-        Self {
-            aspect_ratio,
-            width,
-            height,
-            pixels,
-        }
+        Self { width, height }
     }
 
-    pub fn new_with_width_and_aspect_ratio(
+    pub fn from_width_and_aspect_ratio(
         width: usize,
         aspect_ratio: f64,
     ) -> Self {
         let height = (((width as f64)/aspect_ratio) as usize).max(1);
-        Image::new(width, height)
+        Self::new(width, height)
     }
 
-    pub fn new_with_height_and_aspect_ratio(
+    pub fn from_height_and_aspect_ratio(
         height: usize,
         aspect_ratio: f64,
     ) -> Self {
         let width = (((height as f64)*aspect_ratio) as usize).max(1);
-        Image::new(width, height)
+        Self::new(width, height)
+    }
+}
+
+impl ImageSize {
+    pub fn get_aspect_ratio(&self) -> f64 {
+        (self.width as f64)/(self.height as f64)
+    }
+
+    pub fn get_pixel_count(&self) -> usize {
+        self.width*self.height
+    }
+}
+
+#[derive(Default)]
+pub struct Image {
+    size: ImageSize,
+    pixels: Vec<DVec3>,
+}
+
+impl Image {
+    pub fn new(size: ImageSize) -> Self {
+        let pixels = vec![DVec3::ZERO; size.get_pixel_count()];
+
+        Self {
+            size,
+            pixels,
+        }
     }
 }
 
 impl Image {
     pub fn get_aspect_ratio(&self) -> f64 {
-        self.aspect_ratio
+        self.size.get_aspect_ratio()
     }
 
     pub fn get_height(&self) -> usize {
-        self.height
+        self.size.height
     }
 
     pub fn get_width(&self) -> usize {
-        self.width
+        self.size.width
     }
 
     pub fn get_pixel_count(&self) -> usize {
-        self.width*self.height
+        self.size.get_pixel_count()
     }
 
     pub fn get_pixels(&self) -> &[DVec3] {
@@ -73,8 +90,9 @@ impl Image {
         x: usize,
         y: usize,
     ) -> Option<&DVec3> {
-        if (0..self.width).contains(&x) && (0..self.height).contains(&y) {
-            self.pixels.get(y*self.width + x)
+        if (0..self.size.width).contains(&x)
+        && (0..self.size.height).contains(&y) {
+            self.pixels.get(y*self.size.width + x)
         } else {
             None
         }
@@ -85,8 +103,9 @@ impl Image {
         x: usize,
         y: usize,
     ) -> Option<&mut DVec3> {
-        if (0..self.width).contains(&x) && (0..self.height).contains(&y) {
-            self.pixels.get_mut(y*self.width + x)
+        if (0..self.size.width).contains(&x)
+        && (0..self.size.height).contains(&y) {
+            self.pixels.get_mut(y*self.size.width + x)
         } else {
             None
         }
@@ -96,8 +115,8 @@ impl Image {
         &self,
     ) -> impl Iterator<Item = ((usize, usize), &DVec3)> {
         self.pixels.iter().enumerate().map(|(index, pixel)| {
-            let x = index%self.width;
-            let y = index/self.width;
+            let x = index%self.size.width;
+            let y = index/self.size.width;
 
             ((x, y), pixel)
         })
@@ -107,8 +126,8 @@ impl Image {
         &mut self,
     ) -> impl Iterator<Item = ((usize, usize), &mut DVec3)> {
         self.pixels.iter_mut().enumerate().map(|(index, pixel)| {
-            let x = index%self.width;
-            let y = index/self.width;
+            let x = index%self.size.width;
+            let y = index/self.size.width;
 
             ((x, y), pixel)
         })
@@ -118,9 +137,9 @@ impl Image {
         &mut self,
         mut f: F,
     ) -> &mut Self where F: FnMut(usize, usize) -> DVec3 {
-        Itertools::cartesian_product(0..self.height, 0..self.width)
+        Itertools::cartesian_product(0..self.size.height, 0..self.size.width)
             .for_each(|(y, x)| {
-                self.pixels[y*self.width + x] = f(x, y);
+                self.pixels[y*self.size.width + x] = f(x, y);
             });
         self
     }

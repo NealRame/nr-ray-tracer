@@ -1,4 +1,8 @@
 use std::f64::INFINITY;
+use std::io::{
+    Result,
+    Write,
+};
 use std::usize;
 
 use glam::{
@@ -11,8 +15,12 @@ use indicatif::ProgressBar;
 use rand::rngs::ThreadRng;
 
 use crate::hitable::Hitable;
-use crate::image::Image;
+use crate::image::{
+    Image,
+    ImageSize,
+};
 use crate::interval::Interval;
+use crate::ppm::write_ppm;
 use crate::ray::Ray;
 use crate::vector::*;
 
@@ -36,13 +44,19 @@ pub struct Camera {
 pub struct CameraBuilder {
     eye: Option<DVec3>,
     focal_length: Option<f64>,
+
+    image_size: ImageSize,
+
     max_depth: Option<usize>,
     sample_per_pixels: Option<usize>,
 }
 
 impl CameraBuilder {
-    pub fn new() -> Self {
-        Self::default()
+    pub fn new(image_size: ImageSize) -> Self {
+        Self {
+            image_size,
+            ..Self::default()
+        }
     }
 
     pub fn with_eye_at(
@@ -79,8 +93,9 @@ impl CameraBuilder {
 
     pub fn build(
         self,
-        image: Image,
     ) -> Camera {
+        let image = Image::new(self.image_size);
+
         let eye = self.eye.unwrap_or_default();
         let focal_length = self.focal_length.unwrap_or(1.0);
         let max_depth = self.max_depth.unwrap_or(10);
@@ -208,6 +223,7 @@ impl Camera {
     ) -> &mut Self {
         let mut image = std::mem::take(&mut self.image);
         let progress = progress.map(|bar| {
+            bar.set_position(0);
             bar.set_length(image.get_pixel_count() as u64);
             bar
         });
@@ -223,6 +239,19 @@ impl Camera {
 
         self.image = image;
         self
+    }
+
+    pub fn dump<T: Write>(
+        &mut self,
+        out: &mut T,
+        progress: Option<ProgressBar>,
+    ) -> Result<()> {
+        let progress = progress.map(|bar| {
+            bar.set_position(0);
+            bar.set_length(self.image.get_pixel_count() as u64);
+            bar
+        });
+        write_ppm(&self.image, out, progress.as_ref())
     }
 }
 

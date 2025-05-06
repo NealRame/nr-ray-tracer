@@ -1,8 +1,6 @@
 mod cli;
 mod constants;
 
-use std::fs::File;
-
 use clap::{
     CommandFactory,
     Parser,
@@ -17,33 +15,6 @@ use nr_ray_tracer_lib::prelude::*;
 
 use crate::cli::*;
 
-fn dump_image(cli: &Cli, image: &Image) {
-    let overwrite = cli.force_overwrite;
-    let filepath = cli.output.clone().unwrap_or("out.ppm".try_into().unwrap());
-
-    let mut file = File::options()
-        .create_new(!overwrite)
-        .create(true)
-        .truncate(true)
-        .write(true)
-        .open(filepath.as_path())
-        .unwrap_or_else(|err| {
-            Cli::command().error(ErrorKind::Io, format!(
-                "Fail to open '{}' for writing. {}.",
-                filepath.to_string_lossy(),
-                err.to_string(),
-            )).exit();
-        });
-
-    write_ppm(image, &mut file)
-        .unwrap_or_else(|err| {
-            Cli::command().error(ErrorKind::Io, format!(
-                "Fail to write image. {}.",
-                err.to_string(),
-            )).exit();
-        });
-}
-
 fn main() {
     let cli = Cli::parse();
 
@@ -56,15 +27,18 @@ fn main() {
         None
     };
 
-    // Image
-    let image = cli.image_size.validate();
+    // Image size
+    let image_size = cli.image_size.check();
+
+    // Image Output
+    let mut file = cli.output.check();
 
     // Camera
-    let mut camera = CameraBuilder::new()
+    let mut camera = CameraBuilder::new(image_size)
         .with_eye_at(DVec3::ZERO)
         .with_focal_length(cli.focal_length)
         .with_sample_per_pixels(cli.anti_aliasing)
-        .build(image);
+        .build();
 
     // World
     let world = HitableList::from(vec![
@@ -73,8 +47,14 @@ fn main() {
     ]);
 
     // Render
-    camera.render(&world, progress.map(|bar| bar.with_prefix("Rendering")));
+    camera.render(&world, progress.clone().map(|bar| bar.with_prefix("Rendering")));
 
     // Dump image
-    dump_image(&cli, &camera.take_image());
+    camera.dump(&mut file, progress.clone().map(|bar| bar.with_prefix("Exporting")))
+        .unwrap_or_else(|err| {
+            Cli::command().error(ErrorKind::Io, format!(
+                "Fail to write image. {}.",
+                err.to_string(),
+            )).exit();
+        });
 }

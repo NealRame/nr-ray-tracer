@@ -1,3 +1,4 @@
+use std::fs::File;
 use std::path::PathBuf;
 
 use anyhow::Result;
@@ -44,7 +45,7 @@ fn aspect_ratio(s: &str) -> Result<f64, String> {
 fn report_image_size_missing_arg_error(
     _1: &str, _2: &str, _3: &str, _4: &str, _5: &str, _6: &str,
 ) -> ! {
-    Cli::command().error(ErrorKind::ArgumentConflict, format!(
+    Cli::command().error(ErrorKind::MissingRequiredArgument, format!(
         "When '{}' or '{}' are specified, one of '{}', '{}', '{}', '{}' must be specified too.",
         cformat!("<yellow>{_1}</yellow>"),
         cformat!("<yellow>{_2}</yellow>"),
@@ -67,10 +68,9 @@ fn report_image_size_conflicting_args_error() -> ! {
     )).exit();
 }
 
-
 #[derive(Args)]
 #[group()]
-pub struct ImageSize {
+pub struct CliImageSize {
     /// The image width
     #[arg(short = 'W', long, value_name = "WIDTH")]
     width: Option<usize>,
@@ -84,20 +84,20 @@ pub struct ImageSize {
     aspect_ratio: Option<f64>,
 }
 
-impl ImageSize {
-    pub fn validate(&self) -> Image {
+impl CliImageSize {
+    pub fn check(&self) -> ImageSize {
         match (self.width, self.height, self.aspect_ratio) {
             (None, None, None) => {
-                Image::new(DEFAULT_IMAGE_WIDTH, DEFAULT_IMAGE_HEIGHT)
+                ImageSize::new(DEFAULT_IMAGE_WIDTH, DEFAULT_IMAGE_HEIGHT)
             },
             (Some(w), Some(h), None) => {
-                Image::new(w, h)
+                ImageSize::new(w, h)
             },
             (Some(w), None, Some(r)) => {
-                Image::new_with_width_and_aspect_ratio(w, r)
+                ImageSize::from_width_and_aspect_ratio(w, r)
             },
             (None, Some(h), Some(r)) => {
-                Image::new_with_height_and_aspect_ratio(h, r)
+                ImageSize::from_height_and_aspect_ratio(h, r)
             },
             (Some(_), None, None) => {
                 report_image_size_missing_arg_error(
@@ -127,11 +127,49 @@ impl ImageSize {
     }
 }
 
+
+#[derive(Args)]
+#[group()]
+pub struct CliOutput {
+    /// Force output overwrite
+    #[arg(short, long)]
+    pub force_overwrite: bool,
+
+    /// Output file path
+    #[arg(short, long, value_name = "FILE")]
+    pub output: Option<PathBuf>,
+}
+
+impl CliOutput {
+    pub fn check(&self) -> File {
+        let overwrite = self.force_overwrite;
+        let filepath = self.output.clone().unwrap_or("out.ppm".try_into().unwrap());
+
+        File::options()
+            .create_new(!overwrite)
+            .create(true)
+            .truncate(true)
+            .write(true)
+            .open(filepath.as_path())
+            .unwrap_or_else(|err| {
+                Cli::command().error(ErrorKind::Io, format!(
+                    "Fail to open '{}' for writing. {}.",
+                    filepath.to_string_lossy(),
+                    err.to_string(),
+                )).exit();
+            })
+    }
+}
+
+
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
 pub struct Cli {
     #[command(flatten)]
-    pub image_size: ImageSize,
+    pub image_size: CliImageSize,
+
+    #[command(flatten)]
+    pub output: CliOutput,
 
     /// How many samples per pixels anti-aliasing will use
     #[arg(
@@ -156,14 +194,6 @@ pub struct Cli {
         default_value_t = DEFAULT_RAY_MAX_DEPTH
     )]
     pub max_depth: usize,
-
-    /// Force output overwrite
-    #[arg(short, long)]
-    pub force_overwrite: bool,
-
-    /// Output file path
-    #[arg(short, long, value_name = "FILE")]
-    pub output: Option<PathBuf>,
 
     /// Show progress
     #[arg(short, long)]
