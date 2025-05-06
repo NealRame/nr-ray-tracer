@@ -56,6 +56,10 @@ impl Image {
         self.width
     }
 
+    pub fn get_pixel_count(&self) -> usize {
+        self.width*self.height
+    }
+
     pub fn get_pixels(&self) -> &[DVec3] {
         &self.pixels[..]
     }
@@ -112,8 +116,8 @@ impl Image {
 
     pub fn map<F>(
         &mut self,
-        mut f: F
-    ) -> &mut Self where F: FnMut(usize, usize) -> DVec3  {
+        mut f: F,
+    ) -> &mut Self where F: FnMut(usize, usize) -> DVec3 {
         Itertools::cartesian_product(0..self.height, 0..self.width)
             .for_each(|(y, x)| {
                 self.pixels[y*self.width + x] = f(x, y);

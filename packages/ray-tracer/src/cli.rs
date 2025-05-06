@@ -164,4 +164,8 @@ pub struct Cli {
     /// Output file path
     #[arg(short, long, value_name = "FILE")]
     pub output: Option<PathBuf>,
+
+    /// Show progress
+    #[arg(short, long)]
+    pub verbose: bool
 }

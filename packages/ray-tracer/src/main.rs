@@ -11,6 +11,8 @@ use clap::error::ErrorKind;
 
 use glam::DVec3;
 
+use indicatif::{ProgressBar, ProgressStyle};
+
 use nr_ray_tracer_lib::prelude::*;
 
 use crate::cli::*;
@@ -45,6 +47,15 @@ fn dump_image(cli: &Cli, image: &Image) {
 fn main() {
     let cli = Cli::parse();
 
+    let progress = if cli.verbose {
+        ProgressStyle::with_template("{prefix} [{bar:40}] {percent:>3}%")
+            .map(|style| style.progress_chars("#>-"))
+            .map(|style| ProgressBar::no_length().with_style(style))
+            .ok()
+    } else {
+        None
+    };
+
     // Image
     let image = cli.image_size.validate();
 
@@ -62,7 +73,7 @@ fn main() {
     ]);
 
     // Render
-    camera.render(&world);
+    camera.render(&world, progress.map(|bar| bar.with_prefix("Rendering")));
 
     // Dump image
     dump_image(&cli, &camera.take_image());

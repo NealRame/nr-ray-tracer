@@ -5,6 +5,9 @@ use glam::{
     DVec2,
     DVec3,
 };
+
+use indicatif::ProgressBar;
+
 use rand::rngs::ThreadRng;
 
 use crate::hitable::Hitable;
@@ -82,6 +85,9 @@ impl CameraBuilder {
         let focal_length = self.focal_length.unwrap_or(1.0);
         let max_depth = self.max_depth.unwrap_or(10);
 
+        let rng = rand::rng();
+        let sample_per_pixels = self.sample_per_pixels;
+
         let viewport_height = 2.0;
         let viewport_width = image.get_aspect_ratio()*viewport_height;
 
@@ -102,11 +108,8 @@ impl CameraBuilder {
             eye,
             image,
             max_depth,
-
-            rng: rand::rng(),
-
-            sample_per_pixels: self.sample_per_pixels,
-
+            rng,
+            sample_per_pixels,
             viewport_pixel_delta_u,
             viewport_pixel_delta_v,
             viewport_top_left,
@@ -145,8 +148,10 @@ impl Camera {
         &mut self,
         image: &mut Image,
         hitable: &impl Hitable,
-        sample_per_pixels: usize,
+        progress: Option<&ProgressBar>,
     ) {
+        let sample_per_pixels = self.sample_per_pixels.unwrap();
+
         image.map(|x, y| {
             let s = (0..sample_per_pixels).map(|_| {
                 let offset = DVec2::from_rng_ranged(&mut self.rng, -0.5..0.5);
@@ -163,6 +168,10 @@ impl Camera {
                 self.ray_color(&ray, hitable, 0)
             }).sum::<DVec3>();
 
+            if let Some(bar) = progress {
+                bar.inc(1);
+            }
+
             s/(sample_per_pixels as f64)
         });
     }
@@ -171,6 +180,7 @@ impl Camera {
         &mut self,
         image: &mut Image,
         hitable: &impl Hitable,
+        progress: Option<&ProgressBar>,
     ) {
         image.map(|x, y| {
             let pixel =
@@ -181,23 +191,33 @@ impl Camera {
 
             let direction = pixel - self.eye;
             let ray = Ray::new(self.eye, direction);
+            let color = self.ray_color(&ray, hitable, 0);
 
-            self.ray_color(&ray, hitable, 0)
+            if let Some(bar) = progress {
+                bar.inc(1);
+            }
+
+            color
         });
     }
 
     pub fn render(
         &mut self,
         hitable: &impl Hitable,
+        progress: Option<ProgressBar>,
     ) -> &mut Self {
         let mut image = std::mem::take(&mut self.image);
+        let progress = progress.map(|bar| {
+            bar.set_length(image.get_pixel_count() as u64);
+            bar
+        });
 
         match self.sample_per_pixels {
             Some(sample_per_pixels) if sample_per_pixels > 1 => {
-                self.render_with_anti_aliasing(&mut image, hitable, sample_per_pixels);
+                self.render_with_anti_aliasing(&mut image, hitable, progress.as_ref());
             },
             _ => {
-                self.render_without_anti_aliasing(&mut image, hitable);
+                self.render_without_anti_aliasing(&mut image, hitable, progress.as_ref());
             }
         }
 
