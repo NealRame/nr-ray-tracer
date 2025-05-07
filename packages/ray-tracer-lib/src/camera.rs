@@ -1,8 +1,4 @@
 use std::f64::INFINITY;
-use std::io::{
-    Result,
-    Write,
-};
 use std::usize;
 
 use glam::{
@@ -10,28 +6,24 @@ use glam::{
     DVec3,
 };
 
+use image::Rgb32FImage;
+
 use indicatif::ProgressBar;
 
 use rand::rngs::ThreadRng;
 
 use crate::hitable::Hitable;
-use crate::image::{
-    Image,
-    ImageSize,
-};
+use crate::image::ImageSize;
 use crate::interval::Interval;
-use crate::ppm::write_ppm;
 use crate::ray::Ray;
 use crate::vector::*;
 
 pub struct Camera {
     eye: DVec3,
 
-    image: Image,
+    image_size: ImageSize,
 
     max_depth: usize,
-
-    rng: ThreadRng,
 
     sample_per_pixels: Option<usize>,
 
@@ -94,23 +86,22 @@ impl CameraBuilder {
     pub fn build(
         self,
     ) -> Camera {
-        let image = Image::new(self.image_size);
+        let image_size = self.image_size;
 
         let eye = self.eye.unwrap_or_default();
         let focal_length = self.focal_length.unwrap_or(1.0);
         let max_depth = self.max_depth.unwrap_or(10);
 
-        let rng = rand::rng();
         let sample_per_pixels = self.sample_per_pixels;
 
         let viewport_height = 2.0;
-        let viewport_width = image.get_aspect_ratio()*viewport_height;
+        let viewport_width = image_size.get_aspect_ratio()*viewport_height;
 
         let viewport_u =  DVec3::X*viewport_width;
         let viewport_v = -DVec3::Y*viewport_height;
 
-        let viewport_pixel_delta_u = viewport_u/(image.get_width() as f64);
-        let viewport_pixel_delta_v = viewport_v/(image.get_height() as f64);
+        let viewport_pixel_delta_u = viewport_u/(image_size.width as f64);
+        let viewport_pixel_delta_v = viewport_v/(image_size.height as f64);
 
         let viewport_top_left =
                 eye - DVec3::Z*focal_length
@@ -121,9 +112,8 @@ impl CameraBuilder {
 
         Camera {
             eye,
-            image,
+            image_size,
             max_depth,
-            rng,
             sample_per_pixels,
             viewport_pixel_delta_u,
             viewport_pixel_delta_v,
@@ -134,7 +124,8 @@ impl CameraBuilder {
 
 impl Camera {
     fn ray_color(
-        &mut self,
+        &self,
+        rng: &mut ThreadRng,
         ray: &Ray,
         hitable: &impl Hitable,
         depth: usize,
@@ -145,10 +136,10 @@ impl Camera {
 
         match hitable.hit(ray, Interval::new(0.001, INFINITY)) {
             Some(hit_record) => {
-                let reflected_direction = random_on_hemisphere(&mut self.rng, hit_record.normal);
+                let reflected_direction = random_on_hemisphere(rng, hit_record.normal);
                 let reflected_ray = Ray::new(hit_record.point, reflected_direction);
 
-                self.ray_color(&reflected_ray, hitable, depth + 1)/2.0
+                self.ray_color(rng, &reflected_ray, hitable, depth + 1)/2.0
             },
             _ => {
                 let d = ray.get_direction().normalize();
@@ -160,44 +151,51 @@ impl Camera {
     }
 
     fn render_with_anti_aliasing(
-        &mut self,
-        image: &mut Image,
+        &self,
         hitable: &impl Hitable,
         progress: Option<&ProgressBar>,
-    ) {
+    ) -> Rgb32FImage {
+        let mut rng = rand::rng();
         let sample_per_pixels = self.sample_per_pixels.unwrap();
+        let width = self.image_size.width as u32;
+        let height = self.image_size.height as u32;
 
-        image.map(|x, y| {
+        Rgb32FImage::from_fn(width, height, |x, y| {
             let s = (0..sample_per_pixels).map(|_| {
-                let offset = DVec2::from_rng_ranged(&mut self.rng, -0.5..0.5);
+                let offset = DVec2::from_rng_ranged(&mut rng, -0.5..0.5);
 
-                let pixel =
+                let point =
                     self.viewport_top_left
                         + (x as f64 + offset.x)*self.viewport_pixel_delta_u
                         + (y as f64 + offset.y)*self.viewport_pixel_delta_v
                     ;
 
-                let direction = pixel - self.eye;
+                let direction = point - self.eye;
                 let ray = Ray::new(self.eye, direction);
 
-                self.ray_color(&ray, hitable, 0)
+                self.ray_color(&mut rng, &ray, hitable, 0)
             }).sum::<DVec3>();
+
+            let color = s/(sample_per_pixels as f64);
 
             if let Some(bar) = progress {
                 bar.inc(1);
             }
 
-            s/(sample_per_pixels as f64)
-        });
+            image::Rgb(color.as_vec3().to_array())
+        })
     }
 
     fn render_without_anti_aliasing(
-        &mut self,
-        image: &mut Image,
+        &self,
         hitable: &impl Hitable,
         progress: Option<&ProgressBar>,
-    ) {
-        image.map(|x, y| {
+    ) -> Rgb32FImage {
+        let mut rng = rand::rng();
+        let width = self.image_size.width as u32;
+        let height = self.image_size.height as u32;
+
+        Rgb32FImage::from_fn(width, height, |x, y| {
             let pixel =
                 self.viewport_top_left
                     + (x as f64)*self.viewport_pixel_delta_u
@@ -206,57 +204,34 @@ impl Camera {
 
             let direction = pixel - self.eye;
             let ray = Ray::new(self.eye, direction);
-            let color = self.ray_color(&ray, hitable, 0);
+            let color = self.ray_color(&mut rng, &ray, hitable, 0);
 
             if let Some(bar) = progress {
                 bar.inc(1);
             }
 
-            color
-        });
+            image::Rgb(color.as_vec3().to_array())
+        })
     }
 
     pub fn render(
-        &mut self,
+        &self,
         hitable: &impl Hitable,
-        progress: Option<ProgressBar>,
-    ) -> &mut Self {
-        let mut image = std::mem::take(&mut self.image);
+        progress: Option<&ProgressBar>,
+    ) -> Rgb32FImage {
         let progress = progress.map(|bar| {
             bar.set_position(0);
-            bar.set_length(image.get_pixel_count() as u64);
+            bar.set_length(self.image_size.get_pixel_count() as u64);
             bar
         });
 
         match self.sample_per_pixels {
             Some(sample_per_pixels) if sample_per_pixels > 1 => {
-                self.render_with_anti_aliasing(&mut image, hitable, progress.as_ref());
+                self.render_with_anti_aliasing(hitable, progress)
             },
             _ => {
-                self.render_without_anti_aliasing(&mut image, hitable, progress.as_ref());
+                self.render_without_anti_aliasing(hitable, progress)
             }
         }
-
-        self.image = image;
-        self
-    }
-
-    pub fn dump<T: Write>(
-        &mut self,
-        out: &mut T,
-        progress: Option<ProgressBar>,
-    ) -> Result<()> {
-        let progress = progress.map(|bar| {
-            bar.set_position(0);
-            bar.set_length(self.image.get_pixel_count() as u64);
-            bar
-        });
-        write_ppm(&self.image, out, progress.as_ref())
-    }
-}
-
-impl Camera {
-    pub fn take_image(self) -> Image {
-        self.image
     }
 }

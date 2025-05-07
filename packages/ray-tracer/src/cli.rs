@@ -15,6 +15,8 @@ use color_print::{
     cstr,
 };
 
+use image::ImageFormat;
+
 use once_cell::sync::Lazy;
 
 use regex::Regex;
@@ -141,23 +143,35 @@ pub struct CliOutput {
 }
 
 impl CliOutput {
-    pub fn check(&self) -> File {
+    pub fn check(&self) -> (File, ImageFormat) {
         let overwrite = self.force_overwrite;
-        let filepath = self.output.clone().unwrap_or("out.ppm".try_into().unwrap());
+        let filepath = self.output.clone().unwrap_or("out.bmp".try_into().unwrap());
 
-        File::options()
-            .create_new(!overwrite)
-            .create(true)
-            .truncate(true)
-            .write(true)
-            .open(filepath.as_path())
-            .unwrap_or_else(|err| {
-                Cli::command().error(ErrorKind::Io, format!(
-                    "Fail to open '{}' for writing. {}.",
-                    filepath.to_string_lossy(),
-                    err.to_string(),
-                )).exit();
-            })
+        let format =
+            ImageFormat::from_path(filepath.as_path())
+                .unwrap_or_else(|err| {
+                    Cli::command().error(
+                        ErrorKind::InvalidValue,
+                        err.to_string(),
+                    ).exit();
+                });
+
+        let file =
+            File::options()
+                .create_new(!overwrite)
+                .create(true)
+                .truncate(true)
+                .write(true)
+                .open(filepath.as_path())
+                .unwrap_or_else(|err| {
+                    Cli::command().error(ErrorKind::Io, format!(
+                        "Fail to open '{}' for writing. {}.",
+                        filepath.to_string_lossy(),
+                        err.to_string(),
+                    )).exit();
+                });
+
+        (file, format)
     }
 }
 
