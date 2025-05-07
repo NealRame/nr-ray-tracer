@@ -71,15 +71,15 @@ fn report_image_size_conflicting_args_error() -> ! {
 #[derive(Args)]
 #[group()]
 pub struct CliImageSize {
-    /// The image width
+    /// The image width.
     #[arg(short = 'W', long, value_name = "WIDTH")]
     width: Option<usize>,
 
-    /// The image height
+    /// The image height.
     #[arg(short = 'H', long, value_name = "HEIGHT")]
     height: Option<usize>,
 
-    /// The image aspect ratio
+    /// The image aspect ratio.
     #[arg(short = 'R', long, value_name = "ASPECT_RATIO", value_parser = aspect_ratio)]
     aspect_ratio: Option<f64>,
 }
@@ -131,11 +131,11 @@ impl CliImageSize {
 #[derive(Args)]
 #[group()]
 pub struct CliOutput {
-    /// Force output overwrite
+    /// Force output overwrite.
     #[arg(short, long)]
     pub force_overwrite: bool,
 
-    /// Output file path
+    /// Output file path.
     #[arg(short, long, value_name = "FILE")]
     pub output: Option<PathBuf>,
 }
@@ -171,7 +171,7 @@ pub struct Cli {
     #[command(flatten)]
     pub output: CliOutput,
 
-    /// How many samples per pixels anti-aliasing will use
+    /// Specify how many samples per pixels anti-aliasing will use.
     #[arg(
         short = 'A', long,
         value_name = "SAMPLES_PER_PIXELS",
@@ -179,7 +179,7 @@ pub struct Cli {
     )]
     pub anti_aliasing: usize,
 
-    /// Focal length
+    /// Specify the camera focal length.
     #[arg(
         short = 'F', long,
         value_name = "FOCAL_LENGTH",
@@ -187,7 +187,7 @@ pub struct Cli {
     )]
     pub focal_length: f64,
 
-    /// Maximum ray bounce count
+    /// Maximum ray bounce count.
     #[arg(
         short = 'D', long,
         value_name = "MAX_DEPTH",
@@ -195,7 +195,7 @@ pub struct Cli {
     )]
     pub max_depth: usize,
 
-    /// Show progress
+    /// Show progress.
     #[arg(short, long)]
     pub verbose: bool
 }
