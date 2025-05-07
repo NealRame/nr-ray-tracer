@@ -136,7 +136,8 @@ impl Camera {
 
         match hitable.hit(ray, Interval::new(0.001, INFINITY)) {
             Some(hit_record) => {
-                let reflected_direction = random_on_hemisphere(rng, hit_record.normal);
+                // let reflected_direction = random_on_hemisphere(rng, hit_record.normal);
+                let reflected_direction = hit_record.normal + random_in_unit_sphere(rng);
                 let reflected_ray = Ray::new(hit_record.point, reflected_direction);
 
                 self.ray_color(rng, &reflected_ray, hitable, depth + 1)/2.0
