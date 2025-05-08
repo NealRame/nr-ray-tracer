@@ -49,11 +49,15 @@ impl Material for Lambertian {
 
 pub struct Metal {
     albedo: DVec3,
+    fuzz: f64,
 }
 
 impl Metal {
-    pub fn new(albedo: DVec3) -> Self {
-        Self { albedo }
+    pub fn new(albedo: DVec3, fuzz: f64) -> Self {
+        Self {
+            albedo,
+            fuzz,
+        }
     }
 }
 impl Material for Metal {
@@ -61,12 +65,19 @@ impl Material for Metal {
         &self,
         ray: &Ray,
         hit_record: &HitRecord,
-        _rng: &mut ThreadRng,
+        rng: &mut ThreadRng,
     ) -> Option<(Ray, DVec3)> {
-        let reflected_direction = ray.get_direction().reflect(hit_record.normal);
-        Some((
-            Ray::new(hit_record.point, reflected_direction),
-            self.albedo,
-        ))
+        let reflected_direction =
+            ray.get_direction().reflect(hit_record.normal).normalize()
+                + self.fuzz*random_in_unit_sphere(rng);
+
+        if reflected_direction.dot(hit_record.normal) > 0.0 {
+            Some((
+                Ray::new(hit_record.point, reflected_direction),
+                self.albedo,
+            ))
+        } else {
+            None
+        }
     }
 }

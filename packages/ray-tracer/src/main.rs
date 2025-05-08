@@ -146,10 +146,8 @@ fn main() {
     let lambertian_1 = Arc::new(Lambertian::new(DVec3::new(0.259, 0.259, 0.259)));
     let lambertian_2 = Arc::new(Lambertian::new(DVec3::new(0.878, 0.878, 0.878)));
 
-    let metal_1 = Arc::new(Metal::new(DVec3::new(0.901, 0.231, 0.184)));
-    // let metal_2 = Arc::new(Metal::new(DVec3::new(0.204, 0.514, 0.851)));
-
-    let metal_2 = Arc::new(Metal::new(DVec3::new(0.220, 0.412, 0.620)));
+    let metal_1 = Arc::new(Metal::new(DVec3::new(0.901, 0.231, 0.184), 0.05));
+    let metal_2 = Arc::new(Metal::new(DVec3::new(0.220, 0.412, 0.620), 0.025));
 
     let world = HitableList::from(vec![
         Box::new(Sphere::new(DVec3::new( 0.0, -100.5, -1.0), 100.0, lambertian_1.clone())),
