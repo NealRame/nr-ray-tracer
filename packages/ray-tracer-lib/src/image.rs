@@ -1,3 +1,5 @@
+use image::Rgb32FImage;
+
 #[derive(Clone, Copy, Default)]
 pub struct ImageSize {
     pub height: usize,
@@ -37,4 +39,10 @@ impl ImageSize {
     pub fn get_pixel_count(&self) -> usize {
         self.width*self.height
     }
+}
+
+pub fn gamma_correction(image: &mut Rgb32FImage, gamma: f32) {
+    image.iter_mut().for_each(|p| {
+        *p = p.powf(gamma)
+    });
 }

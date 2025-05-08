@@ -54,7 +54,6 @@ fn get_progress(
     }
 }
 
-
 fn get_spinner(
     cli: &Cli,
     prefix: impl Into<Cow<'static, str>>,
@@ -102,11 +101,13 @@ fn render_image(
 fn dump_image(
     cli: &Cli,
     file: &mut File,
-    image: Rgb32FImage,
+    mut image: Rgb32FImage,
     image_format: ImageFormat,
 ) {
     let start = Utc::now();
     let progress = get_spinner(&cli, "Exporting");
+
+    gamma_correction(&mut image, cli.gamma_value);
 
     DynamicImage::ImageRgb32F(image)
         .to_rgb8()

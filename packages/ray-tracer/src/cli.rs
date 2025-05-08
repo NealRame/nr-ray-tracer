@@ -201,6 +201,14 @@ pub struct Cli {
     )]
     pub focal_length: f64,
 
+    /// Specify the gamma value
+    #[arg(
+        short = 'G', long,
+        value_name = "GAMMA_VALUE",
+        default_value_t = DEFAULT_GAMMA_VALUE
+    )]
+    pub gamma_value: f32,
+
     /// Maximum ray bounce count.
     #[arg(
         short = 'D', long,
