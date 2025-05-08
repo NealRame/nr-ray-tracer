@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use glam::DVec3;
 
 use crate::hitable::{
@@ -6,18 +8,25 @@ use crate::hitable::{
 };
 
 use crate::interval::Interval;
+use crate::material::Material;
 use crate::ray::Ray;
 
 pub struct Sphere {
     center: DVec3,
     radius: f64,
+    material: Arc<dyn Material>,
 }
 
 impl Sphere {
-    pub fn new(center: DVec3, radius: f64) -> Self {
+    pub fn new(
+        center: DVec3,
+        radius: f64,
+        material: Arc<dyn Material>,
+    ) -> Self {
         Self {
             center,
             radius,
+            material,
         }
     }
 }
@@ -62,8 +71,9 @@ impl Hitable for Sphere {
             .map(|t| {
                 let point = ray.at(t);
                 let normal = (point - self.center).normalize();
+                let material = self.material.clone();
 
-                HitRecord::new(ray, point, normal, t)
+                HitRecord::new(ray, material, point, normal, t)
             })
     }
 }

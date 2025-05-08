@@ -1,19 +1,24 @@
+use std::sync::Arc;
+
 use glam::DVec3;
 
 use crate::interval::Interval;
+use crate::material::Material;
 use crate::ray::Ray;
 
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone)]
 pub struct HitRecord {
     pub front_face: bool,
-    pub point: DVec3,
+    pub material: Arc<dyn Material>,
     pub normal: DVec3,
+    pub point: DVec3,
     pub t: f64,
 }
 
 impl HitRecord {
     pub fn new(
         ray: &Ray,
+        material: Arc<dyn Material>,
         point: DVec3,
         outward_normal: DVec3,
         t: f64,
@@ -25,8 +30,9 @@ impl HitRecord {
 
         Self {
             front_face,
-            point,
+            material,
             normal,
+            point,
             t,
         }
     }
@@ -70,8 +76,8 @@ impl Hitable for HitableList {
         let mut hit_record = Option::<HitRecord>::None;
 
         for item in self.items.iter() {
-            if let Some(rec) = item.hit(ray, hit_range.clone()) {
-                hit_record.replace(rec);
+            if let Some(rec) = item.hit(ray, hit_range.clone()).as_ref() {
+                hit_record.replace(rec.clone());
                 hit_range = hit_range.with_upper_bound(rec.t);
             }
         }

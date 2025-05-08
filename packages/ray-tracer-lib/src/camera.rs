@@ -125,22 +125,22 @@ impl CameraBuilder {
 impl Camera {
     fn ray_color(
         &self,
-        rng: &mut ThreadRng,
         ray: &Ray,
         hitable: &impl Hitable,
         depth: usize,
+        rng: &mut ThreadRng,
     ) -> DVec3 {
         if depth >= self.max_depth {
             return DVec3::ZERO;
         }
 
-        match hitable.hit(ray, Interval::new(0.001, INFINITY)) {
+        match hitable.hit(ray, Interval::new(0.001, INFINITY)).as_ref() {
             Some(hit_record) => {
-                // let reflected_direction = random_on_hemisphere(rng, hit_record.normal);
-                let reflected_direction = hit_record.normal + random_in_unit_sphere(rng);
-                let reflected_ray = Ray::new(hit_record.point, reflected_direction);
-
-                self.ray_color(rng, &reflected_ray, hitable, depth + 1)/2.0
+                if let Some((scattered_ray, color)) = hit_record.material.scatter(ray, hit_record, rng) {
+                    color*self.ray_color(&scattered_ray, hitable, depth + 1, rng)
+                } else {
+                    DVec3::ZERO
+                }
             },
             _ => {
                 let d = ray.get_direction().normalize();
@@ -174,7 +174,7 @@ impl Camera {
                 let direction = point - self.eye;
                 let ray = Ray::new(self.eye, direction);
 
-                self.ray_color(&mut rng, &ray, hitable, 0)
+                self.ray_color(&ray, hitable, 0, &mut rng)
             }).sum::<DVec3>();
 
             let color = s/(sample_per_pixels as f64);
@@ -205,7 +205,7 @@ impl Camera {
 
             let direction = pixel - self.eye;
             let ray = Ray::new(self.eye, direction);
-            let color = self.ray_color(&mut rng, &ray, hitable, 0);
+            let color = self.ray_color(&ray, hitable, 0, &mut rng);
 
             if let Some(bar) = progress {
                 bar.inc(1);

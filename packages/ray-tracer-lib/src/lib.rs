@@ -2,6 +2,7 @@ pub mod camera;
 pub mod hitable;
 pub mod image;
 pub mod interval;
+pub mod material;
 pub mod prelude;
 pub mod ray;
 pub mod sphere;

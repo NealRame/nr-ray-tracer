@@ -3,6 +3,7 @@ mod constants;
 
 use std::fs::File;
 use std::borrow::Cow;
+use std::sync::Arc;
 use std::time::Duration;
 
 use chrono::Utc;
@@ -142,9 +143,19 @@ fn main() {
     let (mut file, format) = cli.output.check();
 
     // Initialize world
+    let lambertian_1 = Arc::new(Lambertian::new(DVec3::new(0.259, 0.259, 0.259)));
+    let lambertian_2 = Arc::new(Lambertian::new(DVec3::new(0.878, 0.878, 0.878)));
+
+    let metal_1 = Arc::new(Metal::new(DVec3::new(0.901, 0.231, 0.184)));
+    // let metal_2 = Arc::new(Metal::new(DVec3::new(0.204, 0.514, 0.851)));
+
+    let metal_2 = Arc::new(Metal::new(DVec3::new(0.220, 0.412, 0.620)));
+
     let world = HitableList::from(vec![
-        Box::new(Sphere::new(DVec3::new(0.0,    0.0, -1.0),   0.5)),
-        Box::new(Sphere::new(DVec3::new(0.0, -100.5, -1.0), 100.0)),
+        Box::new(Sphere::new(DVec3::new( 0.0, -100.5, -1.0), 100.0, lambertian_1.clone())),
+        Box::new(Sphere::new(DVec3::new( 0.0,    0.0, -1.2),   0.5, lambertian_2.clone())),
+        Box::new(Sphere::new(DVec3::new(-1.0,    0.0, -1.0),   0.5, metal_1.clone())),
+        Box::new(Sphere::new(DVec3::new( 1.0,    0.0, -1.0),   0.5, metal_2.clone())),
     ]);
 
     // Initialize camera
