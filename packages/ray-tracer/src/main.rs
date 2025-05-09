@@ -146,12 +146,23 @@ fn main() {
     let lambertian_1 = Arc::new(Lambertian::new(DVec3::new(0.259, 0.259, 0.259)));
     let lambertian_2 = Arc::new(Lambertian::new(DVec3::new(0.878, 0.878, 0.878)));
 
-    let metal_1 = Arc::new(Metal::new(DVec3::new(0.901, 0.231, 0.184), 0.05));
-    let metal_2 = Arc::new(Metal::new(DVec3::new(0.220, 0.412, 0.620), 0.025));
+    let dielectric_1 = Arc::new(Dielectric::new(1.50));
+    let dielectric_2 = Arc::new(Dielectric::new(1.0/1.53));
+
+    // let metal_1 = Arc::new(Metal::new(DVec3::new(0.901, 0.231, 0.184), 0.05));
+    // let metal_2 = Arc::new(Metal::new(DVec3::new(0.220, 0.412, 0.620), 0.025));
+
+    let metal_1 = Arc::new(Metal::new(DVec3::new(0.901, 0.231, 0.184), 0.0));
+    let metal_2 = Arc::new(Metal::new(DVec3::new(0.220, 0.412, 0.620), 0.0));
 
     let world = HitableList::from(vec![
         Box::new(Sphere::new(DVec3::new( 0.0, -100.5, -1.0), 100.0, lambertian_1.clone())),
-        Box::new(Sphere::new(DVec3::new( 0.0,    0.0, -1.2),   0.5, lambertian_2.clone())),
+
+
+        Box::new(Sphere::new(DVec3::new( 0.0,     0.0, -1.2),   0.5, dielectric_1.clone())),
+        Box::new(Sphere::new(DVec3::new( 0.0,     0.0, -1.2),   0.4, dielectric_2.clone())),
+        Box::new(Sphere::new(DVec3::new( 0.0,     0.0, -2.0),   0.5, lambertian_2.clone())),
+
         Box::new(Sphere::new(DVec3::new(-1.0,    0.0, -1.0),   0.5, metal_1.clone())),
         Box::new(Sphere::new(DVec3::new( 1.0,    0.0, -1.0),   0.5, metal_2.clone())),
     ]);
