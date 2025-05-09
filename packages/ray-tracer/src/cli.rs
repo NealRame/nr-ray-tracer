@@ -201,6 +201,14 @@ pub struct Cli {
     )]
     pub focal_length: f64,
 
+    /// Specify the camera focal length.
+    #[arg(
+        short = 'V', long,
+        value_name = "VFOV",
+        default_value_t = DEFAULT_CAMERA_VERTICAL_FIELD_OF_VIEW
+    )]
+    pub vfov: f64,
+
     /// Specify the gamma value
     #[arg(
         short = 'G', long,

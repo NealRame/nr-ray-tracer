@@ -1,6 +1,7 @@
 mod cli;
 mod constants;
 
+use std::f64::consts::PI;
 use std::fs::File;
 use std::borrow::Cow;
 use std::sync::Arc;
@@ -160,7 +161,7 @@ fn main() {
 
         Box::new(Sphere::new(DVec3::new( 0.0,     0.0, -1.2),   0.5, dielectric_1.clone())),
         Box::new(Sphere::new(DVec3::new( 0.0,     0.0, -1.2),   0.4, dielectric_2.clone())),
-        Box::new(Sphere::new(DVec3::new( 0.0,     0.0, -2.0),   0.5, lambertian_2.clone())),
+        Box::new(Sphere::new(DVec3::new( 0.0,     0.0, -3.0),   0.5, lambertian_2.clone())),
 
         Box::new(Sphere::new(DVec3::new(-1.0,    0.0, -1.0),   0.5, metal_1.clone())),
         Box::new(Sphere::new(DVec3::new( 1.0,    0.0, -1.0),   0.5, metal_2.clone())),
@@ -168,8 +169,10 @@ fn main() {
 
     // Initialize camera
     let camera = CameraBuilder::new(image_size)
-        .with_eye_at(DVec3::ZERO)
-        .with_focal_length(cli.focal_length)
+        .with_vertical_field_of_view(cli.vfov*(PI/180.))
+        .with_look_from(DVec3::new(-2.0,  2.0,  1.0))
+        .with_look_at(  DVec3::new( 0.0,  0.0, -1.0))
+        .with_view_up(  DVec3::Y)
         .with_sample_per_pixels(cli.anti_aliasing)
         .build();
 

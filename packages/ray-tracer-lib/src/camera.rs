@@ -19,13 +19,12 @@ use crate::ray::Ray;
 use crate::vector::*;
 
 pub struct Camera {
-    eye: DVec3,
-
     image_size: ImageSize,
 
     max_depth: usize,
-
     sample_per_pixels: Option<usize>,
+
+    eye: DVec3,
 
     viewport_pixel_delta_u: DVec3,
     viewport_pixel_delta_v: DVec3,
@@ -34,8 +33,11 @@ pub struct Camera {
 
 #[derive(Clone, Copy, Default)]
 pub struct CameraBuilder {
-    eye: Option<DVec3>,
-    focal_length: Option<f64>,
+    look_at: Option<DVec3>,
+    look_from: Option<DVec3>,
+    view_up: Option<DVec3>,
+
+    vertical_field_of_view: Option<f64>,
 
     image_size: ImageSize,
 
@@ -51,19 +53,35 @@ impl CameraBuilder {
         }
     }
 
-    pub fn with_eye_at(
+    pub fn with_look_at(
         &mut self,
         position: DVec3,
     ) -> &mut Self {
-        self.eye.replace(position);
+        self.look_at.replace(position);
         self
     }
 
-    pub fn with_focal_length(
+    pub fn with_look_from(
         &mut self,
-        focal_length: f64,
+        position: DVec3,
     ) -> &mut Self {
-        self.focal_length.replace(focal_length);
+        self.look_from.replace(position);
+        self
+    }
+
+    pub fn with_view_up(
+        &mut self,
+        v: DVec3,
+    ) -> &mut Self {
+        self.view_up.replace(v);
+        self
+    }
+
+    pub fn with_vertical_field_of_view(
+        &mut self,
+        vertical_field_of_view: f64,
+    ) -> &mut Self {
+        self.vertical_field_of_view.replace(vertical_field_of_view);
         self
     }
 
@@ -88,33 +106,46 @@ impl CameraBuilder {
     ) -> Camera {
         let image_size = self.image_size;
 
-        let eye = self.eye.unwrap_or_default();
-        let focal_length = self.focal_length.unwrap_or(1.0);
-        let max_depth = self.max_depth.unwrap_or(10);
+        let eye = self.look_from.unwrap_or(DVec3::ZERO);
+        let look_at = self.look_at.unwrap_or(-DVec3::Z);
+        let vup = self.view_up.unwrap_or(DVec3::Y);
 
+        let max_depth = self.max_depth.unwrap_or(10);
         let sample_per_pixels = self.sample_per_pixels;
 
-        let viewport_height = 2.0;
-        let viewport_width = image_size.get_aspect_ratio()*viewport_height;
+        let focal_length = (eye - look_at).length();
+        let theta = self.vertical_field_of_view.unwrap_or(90.0);
 
-        let viewport_u =  DVec3::X*viewport_width;
-        let viewport_v = -DVec3::Y*viewport_height;
+        let h = (theta/2.).tan();
+
+        let viewport_height = focal_length*h*2.0;
+        let viewport_width = viewport_height*image_size.get_aspect_ratio();
+
+        let w = (eye - look_at).normalize();
+        let u = vup.cross(w).normalize();
+        let v = w.cross(u).normalize();
+
+        let viewport_u =  u*viewport_width;
+        let viewport_v = -v*viewport_height;
 
         let viewport_pixel_delta_u = viewport_u/(image_size.width as f64);
         let viewport_pixel_delta_v = viewport_v/(image_size.height as f64);
 
         let viewport_top_left =
-                eye - DVec3::Z*focal_length
+                eye - w*focal_length
                     - viewport_u/2.
                     - viewport_v/2.
                     + (viewport_pixel_delta_u + viewport_pixel_delta_v)/2.
                 ;
 
         Camera {
-            eye,
             image_size,
+
             max_depth,
             sample_per_pixels,
+
+            eye,
+
             viewport_pixel_delta_u,
             viewport_pixel_delta_v,
             viewport_top_left,
