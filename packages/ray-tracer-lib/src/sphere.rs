@@ -8,7 +8,7 @@ use crate::hitable::{
 };
 
 use crate::interval::Interval;
-use crate::material::Material;
+use crate::materials::Material;
 use crate::ray::Ray;
 
 pub struct Sphere {

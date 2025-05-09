@@ -4,5 +4,5 @@ pub use crate::image::*;
 
 pub use crate::hitable::*;
 pub use crate::interval::*;
-pub use crate::material::*;
+pub use crate::materials::*;
 pub use crate::sphere::*;

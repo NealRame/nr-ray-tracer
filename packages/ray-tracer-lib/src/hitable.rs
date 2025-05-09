@@ -3,7 +3,7 @@ use std::sync::Arc;
 use glam::DVec3;
 
 use crate::interval::Interval;
-use crate::material::Material;
+use crate::materials::Material;
 use crate::ray::Ray;
 
 #[derive(Clone)]
