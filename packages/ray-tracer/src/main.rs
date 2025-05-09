@@ -158,7 +158,6 @@ fn main() {
     let world = HitableList::from(vec![
         Box::new(Sphere::new(DVec3::new( 0.0, -100.5, -1.0), 100.0, lambertian_1.clone())),
 
-
         Box::new(Sphere::new(DVec3::new( 0.0,     0.0, -1.2),   0.5, dielectric_1.clone())),
         Box::new(Sphere::new(DVec3::new( 0.0,     0.0, -1.2),   0.4, dielectric_2.clone())),
         Box::new(Sphere::new(DVec3::new( 0.0,     0.0, -2.0),   0.5, lambertian_2.clone())),
