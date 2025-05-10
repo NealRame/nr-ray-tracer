@@ -170,6 +170,8 @@ fn main() {
     // Initialize camera
     let camera = CameraBuilder::new(image_size)
         .with_vertical_field_of_view(cli.vfov*(PI/180.))
+        .with_focus_dist(cli.focus_distance)
+        .with_defocus_angle(cli.defocus_angle*(PI/180.))
         .with_look_from(DVec3::new(-2.0,  2.0,  1.0))
         .with_look_at(  DVec3::new( 0.0,  0.0, -1.0))
         .with_view_up(  DVec3::Y)

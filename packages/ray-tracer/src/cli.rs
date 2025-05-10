@@ -203,13 +203,29 @@ pub struct Cli {
 
     /// Specify the camera focal length.
     #[arg(
-        short = 'V', long,
+        long,
         value_name = "VFOV",
         default_value_t = DEFAULT_CAMERA_VERTICAL_FIELD_OF_VIEW
     )]
     pub vfov: f64,
 
-    /// Specify the gamma value
+    /// Specify the defocus angle.
+    #[arg(
+        long,
+        value_name = "DEFOCUS_ANGLE",
+        default_value_t = DEFAULT_CAMERA_DEFOCUS_ANGLE
+    )]
+    pub defocus_angle: f64,
+
+    /// Specify the focus distance.
+    #[arg(
+        long,
+        value_name = "FOCUS_DISTANCE",
+        default_value_t = DEFAULT_CAMERA_FOCUS_DISTANCE
+    )]
+    pub focus_distance: f64,
+
+    /// Specify the gamma value.
     #[arg(
         short = 'G', long,
         value_name = "GAMMA_VALUE",

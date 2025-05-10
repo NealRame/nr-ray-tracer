@@ -1,3 +1,4 @@
+use std::f64::consts::PI;
 use std::f64::INFINITY;
 use std::usize;
 
@@ -24,6 +25,8 @@ pub struct Camera {
     max_depth: usize,
     sample_per_pixels: Option<usize>,
 
+    defocus_disk_u: DVec3,
+    defocus_disk_v: DVec3,
     eye: DVec3,
 
     viewport_pixel_delta_u: DVec3,
@@ -37,6 +40,8 @@ pub struct CameraBuilder {
     look_from: Option<DVec3>,
     view_up: Option<DVec3>,
 
+    defocus_angle: Option<f64>,
+    focus_dist: Option<f64>,
     vertical_field_of_view: Option<f64>,
 
     image_size: ImageSize,
@@ -77,6 +82,22 @@ impl CameraBuilder {
         self
     }
 
+    pub fn with_defocus_angle(
+        &mut self,
+        defocus_angle: f64,
+    ) -> &mut Self {
+        self.defocus_angle.replace(defocus_angle);
+        self
+    }
+
+    pub fn with_focus_dist(
+        &mut self,
+        focus_dist: f64,
+    ) -> &mut Self {
+        self.focus_dist.replace(focus_dist);
+        self
+    }
+
     pub fn with_vertical_field_of_view(
         &mut self,
         vertical_field_of_view: f64,
@@ -113,12 +134,13 @@ impl CameraBuilder {
         let max_depth = self.max_depth.unwrap_or(10);
         let sample_per_pixels = self.sample_per_pixels;
 
-        let focal_length = (eye - look_at).length();
-        let theta = self.vertical_field_of_view.unwrap_or(90.0);
+        let defocus_angle: f64 = self.defocus_angle.unwrap_or(0.).clamp(0., PI);
+        let focus_dist = self.focus_dist.unwrap_or(1.);
 
+        let theta = self.vertical_field_of_view.unwrap_or(PI/2.0);
         let h = (theta/2.).tan();
 
-        let viewport_height = focal_length*h*2.0;
+        let viewport_height = focus_dist*h*2.0;
         let viewport_width = viewport_height*image_size.get_aspect_ratio();
 
         let w = (eye - look_at).normalize();
@@ -132,11 +154,15 @@ impl CameraBuilder {
         let viewport_pixel_delta_v = viewport_v/(image_size.height as f64);
 
         let viewport_top_left =
-                eye - w*focal_length
+                eye - w*focus_dist
                     - viewport_u/2.
                     - viewport_v/2.
                     + (viewport_pixel_delta_u + viewport_pixel_delta_v)/2.
                 ;
+
+        let defocus_radius = (focus_dist/2.0)*defocus_angle.tan();
+        let defocus_disk_u = u*defocus_radius;
+        let defocus_disk_v = v*defocus_radius;
 
         Camera {
             image_size,
@@ -144,6 +170,8 @@ impl CameraBuilder {
             max_depth,
             sample_per_pixels,
 
+            defocus_disk_u,
+            defocus_disk_v,
             eye,
 
             viewport_pixel_delta_u,
@@ -154,7 +182,39 @@ impl CameraBuilder {
 }
 
 impl Camera {
-    fn ray_color(
+    fn defocus_disk_sample(
+        &self,
+        rng: &mut ThreadRng,
+    ) -> DVec3 {
+        let p = random_in_unit_disk(rng);
+        self.eye + p.x*self.defocus_disk_u + p.y*self.defocus_disk_v
+    }
+
+    fn get_ray(
+        &self,
+        x: u32,
+        y: u32,
+        rng: &mut ThreadRng,
+    ) -> Ray {
+        let offset = if self.sample_per_pixels.is_some() {
+            DVec2::from_rng_ranged(rng, -0.5..0.5)
+        } else {
+            DVec2::ZERO
+        };
+
+        let point =
+            self.viewport_top_left
+                + (x as f64 + offset.x)*self.viewport_pixel_delta_u
+                + (y as f64 + offset.y)*self.viewport_pixel_delta_v
+            ;
+
+        let direction = point - self.eye;
+        let origin = self.defocus_disk_sample(rng);
+
+        Ray::new(origin, direction)
+    }
+
+    fn get_ray_color(
         &self,
         ray: &Ray,
         hitable: &impl Hitable,
@@ -168,7 +228,7 @@ impl Camera {
         match hitable.hit(ray, Interval::new(0.001, INFINITY)).as_ref() {
             Some(hit_record) => {
                 if let Some((scattered_ray, color)) = hit_record.material.scatter(ray, hit_record, rng) {
-                    color*self.ray_color(&scattered_ray, hitable, depth + 1, rng)
+                    color*self.get_ray_color(&scattered_ray, hitable, depth + 1, rng)
                 } else {
                     DVec3::ZERO
                 }
@@ -194,18 +254,9 @@ impl Camera {
 
         Rgb32FImage::from_fn(width, height, |x, y| {
             let s = (0..sample_per_pixels).map(|_| {
-                let offset = DVec2::from_rng_ranged(&mut rng, -0.5..0.5);
+                let ray = self.get_ray(x, y, &mut rng);
 
-                let point =
-                    self.viewport_top_left
-                        + (x as f64 + offset.x)*self.viewport_pixel_delta_u
-                        + (y as f64 + offset.y)*self.viewport_pixel_delta_v
-                    ;
-
-                let direction = point - self.eye;
-                let ray = Ray::new(self.eye, direction);
-
-                self.ray_color(&ray, hitable, 0, &mut rng)
+                self.get_ray_color(&ray, hitable, 0, &mut rng)
             }).sum::<DVec3>();
 
             let color = s/(sample_per_pixels as f64);
@@ -228,15 +279,8 @@ impl Camera {
         let height = self.image_size.height as u32;
 
         Rgb32FImage::from_fn(width, height, |x, y| {
-            let pixel =
-                self.viewport_top_left
-                    + (x as f64)*self.viewport_pixel_delta_u
-                    + (y as f64)*self.viewport_pixel_delta_v
-                ;
-
-            let direction = pixel - self.eye;
-            let ray = Ray::new(self.eye, direction);
-            let color = self.ray_color(&ray, hitable, 0, &mut rng);
+            let ray = self.get_ray(x, y, &mut rng);
+            let color = self.get_ray_color(&ray, hitable, 0, &mut rng);
 
             if let Some(bar) = progress {
                 bar.inc(1);

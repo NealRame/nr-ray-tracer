@@ -65,6 +65,17 @@ pub fn random_in_unit_sphere<T: Rng>(rng: &mut T) -> DVec3 {
     }
 }
 
+pub fn random_in_unit_disk<T: Rng>(rng: &mut T) -> DVec3 {
+    loop {
+        let p = DVec2::from_rng_ranged(rng, -1.0..1.0).extend(0.0);
+        let length_squared = p.length_squared();
+
+        if length_squared < 1.0 {
+            break p/length_squared
+        }
+    }
+}
+
 pub fn random_on_hemisphere<T: Rng>(
     rng: &mut T,
     normal: DVec3,

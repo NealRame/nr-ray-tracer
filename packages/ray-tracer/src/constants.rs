@@ -6,6 +6,10 @@ pub(crate) const DEFAULT_CAMERA_FOCAL_LENGTH: f64 = 1.0;
 
 pub(crate) const DEFAULT_CAMERA_VERTICAL_FIELD_OF_VIEW: f64 = 90.0;
 
+pub(crate) const DEFAULT_CAMERA_DEFOCUS_ANGLE: f64 = 10.0;
+
+pub(crate) const DEFAULT_CAMERA_FOCUS_DISTANCE: f64 = 1.0;
+
 pub(crate) const DEFAULT_GAMMA_VALUE: f32 = 0.5;
 
 pub(crate) const DEFAULT_SAMPLES_PER_PIXELS: usize = 0;
