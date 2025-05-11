@@ -732,6 +732,7 @@ dependencies = [
  "itertools 0.14.0",
  "nr-ray-tracer-lib",
  "once_cell",
+ "rand 0.9.1",
  "regex",
 ]
 
@@ -745,6 +746,7 @@ dependencies = [
  "indicatif",
  "itertools 0.14.0",
  "rand 0.9.1",
+ "rayon",
 ]
 
 [[package]]
