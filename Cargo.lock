@@ -593,15 +593,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "itertools"
-version = "0.14.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2b192c782037fadd9cfa75548310488aabdbf3d2da73885b31bd0abd03351285"
-dependencies = [
- "either",
-]
-
-[[package]]
 name = "jobserver"
 version = "0.1.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -729,7 +720,6 @@ dependencies = [
  "glam",
  "image",
  "indicatif",
- "itertools 0.14.0",
  "nr-ray-tracer-lib",
  "once_cell",
  "rand 0.9.1",
@@ -744,7 +734,6 @@ dependencies = [
  "glam",
  "image",
  "indicatif",
- "itertools 0.14.0",
  "rand 0.9.1",
  "rayon",
 ]
@@ -982,7 +971,7 @@ dependencies = [
  "built",
  "cfg-if",
  "interpolate_name",
- "itertools 0.12.1",
+ "itertools",
  "libc",
  "libfuzzer-sys",
  "log",
