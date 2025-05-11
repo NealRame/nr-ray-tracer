@@ -6,3 +6,4 @@ pub use crate::hitable::*;
 pub use crate::interval::*;
 pub use crate::materials::*;
 pub use crate::sphere::*;
+pub use crate::vector::*;

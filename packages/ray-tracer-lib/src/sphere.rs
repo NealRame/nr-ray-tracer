@@ -14,14 +14,14 @@ use crate::ray::Ray;
 pub struct Sphere {
     center: DVec3,
     radius: f64,
-    material: Arc<dyn Material>,
+    material: Arc<dyn Material + Send + Sync>,
 }
 
 impl Sphere {
     pub fn new(
         center: DVec3,
         radius: f64,
-        material: Arc<dyn Material>,
+        material: Arc<dyn Material + Send + Sync>,
     ) -> Self {
         Self {
             center,

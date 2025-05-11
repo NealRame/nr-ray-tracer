@@ -13,6 +13,11 @@ use indicatif::ProgressBar;
 
 use rand::rngs::ThreadRng;
 
+use rayon::iter::{
+    IntoParallelIterator,
+    ParallelIterator,
+};
+
 use crate::hitable::Hitable;
 use crate::image::ImageSize;
 use crate::interval::Interval;
@@ -161,6 +166,7 @@ impl CameraBuilder {
                 ;
 
         let defocus_radius = (focus_dist/2.0)*defocus_angle.tan();
+
         let defocus_disk_u = u*defocus_radius;
         let defocus_disk_v = v*defocus_radius;
 
@@ -242,59 +248,79 @@ impl Camera {
         }
     }
 
-    fn render_with_anti_aliasing(
+    fn render_with_anti_aliasing<T>(
         &self,
-        hitable: &impl Hitable,
+        hitable: &T,
         progress: Option<&ProgressBar>,
-    ) -> Rgb32FImage {
-        let mut rng = rand::rng();
+    ) -> Rgb32FImage where T: Hitable + Send + Sync, {
         let sample_per_pixels = self.sample_per_pixels.unwrap();
         let width = self.image_size.width as u32;
         let height = self.image_size.height as u32;
 
-        Rgb32FImage::from_fn(width, height, |x, y| {
-            let s = (0..sample_per_pixels).map(|_| {
-                let ray = self.get_ray(x, y, &mut rng);
+        let pixels = (0..width*height)
+            .into_par_iter()
+            .map(|n| {
+                let mut rng = rand::rng();
 
-                self.get_ray_color(&ray, hitable, 0, &mut rng)
-            }).sum::<DVec3>();
+                let x = n%width;
+                let y = n/width;
 
-            let color = s/(sample_per_pixels as f64);
+                let s = (0..sample_per_pixels).map(|_| {
+                    let ray = self.get_ray(x, y, &mut rng);
 
-            if let Some(bar) = progress {
-                bar.inc(1);
-            }
+                    self.get_ray_color(&ray, hitable, 0, &mut rng)
+                }).sum::<DVec3>();
 
-            image::Rgb(color.as_vec3().to_array())
-        })
+                let color = s/(sample_per_pixels as f64);
+
+                if let Some(bar) = progress {
+                    bar.inc(1);
+                }
+
+                color.as_vec3().to_array()
+            })
+            .flatten()
+            .collect::<Vec<_>>();
+
+        Rgb32FImage::from_vec(width, height, pixels).unwrap()
     }
 
-    fn render_without_anti_aliasing(
+    fn render_without_anti_aliasing<T>(
         &self,
-        hitable: &impl Hitable,
+        hitable: &T,
         progress: Option<&ProgressBar>,
-    ) -> Rgb32FImage {
-        let mut rng = rand::rng();
+    ) -> Rgb32FImage where T: Hitable + Send + Sync, {
         let width = self.image_size.width as u32;
         let height = self.image_size.height as u32;
 
-        Rgb32FImage::from_fn(width, height, |x, y| {
-            let ray = self.get_ray(x, y, &mut rng);
-            let color = self.get_ray_color(&ray, hitable, 0, &mut rng);
+        let pixels = (0..width*height)
+            .into_par_iter()
+            .map(|n| {
+                let mut rng = rand::rng();
 
-            if let Some(bar) = progress {
-                bar.inc(1);
-            }
+                let x = n%width;
+                let y = n/width;
 
-            image::Rgb(color.as_vec3().to_array())
-        })
+                let ray = self.get_ray(x, y, &mut rng);
+                let color = self.get_ray_color(&ray, hitable, 0, &mut rng);
+
+                if let Some(bar) = progress {
+                    bar.inc(1);
+                }
+
+                color.as_vec3().to_array()
+            })
+            .flatten()
+            .collect::<Vec<_>>();
+
+        Rgb32FImage::from_vec(width, height, pixels).unwrap()
     }
 
-    pub fn render(
+    pub fn render<T>(
         &self,
-        hitable: &impl Hitable,
+        hitable: &T,
         progress: Option<&ProgressBar>,
-    ) -> Rgb32FImage {
+    ) -> Rgb32FImage where T: Hitable + Send + Sync {
         let progress = progress.map(|bar| {
             bar.set_position(0);
             bar.set_length(self.image_size.get_pixel_count() as u64);

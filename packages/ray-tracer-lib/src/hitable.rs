@@ -43,7 +43,7 @@ pub trait Hitable {
 }
 
 pub struct HitableList {
-    items: Vec<Box<dyn Hitable>>,
+    items: Vec<Box<dyn Hitable + Send + Sync>>,
 }
 
 impl HitableList {
@@ -51,13 +51,13 @@ impl HitableList {
         Self { items: Vec::new() }
     }
 
-    pub fn from(items: Vec<Box<dyn Hitable>>) -> Self {
+    pub fn from(items: Vec<Box<dyn Hitable + Send + Sync>>) -> Self {
         Self { items }
     }
 
     pub fn add(
         &mut self,
-        item: Box<dyn Hitable>,
+        item: Box<dyn Hitable + Send + Sync>,
     ) -> &mut Self {
         self.items.push(item);
         self
