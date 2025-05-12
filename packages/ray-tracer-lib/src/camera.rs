@@ -165,8 +165,7 @@ impl CameraBuilder {
                     + (viewport_pixel_delta_u + viewport_pixel_delta_v)/2.
                 ;
 
-        let defocus_radius = (focus_dist/2.0)*defocus_angle.tan();
-
+        let defocus_radius = focus_dist*(defocus_angle/2.0).tan();
         let defocus_disk_u = u*defocus_radius;
         let defocus_disk_v = v*defocus_radius;
 
@@ -203,7 +202,7 @@ impl Camera {
         rng: &mut ThreadRng,
     ) -> Ray {
         let offset = if self.sample_per_pixels.is_some() {
-            DVec2::from_rng_ranged(rng, -0.5..0.5)
+            DVec2::from_rng_ranged(rng, -0.5..=0.5)
         } else {
             DVec2::ZERO
         };
@@ -214,8 +213,8 @@ impl Camera {
                 + (y as f64 + offset.y)*self.viewport_pixel_delta_v
             ;
 
-        let direction = point - self.eye;
         let origin = self.defocus_disk_sample(rng);
+        let direction = point - origin;
 
         Ray::new(origin, direction)
     }
