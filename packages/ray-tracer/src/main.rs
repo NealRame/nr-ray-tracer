@@ -150,9 +150,9 @@ fn main() {
     // Initialize world
     let mut world = HitableList::from(vec![
         Box::new(Sphere::new(
-            DVec3::new( 0.0, -1000.0, 0.0),
+            1000.0*DVec3::NEG_Y,
             1000.0,
-            Arc::new(Lambertian::new(DVec3::new(0.5, 0.5, 0.5)))
+            Arc::new(Lambertian::default())
         )),
     ]);
 
@@ -172,35 +172,46 @@ fn main() {
 
             match materials[dist.sample(&mut rng)] {
                 "lambertian" => {
-                    let albedo = DVec3::from_rng_ranged(&mut rng, 0.0..1.0);
-                    let material = Arc::new(Lambertian::new(albedo));
-
-                    world.add(Box::new(Sphere::new(center, 0.2, material)));
+                    world.add(Box::new(Sphere::new(
+                        center, 0.2,
+                        Arc::new(Lambertian::random(&mut rng))),
+                    ));
                 },
                 "metal" => {
-                    let albedo = DVec3::from_rng_ranged(&mut rng, 0.5..1.0);
-                    let fuzz = rng.random_range(0.0..0.5);
-                    let material = Arc::new(Metal::new(albedo, fuzz));
-
-                    world.add(Box::new(Sphere::new(center, 0.2, material)));
+                    world.add(Box::new(Sphere::new(
+                        center, 0.2,
+                        Arc::new(Metal::random(&mut rng))),
+                    ));
                 },
                 "glass" => {
-                    let material = Arc::new(Dielectric::new(1.5));
-
-                    world.add(Box::new(Sphere::new(center, 0.2, material)));
+                    world.add(Box::new(Sphere::new(
+                        center, 0.2,
+                        Arc::new(Dielectric::default())),
+                    ));
                 },
                 _ => unreachable!()
             }
         }
     }
 
-    let material1 = Arc::new(Dielectric::new(1.5));
-    let material2 = Arc::new(Lambertian::new(DVec3::new(0.4, 0.2, 0.1)));
-    let material3 = Arc::new(Metal::new(DVec3::new(0.7, 0.6, 0.5), 0.0));
-
-    world.add(Box::new(Sphere::new(DVec3::new( 0.0, 1.0, 0.0), 1.0, material1)));
-    world.add(Box::new(Sphere::new(DVec3::new(-4.0, 1.0, 0.0), 1.0, material2)));
-    world.add(Box::new(Sphere::new(DVec3::new( 4.0, 1.0, 0.0), 1.0, material3)));
+    world.add(Box::new(Sphere::new(
+        DVec3::new( 0.0, 1.0, 0.0), 1.0,
+        Arc::new(Dielectric::default())),
+    ));
+    world.add(Box::new(Sphere::new(
+        DVec3::new(-4.0, 1.0, 0.0), 1.0,
+        Arc::new(Lambertian {
+            albedo: DVec3::new(0.4, 0.2, 0.1),
+        })),
+    ));
+    world.add(Box::new(
+        Sphere::new(
+            DVec3::new( 4.0, 1.0, 0.0), 1.0,
+            Arc::new(Metal {
+                albedo: DVec3::new(0.7, 0.6, 0.5),
+                fuzz: 0.0,
+        })),
+    ));
 
     // Initialize camera
     let camera = CameraBuilder::new(image_size)

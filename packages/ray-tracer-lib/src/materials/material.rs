@@ -15,3 +15,7 @@ pub trait Material {
         None
     }
 }
+
+pub trait Random {
+    fn random(rng: &mut ThreadRng) -> Self;
+}

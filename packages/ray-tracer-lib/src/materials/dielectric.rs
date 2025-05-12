@@ -9,12 +9,14 @@ use crate::hitable::HitRecord;
 use super::Material;
 
 pub struct Dielectric {
-    refraction_index: f64,
+    pub refraction_index: f64,
 }
 
-impl Dielectric {
-    pub fn new(refraction_index: f64) -> Self {
-        Self { refraction_index }
+impl Default for Dielectric {
+    fn default() -> Self {
+        Self {
+            refraction_index: 1.5,
+        }
     }
 }
 
@@ -24,8 +26,6 @@ fn reflectance(cosine: f64, refraction_index: f64) -> f64 {
 
     r0 = r0*r0;
     r0 + (1.0 - r0)*(1.0 - cosine).powi(5)
-
-
 }
 
 impl Material for Dielectric {

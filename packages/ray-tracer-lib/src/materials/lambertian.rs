@@ -1,20 +1,23 @@
 use glam::DVec3;
 
-use rand::rngs::ThreadRng;
+use rand::{rngs::ThreadRng, Rng};
 
 use crate::ray::Ray;
 use crate::hitable::HitRecord;
 use crate::vector::*;
 
 use super::Material;
+use super::Random;
 
 pub struct Lambertian {
-    albedo: DVec3,
+    pub albedo: DVec3,
 }
 
-impl Lambertian {
-    pub fn new(albedo: DVec3) -> Self {
-        Self { albedo }
+impl Default for Lambertian {
+    fn default() -> Self {
+        Self {
+            albedo: DVec3::ONE/2.,
+        }
     }
 }
 
@@ -35,5 +38,17 @@ impl Material for Lambertian {
             Ray::new(hit_record.point, scatter_direction),
             self.albedo,
         ))
+    }
+}
+
+impl Random for Lambertian {
+    fn random(rng: &mut ThreadRng) -> Self {
+        Self {
+            albedo: DVec3::new(
+                rng.random_range(0.0..=1.0),
+                rng.random_range(0.0..=1.0),
+                rng.random_range(0.0..=1.0),
+            )
+        }
     }
 }
