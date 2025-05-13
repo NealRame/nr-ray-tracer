@@ -137,7 +137,7 @@ impl CameraBuilder {
         let max_depth = self.max_depth.unwrap_or(10);
         let sample_per_pixels = self.sample_per_pixels;
 
-        let defocus_angle: f64 = self.defocus_angle.unwrap_or(0.).clamp(0., PI);
+        let defocus_angle = self.defocus_angle.unwrap_or(0.).clamp(0., PI);
         let focus_dist = self.focus_dist.unwrap_or(1.);
 
         let theta = self.vertical_field_of_view.unwrap_or(PI/2.0);
