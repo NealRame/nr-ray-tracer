@@ -1,6 +1,11 @@
 use image::Rgb32FImage;
 
-#[derive(Clone, Copy, Default)]
+use serde::{
+    Deserialize,
+    Serialize,
+};
+
+#[derive(Clone, Copy, Default, Deserialize, Serialize)]
 pub struct ImageSize {
     pub height: usize,
     pub width: usize,
