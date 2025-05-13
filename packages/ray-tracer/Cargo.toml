@@ -8,7 +8,7 @@ anyhow = "1.0.98"
 chrono = "0.4.41"
 clap = { version = "4.5.37", features = ["derive"] }
 color-print = "0.3.7"
-glam = "0.30.3"
+glam = { version = "0.30.3", features = ["serde"] }
 image = "0.25.6"
 indicatif = "0.17.11"
 nr-ray-tracer-lib = { path = "../ray-tracer-lib" }
