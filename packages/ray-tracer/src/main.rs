@@ -88,13 +88,18 @@ fn render_image(
 ) -> Rgb32FImage {
     let start = Utc::now();
 
-    let progress = get_progress(&cli, "Rendering");
-    let image = camera.render(world, progress.as_ref());
+    let bar = get_progress(&cli, "Rendering").map(|bar| {
+        bar.set_position(0);
+        bar.set_length(camera.get_image_size().get_pixel_count() as u64);
+        bar
+    });
+
+    let image = camera.render(world, bar.as_ref().map(|bar| || bar.inc(1)));
 
     let stop = Utc::now();
     let duration = stop - start;
 
-    if let Some(bar) = progress.as_ref() {
+    if let Some(bar) = bar.as_ref() {
         bar.set_style(ProgressStyle::with_template(PROGRESS_TEMPLATE_FINISHED).unwrap());
         bar.finish_with_message(format!("Done in {}.{:0<3} secs",
             duration.num_seconds(),

@@ -733,7 +733,6 @@ dependencies = [
  "anyhow",
  "glam",
  "image",
- "indicatif",
  "rand 0.9.1",
  "rayon",
 ]

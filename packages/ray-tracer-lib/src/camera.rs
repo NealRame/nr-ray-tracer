@@ -9,8 +9,6 @@ use glam::{
 
 use image::Rgb32FImage;
 
-use indicatif::ProgressBar;
-
 use rand::rngs::ThreadRng;
 
 use rayon::iter::{
@@ -247,11 +245,15 @@ impl Camera {
         }
     }
 
-    fn render_with_anti_aliasing<T>(
+    fn render_with_anti_aliasing<T, P>(
         &self,
         hitable: &T,
-        progress: Option<&ProgressBar>,
-    ) -> Rgb32FImage where T: Hitable + Send + Sync, {
+        progress: Option<&P>,
+    ) -> Rgb32FImage
+        where
+            T: Hitable + Send + Sync,
+            P: Fn() + Sync,
+    {
         let sample_per_pixels = self.sample_per_pixels.unwrap();
         let width = self.image_size.width as u32;
         let height = self.image_size.height as u32;
@@ -272,8 +274,8 @@ impl Camera {
 
                 let color = s/(sample_per_pixels as f64);
 
-                if let Some(bar) = progress {
-                    bar.inc(1);
+                if let Some(progress) = progress {
+                    progress();
                 }
 
                 color.as_vec3().to_array()
@@ -284,11 +286,15 @@ impl Camera {
         Rgb32FImage::from_vec(width, height, pixels).unwrap()
     }
 
-    fn render_without_anti_aliasing<T>(
+    fn render_without_anti_aliasing<T, P>(
         &self,
         hitable: &T,
-        progress: Option<&ProgressBar>,
-    ) -> Rgb32FImage where T: Hitable + Send + Sync, {
+        progress: Option<&P>,
+    ) -> Rgb32FImage
+        where
+            T: Hitable + Send + Sync,
+            P: Fn() + Sync,
+    {
         let width = self.image_size.width as u32;
         let height = self.image_size.height as u32;
 
@@ -303,8 +309,8 @@ impl Camera {
                 let ray = self.get_ray(x, y, &mut rng);
                 let color = self.get_ray_color(&ray, hitable, 0, &mut rng);
 
-                if let Some(bar) = progress {
-                    bar.inc(1);
+                if let Some(progress) = progress {
+                    progress();
                 }
 
                 color.as_vec3().to_array()
@@ -315,24 +321,28 @@ impl Camera {
         Rgb32FImage::from_vec(width, height, pixels).unwrap()
     }
 
-    pub fn render<T>(
+    pub fn render<T, P>(
         &self,
         hitable: &T,
-        progress: Option<&ProgressBar>,
-    ) -> Rgb32FImage where T: Hitable + Send + Sync {
-        let progress = progress.map(|bar| {
-            bar.set_position(0);
-            bar.set_length(self.image_size.get_pixel_count() as u64);
-            bar
-        });
+        progress: Option<P>,
+    ) -> Rgb32FImage
+        where
+            T: Hitable + Send + Sync,
+            P: Fn() + Sync,
+    {
+        let progress_ref = progress.as_ref();
 
         match self.sample_per_pixels {
             Some(sample_per_pixels) if sample_per_pixels > 1 => {
-                self.render_with_anti_aliasing(hitable, progress)
+                self.render_with_anti_aliasing(hitable, progress_ref)
             },
             _ => {
-                self.render_without_anti_aliasing(hitable, progress)
+                self.render_without_anti_aliasing(hitable, progress_ref)
             }
         }
+    }
+
+    pub fn get_image_size(&self) -> ImageSize {
+        self.image_size
     }
 }
