@@ -14,7 +14,7 @@ use crate::camera::*;
 use crate::hitable::HitableList;
 use crate::image::ImageSize;
 use crate::materials::*;
-use crate::sphere::Sphere;
+use crate::objects::*;
 
 #[derive(Deserialize, Serialize)]
 pub struct CameraDefinition {
