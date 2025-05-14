@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use glam::DVec3;
 
-use crate::hitable::{
+use super::hitable::{
     HitRecord,
     Hitable,
 };

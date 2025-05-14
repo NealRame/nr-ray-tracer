@@ -16,9 +16,9 @@ use rayon::iter::{
     ParallelIterator,
 };
 
-use crate::hitable::Hitable;
 use crate::image::ImageSize;
 use crate::interval::Interval;
+use crate::objects::Hitable;
 use crate::ray::Ray;
 use crate::vector::*;
 
