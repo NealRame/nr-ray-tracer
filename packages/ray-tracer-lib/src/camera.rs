@@ -15,6 +15,7 @@ use rayon::iter::{
     IntoParallelIterator,
     ParallelIterator,
 };
+use serde::{Deserialize, Serialize};
 
 use crate::image::ImageSize;
 use crate::interval::Interval;
@@ -30,15 +31,18 @@ pub struct Camera {
 
     defocus_disk_u: DVec3,
     defocus_disk_v: DVec3,
-    eye: DVec3,
+
+    look_from: DVec3,
 
     viewport_pixel_delta_u: DVec3,
     viewport_pixel_delta_v: DVec3,
     viewport_top_left: DVec3,
 }
 
-#[derive(Clone, Copy, Default)]
-pub struct CameraBuilder {
+#[derive(Clone, Copy, Default, Deserialize, Serialize)]
+pub struct CameraConfig {
+    image_size: ImageSize,
+
     look_at: Option<DVec3>,
     look_from: Option<DVec3>,
     view_up: Option<DVec3>,
@@ -47,13 +51,11 @@ pub struct CameraBuilder {
     focus_dist: Option<f64>,
     vertical_field_of_view: Option<f64>,
 
-    image_size: ImageSize,
-
     max_depth: Option<usize>,
     sample_per_pixels: Option<usize>,
 }
 
-impl CameraBuilder {
+impl CameraConfig {
     pub fn new(image_size: ImageSize) -> Self {
         Self {
             image_size,
@@ -126,18 +128,18 @@ impl CameraBuilder {
     }
 
     pub fn build(
-        self,
+        &self,
     ) -> Camera {
         let image_size = self.image_size;
 
-        let eye = self.look_from.unwrap_or(DVec3::ZERO);
+        let look_from = self.look_from.unwrap_or(DVec3::ZERO);
         let look_at = self.look_at.unwrap_or(-DVec3::Z);
         let vup = self.view_up.unwrap_or(DVec3::Y);
 
         let max_depth = self.max_depth.unwrap_or(10);
         let sample_per_pixels = self.sample_per_pixels;
 
-        let defocus_angle = self.defocus_angle.unwrap_or(0.).clamp(0., PI);
+        let defocus_angle = self.defocus_angle.unwrap_or(0.0).clamp(0., PI);
         let focus_dist = self.focus_dist.unwrap_or(1.);
 
         let theta = self.vertical_field_of_view.unwrap_or(PI/2.0);
@@ -146,7 +148,7 @@ impl CameraBuilder {
         let viewport_height = focus_dist*h*2.0;
         let viewport_width = viewport_height*image_size.get_aspect_ratio();
 
-        let w = (eye - look_at).normalize();
+        let w = (look_from - look_at).normalize();
         let u = vup.cross(w).normalize();
         let v = w.cross(u).normalize();
 
@@ -157,10 +159,11 @@ impl CameraBuilder {
         let viewport_pixel_delta_v = viewport_v/(image_size.height as f64);
 
         let viewport_top_left =
-                eye - w*focus_dist
-                    - viewport_u/2.
-                    - viewport_v/2.
-                    + (viewport_pixel_delta_u + viewport_pixel_delta_v)/2.
+                look_from
+                    - w*focus_dist
+                    - viewport_u/2.0
+                    - viewport_v/2.0
+                    + (viewport_pixel_delta_u + viewport_pixel_delta_v)/2.0
                 ;
 
         let defocus_radius = focus_dist*(defocus_angle/2.0).tan();
@@ -175,7 +178,7 @@ impl CameraBuilder {
 
             defocus_disk_u,
             defocus_disk_v,
-            eye,
+            look_from,
 
             viewport_pixel_delta_u,
             viewport_pixel_delta_v,
@@ -185,12 +188,18 @@ impl CameraBuilder {
 }
 
 impl Camera {
+    pub fn get_image_size(&self) -> ImageSize {
+        self.image_size
+    }
+}
+
+impl Camera {
     fn defocus_disk_sample(
         &self,
         rng: &mut ThreadRng,
     ) -> DVec3 {
         let p = random_in_unit_disk(rng);
-        self.eye + p.x*self.defocus_disk_u + p.y*self.defocus_disk_v
+        self.look_from + p.x*self.defocus_disk_u + p.y*self.defocus_disk_v
     }
 
     fn get_ray(
@@ -340,9 +349,5 @@ impl Camera {
                 self.render_without_anti_aliasing(hitable, progress_ref)
             }
         }
-    }
-
-    pub fn get_image_size(&self) -> ImageSize {
-        self.image_size
     }
 }

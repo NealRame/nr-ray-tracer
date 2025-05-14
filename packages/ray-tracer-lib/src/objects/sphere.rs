@@ -1,6 +1,9 @@
-use std::sync::Arc;
-
 use glam::DVec3;
+
+use serde::{
+    Deserialize,
+    Serialize,
+};
 
 use super::hitable::{
     HitRecord,
@@ -11,17 +14,18 @@ use crate::interval::Interval;
 use crate::materials::Material;
 use crate::ray::Ray;
 
+#[derive(Clone, Copy, Deserialize, Serialize)]
 pub struct Sphere {
     center: DVec3,
     radius: f64,
-    material: Arc<dyn Material + Send + Sync>,
+    material: Material,
 }
 
 impl Sphere {
     pub fn new(
         center: DVec3,
         radius: f64,
-        material: Arc<dyn Material + Send + Sync>,
+        material: Material,
     ) -> Self {
         Self {
             center,

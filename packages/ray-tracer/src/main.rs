@@ -4,7 +4,6 @@ mod constants;
 use std::f64::consts::PI;
 use std::fs::File;
 use std::borrow::Cow;
-use std::sync::Arc;
 use std::time::Duration;
 
 use chrono::Utc;
@@ -81,20 +80,19 @@ fn get_spinner(
     }
 }
 
-fn render_image(
+fn render_scene(
     cli: &Cli,
-    camera: &Camera,
-    world: &HitableList,
+    scene: &Scene,
 ) -> Rgb32FImage {
-    let start = Utc::now();
-
     let bar = get_progress(&cli, "Rendering").map(|bar| {
         bar.set_position(0);
-        bar.set_length(camera.get_image_size().get_pixel_count() as u64);
+        bar.set_length(scene.camera.get_image_size().get_pixel_count() as u64);
         bar
     });
 
-    let image = camera.render(world, bar.as_ref().map(|bar| || bar.inc(1)));
+    let start = Utc::now();
+
+    let image = scene.render(bar.as_ref().map(|bar| || bar.inc(1)));
 
     let stop = Utc::now();
     let duration = stop - start;
@@ -153,13 +151,13 @@ fn main() {
     let (mut file, format) = cli.output.check();
 
     // Initialize world
-    let mut world = HitableList::from(vec![
-        Box::new(Sphere::new(
+    let mut objects = vec![
+        Object::Sphere(Sphere::new(
             1000.0*DVec3::NEG_Y,
             1000.0,
-            Arc::new(Lambertian::default())
+            Material::lambertian_default(),
         )),
-    ]);
+    ];
 
     let mut rng = rand::rng();
     let materials = ["lambertian", "metal", "glass"];
@@ -177,60 +175,67 @@ fn main() {
 
             match materials[dist.sample(&mut rng)] {
                 "lambertian" => {
-                    world.add(Box::new(Sphere::new(
+                    objects.push(Object::Sphere(Sphere::new(
                         center, 0.2,
-                        Arc::new(Lambertian::from_rng(&mut rng))),
-                    ));
+                        Material::lambertian_from_rng(&mut rng)
+                    )));
                 },
                 "metal" => {
-                    world.add(Box::new(Sphere::new(
+                    objects.push(Object::Sphere(Sphere::new(
                         center, 0.2,
-                        Arc::new(Metal::from_rng(&mut rng))),
-                    ));
+                        Material::metal_from_rng(&mut rng),
+                    )));
                 },
                 "glass" => {
-                    world.add(Box::new(Sphere::new(
+                    objects.push(Object::Sphere(Sphere::new(
                         center, 0.2,
-                        Arc::new(Dielectric::default())),
-                    ));
+                        Material::dielectric_default(),
+                    )));
                 },
                 _ => unreachable!()
             }
         }
     }
 
-    world.add(Box::new(Sphere::new(
+    objects.push(Object::Sphere(Sphere::new(
         DVec3::new( 0.0, 1.0, 0.0), 1.0,
-        Arc::new(Dielectric::default())),
-    ));
-    world.add(Box::new(Sphere::new(
+        Material::dielectric_default(),
+    )));
+    objects.push(Object::Sphere(Sphere::new(
         DVec3::new(-4.0, 1.0, 0.0), 1.0,
-        Arc::new(Lambertian {
+        Material::Lambertian {
             albedo: DVec3::new(0.4, 0.2, 0.1),
-        })),
-    ));
-    world.add(Box::new(
-        Sphere::new(
-            DVec3::new( 4.0, 1.0, 0.0), 1.0,
-            Arc::new(Metal {
-                albedo: DVec3::new(0.7, 0.6, 0.5),
-                fuzz: 0.0,
-        })),
-    ));
+        },
+    )));
+    objects.push(Object::Sphere(Sphere::new(
+        DVec3::new( 4.0, 1.0, 0.0), 1.0,
+        Material::Metal {
+            albedo: DVec3::new(0.7, 0.6, 0.5),
+            fuzz: 0.0,
+        },
+    )));
 
     // Initialize camera
-    let camera = CameraBuilder::new(image_size)
-        .with_vertical_field_of_view(cli.vfov*(PI/180.))
-        .with_focus_dist(cli.focus_distance)
-        .with_defocus_angle(cli.defocus_angle*(PI/180.))
-        .with_look_from(DVec3::new(13.0,  2.0,  3.0))
-        .with_look_at(  DVec3::new( 0.0,  0.0,  0.0))
-        .with_view_up(  DVec3::Y)
-        .with_sample_per_pixels(cli.anti_aliasing)
-        .build();
+    let camera_config =
+        CameraConfig::new(image_size)
+            .with_vertical_field_of_view(cli.vfov*(PI/180.))
+            .with_focus_dist(cli.focus_distance)
+            .with_defocus_angle(cli.defocus_angle*(PI/180.))
+            .with_look_from(DVec3::new(13.0,  2.0,  3.0))
+            .with_look_at(  DVec3::new( 0.0,  0.0,  0.0))
+            .with_view_up(  DVec3::Y)
+            .with_sample_per_pixels(cli.anti_aliasing)
+            .clone()
+        ;
+
+    // Create scene
+    let scene = Scene {
+        camera: camera_config.build(),
+        objects,
+    };
 
     // Render image
-    let image = render_image(&cli, &camera, &world);
+    let image = render_scene(&cli, &scene);
 
     dump_image(&cli, &mut file, image, format);
 }
