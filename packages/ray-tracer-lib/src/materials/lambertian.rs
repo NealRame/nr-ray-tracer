@@ -7,10 +7,21 @@ use crate::hitable::HitRecord;
 use crate::vector::*;
 
 use super::Material;
-use super::Random;
 
 pub struct Lambertian {
     pub albedo: DVec3,
+}
+
+impl Lambertian {
+    pub fn from_rng(rng: &mut ThreadRng) -> Self {
+        Self {
+            albedo: DVec3::new(
+                rng.random_range(0.0..=1.0),
+                rng.random_range(0.0..=1.0),
+                rng.random_range(0.0..=1.0),
+            )
+        }
+    }
 }
 
 impl Default for Lambertian {
@@ -38,17 +49,5 @@ impl Material for Lambertian {
             Ray::new(hit_record.point, scatter_direction),
             self.albedo,
         ))
-    }
-}
-
-impl Random for Lambertian {
-    fn random(rng: &mut ThreadRng) -> Self {
-        Self {
-            albedo: DVec3::new(
-                rng.random_range(0.0..=1.0),
-                rng.random_range(0.0..=1.0),
-                rng.random_range(0.0..=1.0),
-            )
-        }
     }
 }
