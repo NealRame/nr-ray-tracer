@@ -2,8 +2,8 @@ use glam::DVec3;
 
 use rand::{rngs::ThreadRng, Rng};
 
+use crate::objects::HitRecord;
 use crate::ray::Ray;
-use crate::hitable::HitRecord;
 use crate::vector::*;
 
 use super::Material;

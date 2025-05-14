@@ -11,7 +11,6 @@ use serde::{
 };
 
 use crate::camera::*;
-use crate::hitable::HitableList;
 use crate::image::ImageSize;
 use crate::materials::*;
 use crate::objects::*;
