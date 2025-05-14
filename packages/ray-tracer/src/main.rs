@@ -179,13 +179,13 @@ fn main() {
                 "lambertian" => {
                     world.add(Box::new(Sphere::new(
                         center, 0.2,
-                        Arc::new(Lambertian::random(&mut rng))),
+                        Arc::new(Lambertian::from_rng(&mut rng))),
                     ));
                 },
                 "metal" => {
                     world.add(Box::new(Sphere::new(
                         center, 0.2,
-                        Arc::new(Metal::random(&mut rng))),
+                        Arc::new(Metal::from_rng(&mut rng))),
                     ));
                 },
                 "glass" => {
