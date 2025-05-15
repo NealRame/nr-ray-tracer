@@ -5,10 +5,19 @@ use serde::{
     Serialize,
 };
 
-#[derive(Clone, Copy, Default, Deserialize, Serialize)]
+#[derive(Clone, Copy, Deserialize, Serialize)]
 pub struct ImageSize {
     pub height: usize,
     pub width: usize,
+}
+
+impl Default for ImageSize {
+    fn default() -> Self {
+        Self {
+            height: 800,
+            width: 1200,
+        }
+    }
 }
 
 impl ImageSize {
