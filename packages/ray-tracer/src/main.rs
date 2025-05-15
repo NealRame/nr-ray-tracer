@@ -217,13 +217,12 @@ fn main() {
 
     // Initialize camera
     let camera_config =
-        CameraConfig::new(image_size)
-            .with_vertical_field_of_view(cli.vfov*(PI/180.))
+        CameraConfig::default()
+            .with_image_size(image_size)
+            .with_field_of_view(cli.vfov*(PI/180.))
             .with_focus_dist(cli.focus_distance)
             .with_defocus_angle(cli.defocus_angle*(PI/180.))
             .with_look_from(DVec3::new(13.0,  2.0,  3.0))
-            .with_look_at(  DVec3::new( 0.0,  0.0,  0.0))
-            .with_view_up(  DVec3::Y)
             .with_sample_per_pixels(cli.anti_aliasing)
             .clone()
         ;

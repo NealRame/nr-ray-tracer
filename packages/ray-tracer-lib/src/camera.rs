@@ -15,7 +15,9 @@ use rayon::iter::{
     IntoParallelIterator,
     ParallelIterator,
 };
+
 use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 
 use crate::image::ImageSize;
 use crate::interval::Interval;
@@ -39,9 +41,10 @@ pub struct Camera {
     viewport_top_left: DVec3,
 }
 
+#[skip_serializing_none]
 #[derive(Clone, Copy, Default, Deserialize, Serialize)]
 pub struct CameraConfig {
-    image_size: ImageSize,
+    image_size: Option<ImageSize>,
 
     look_at: Option<DVec3>,
     look_from: Option<DVec3>,
@@ -49,18 +52,19 @@ pub struct CameraConfig {
 
     defocus_angle: Option<f64>,
     focus_dist: Option<f64>,
-    vertical_field_of_view: Option<f64>,
+    field_of_view: Option<f64>,
 
     max_depth: Option<usize>,
     sample_per_pixels: Option<usize>,
 }
 
 impl CameraConfig {
-    pub fn new(image_size: ImageSize) -> Self {
-        Self {
-            image_size,
-            ..Self::default()
-        }
+    pub fn with_image_size(
+        &mut self,
+        value: ImageSize,
+    ) -> &mut Self {
+        self.image_size.replace(value);
+        self
     }
 
     pub fn with_look_at(
@@ -103,11 +107,11 @@ impl CameraConfig {
         self
     }
 
-    pub fn with_vertical_field_of_view(
+    pub fn with_field_of_view(
         &mut self,
         vertical_field_of_view: f64,
     ) -> &mut Self {
-        self.vertical_field_of_view.replace(vertical_field_of_view);
+        self.field_of_view.replace(vertical_field_of_view);
         self
     }
 
@@ -130,11 +134,11 @@ impl CameraConfig {
     pub fn build(
         &self,
     ) -> Camera {
-        let image_size = self.image_size;
+        let image_size = self.image_size.unwrap_or_default();
 
         let look_from = self.look_from.unwrap_or(DVec3::ZERO);
-        let look_at = self.look_at.unwrap_or(-DVec3::Z);
-        let vup = self.view_up.unwrap_or(DVec3::Y);
+        let look_at = self.look_at.unwrap_or(DVec3::NEG_Z);
+        let view_up = self.view_up.unwrap_or(DVec3::Y);
 
         let max_depth = self.max_depth.unwrap_or(10);
         let sample_per_pixels = self.sample_per_pixels;
@@ -142,14 +146,14 @@ impl CameraConfig {
         let defocus_angle = self.defocus_angle.unwrap_or(0.0).clamp(0., PI);
         let focus_dist = self.focus_dist.unwrap_or(1.);
 
-        let theta = self.vertical_field_of_view.unwrap_or(PI/2.0);
-        let h = (theta/2.).tan();
+        let fov = self.field_of_view.unwrap_or(PI/2.0);
+        let h = (fov/2.).tan();
 
         let viewport_height = focus_dist*h*2.0;
         let viewport_width = viewport_height*image_size.get_aspect_ratio();
 
         let w = (look_from - look_at).normalize();
-        let u = vup.cross(w).normalize();
+        let u = view_up.cross(w).normalize();
         let v = w.cross(u).normalize();
 
         let viewport_u =  u*viewport_width;
