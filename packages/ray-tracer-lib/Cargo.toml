@@ -10,3 +10,4 @@ image = "0.25.6"
 rand = "0.9.1"
 rayon = "1.10.0"
 serde = { version = "1.0.219", features = ["derive"] }
+serde_with = "3.12.0"
