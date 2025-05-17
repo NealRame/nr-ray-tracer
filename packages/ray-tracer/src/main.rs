@@ -2,9 +2,7 @@ mod cli;
 mod constants;
 
 use std::f64::consts::PI;
-use std::fs::File;
-use std::borrow::Cow;
-use std::time::Duration;
+use std::fs;
 
 use chrono::Utc;
 
@@ -22,69 +20,79 @@ use image::{
     Rgb32FImage,
 };
 
-use indicatif::{
-    ProgressBar,
-    ProgressStyle,
-};
-
-use rand::distr::weighted::WeightedIndex;
-use rand::distr::Distribution;
-use rand::{self, Rng};
+use indicatif::ProgressStyle;
 
 use nr_ray_tracer_lib::prelude::*;
 
 use crate::cli::*;
+use crate::constants::*;
 
-const PROGRESS_TEMPLATE: &'static str = "{prefix:>10} - [{bar:40}] {percent:>3}%";
-const SPINNER_TEMPLATE: &'static str = "{prefix:>10} - {spinner:40}";
-const PROGRESS_TEMPLATE_FINISHED: &'static str = "{prefix:>10} - {msg}";
-
-fn get_progress(
+fn load_scene(
     cli: &Cli,
-    prefix: impl Into<Cow<'static, str>>,
-) -> Option<ProgressBar> {
-    if cli.verbose {
-        ProgressStyle::with_template(PROGRESS_TEMPLATE)
-            .map(|style| style.progress_chars("#>-"))
-            .map(|style| {
-                let bar =
-                    ProgressBar::no_length()
-                        .with_style(style)
-                        .with_prefix(prefix);
-                bar
-            })
-            .ok()
-    } else {
-        None
-    }
-}
+) -> Scene {
+    let image_size = cli.image.get_size();
 
-fn get_spinner(
-    cli: &Cli,
-    prefix: impl Into<Cow<'static, str>>,
-) -> Option<ProgressBar> {
-    if cli.verbose {
-        ProgressStyle::with_template(SPINNER_TEMPLATE)
-            .map(|style| {
-                let bar =
-                    ProgressBar::new_spinner()
-                        .with_style(style)
-                        .with_prefix(prefix);
-
-                bar.enable_steady_tick(Duration::from_millis(100));
-                bar
+    let content =
+        fs::read_to_string(&cli.scene)
+            .unwrap_or_else(|err| {
+                Cli::command().error(ErrorKind::Io, format!(
+                    "Fail to read '{}' content. {}.",
+                    cli.scene.to_string_lossy(),
+                    err.to_string(),
+                )).exit();
             })
-            .ok()
-    } else {
-        None
-    }
+        ;
+
+    let scene_config_ext =
+        cli.scene.extension()
+            .and_then(|os_str| os_str.to_str())
+            .map(|s| s.to_lowercase());
+
+    let mut scene_config: SceneConfig =
+        match scene_config_ext.as_ref().map(|s| s.as_str()) {
+            Some("json") => {
+                serde_json::from_str(&content).unwrap_or_else(|err| {
+                    Cli::command().error(ErrorKind::InvalidValue, format!(
+                        "Fail to load scene '{}' content. {}.",
+                        cli.scene.to_string_lossy(),
+                        err.to_string(),
+                    )).exit()
+                })
+            },
+            Some("toml") => {
+                toml::from_str(&content).unwrap_or_else(|err| {
+                    Cli::command().error(ErrorKind::InvalidValue, format!(
+                        "Fail to load scene '{}' content. {}.",
+                        cli.scene.to_string_lossy(),
+                        err.to_string(),
+                    )).exit()
+                })
+            },
+            _ => {
+                Cli::command().error(ErrorKind::Io, format!(
+                    "Unsupported scene file format '{}'.",
+                    cli.scene.to_string_lossy(),
+                )).exit();
+            }
+        };
+
+    scene_config.camera
+        .with_image_size(image_size)
+        .with_sample_per_pixels(cli.image.anti_aliasing)
+        .with_max_depth(cli.image.max_depth)
+        .with_field_of_view(cli.camera.field_of_view*(PI/180.))
+        .with_focus_dist(cli.camera.focus_distance)
+        .with_defocus_angle(cli.camera.defocus_angle*(PI/180.))
+        .with_look_from(DVec3::new(13.0,  2.0,  3.0));
+
+    Scene::from(scene_config)
 }
 
 fn render_scene(
     cli: &Cli,
     scene: &Scene,
 ) -> Rgb32FImage {
-    let bar = get_progress(&cli, "Rendering").map(|bar| {
+    let bar = cli.get_progress("Rendering").map(|bar| {
         bar.set_position(0);
         bar.set_length(scene.camera.get_image_size().get_pixel_count() as u64);
         bar
@@ -109,14 +117,14 @@ fn render_scene(
 
 fn dump_image(
     cli: &Cli,
-    file: &mut File,
+    file: &mut fs::File,
     mut image: Rgb32FImage,
     image_format: ImageFormat,
 ) {
     let start = Utc::now();
-    let progress = get_spinner(&cli, "Exporting");
+    let progress = cli.get_spinner("Exporting");
 
-    gamma_correction(&mut image, cli.gamma_value);
+    gamma_correction(&mut image, cli.image.gamma_value);
 
     DynamicImage::ImageRgb32F(image)
         .to_rgb8()
@@ -144,96 +152,9 @@ fn dump_image(
 fn main() {
     let cli = Cli::parse();
 
-    // Check image size config
-    let image_size = cli.image_size.check();
+    let (mut file, format) = cli.image.get_file();
 
-    // Get output file descriptor
-    let (mut file, format) = cli.output.check();
-
-    // Initialize world
-    let mut objects = vec![
-        Object::Sphere(Sphere::new(
-            1000.0*DVec3::NEG_Y,
-            1000.0,
-            Material::lambertian_default(),
-        )),
-    ];
-
-    let mut rng = rand::rng();
-    let materials = ["lambertian", "metal", "glass"];
-
-    let material_weights = [80, 15, 5];
-    let dist = WeightedIndex::new(&material_weights).unwrap();
-
-    for a in -11..=11 {
-        for b in -11..=11 {
-            let center = DVec3::new(
-                a as f64 + 0.9*rng.random_range(0.0..1.0),
-                0.2,
-                b as f64 + 0.9*rng.random_range(0.0..1.0),
-            );
-
-            match materials[dist.sample(&mut rng)] {
-                "lambertian" => {
-                    objects.push(Object::Sphere(Sphere::new(
-                        center, 0.2,
-                        Material::lambertian_from_rng(&mut rng)
-                    )));
-                },
-                "metal" => {
-                    objects.push(Object::Sphere(Sphere::new(
-                        center, 0.2,
-                        Material::metal_from_rng(&mut rng),
-                    )));
-                },
-                "glass" => {
-                    objects.push(Object::Sphere(Sphere::new(
-                        center, 0.2,
-                        Material::dielectric_default(),
-                    )));
-                },
-                _ => unreachable!()
-            }
-        }
-    }
-
-    objects.push(Object::Sphere(Sphere::new(
-        DVec3::new( 0.0, 1.0, 0.0), 1.0,
-        Material::dielectric_default(),
-    )));
-    objects.push(Object::Sphere(Sphere::new(
-        DVec3::new(-4.0, 1.0, 0.0), 1.0,
-        Material::Lambertian {
-            albedo: DVec3::new(0.4, 0.2, 0.1),
-        },
-    )));
-    objects.push(Object::Sphere(Sphere::new(
-        DVec3::new( 4.0, 1.0, 0.0), 1.0,
-        Material::Metal {
-            albedo: DVec3::new(0.7, 0.6, 0.5),
-            fuzz: 0.0,
-        },
-    )));
-
-    // Initialize camera
-    let camera_config =
-        CameraConfig::default()
-            .with_image_size(image_size)
-            .with_field_of_view(cli.vfov*(PI/180.))
-            .with_focus_dist(cli.focus_distance)
-            .with_defocus_angle(cli.defocus_angle*(PI/180.))
-            .with_look_from(DVec3::new(13.0,  2.0,  3.0))
-            .with_sample_per_pixels(cli.anti_aliasing)
-            .clone()
-        ;
-
-    // Create scene
-    let scene = Scene {
-        camera: camera_config.build(),
-        objects,
-    };
-
-    // Render image
+    let scene = load_scene(&cli);
     let image = render_scene(&cli, &scene);
 
     dump_image(&cli, &mut file, image, format);

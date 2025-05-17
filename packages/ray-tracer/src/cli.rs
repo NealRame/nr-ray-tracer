@@ -1,5 +1,7 @@
+use std::borrow::Cow;
 use std::fs::File;
 use std::path::PathBuf;
+use std::time::Duration;
 
 use anyhow::Result;
 
@@ -16,6 +18,11 @@ use color_print::{
 };
 
 use image::ImageFormat;
+
+use indicatif::{
+    ProgressBar,
+    ProgressStyle,
+};
 
 use once_cell::sync::Lazy;
 
@@ -72,22 +79,58 @@ fn report_image_size_conflicting_args_error() -> ! {
 
 #[derive(Args)]
 #[group()]
-pub struct CliImageSize {
+pub struct CliImage {
     /// The image width.
-    #[arg(short = 'W', long, value_name = "WIDTH")]
+    #[arg(long, value_name = "WIDTH")]
     width: Option<usize>,
 
     /// The image height.
-    #[arg(short = 'H', long, value_name = "HEIGHT")]
+    #[arg(long, value_name = "HEIGHT")]
     height: Option<usize>,
 
     /// The image aspect ratio.
-    #[arg(short = 'R', long, value_name = "ASPECT_RATIO", value_parser = aspect_ratio)]
+    #[arg(
+        long,
+        value_name = "ASPECT_RATIO",
+        value_parser = aspect_ratio,
+    )]
     aspect_ratio: Option<f64>,
+
+    /// Specify the gamma value.
+    #[arg(
+        long,
+        value_name = "GAMMA_VALUE",
+        default_value_t = DEFAULT_IMAGE_GAMMA_VALUE,
+    )]
+    pub gamma_value: f32,
+
+    /// Specify how many samples per pixels anti-aliasing will use.
+    #[arg(
+        long,
+        value_name = "SAMPLES_PER_PIXELS",
+        default_value_t = DEFAULT_SAMPLES_PER_PIXELS
+    )]
+    pub anti_aliasing: usize,
+
+    /// Maximum ray bounce count.
+    #[arg(
+        long,
+        value_name = "MAX_DEPTH",
+        default_value_t = DEFAULT_RAY_MAX_DEPTH
+    )]
+    pub max_depth: usize,
+
+    /// Force output overwrite.
+    #[arg(long)]
+    force_overwrite: bool,
+
+    /// Output file path.
+    #[arg(long, value_name = "FILE")]
+    output: Option<PathBuf>,
 }
 
-impl CliImageSize {
-    pub fn check(&self) -> ImageSize {
+impl CliImage {
+    pub fn get_size(&self) -> ImageSize {
         match (self.width, self.height, self.aspect_ratio) {
             (None, None, None) => {
                 ImageSize::new(DEFAULT_IMAGE_WIDTH, DEFAULT_IMAGE_HEIGHT)
@@ -129,21 +172,8 @@ impl CliImageSize {
     }
 }
 
-
-#[derive(Args)]
-#[group()]
-pub struct CliOutput {
-    /// Force output overwrite.
-    #[arg(short, long)]
-    pub force_overwrite: bool,
-
-    /// Output file path.
-    #[arg(short, long, value_name = "FILE")]
-    pub output: Option<PathBuf>,
-}
-
-impl CliOutput {
-    pub fn check(&self) -> (File, ImageFormat) {
+impl CliImage {
+    pub fn get_file(&self) -> (File, ImageFormat) {
         let overwrite = self.force_overwrite;
         let filepath = self.output.clone().unwrap_or("out.bmp".try_into().unwrap());
 
@@ -175,27 +205,12 @@ impl CliOutput {
     }
 }
 
-
-#[derive(Parser)]
-#[command(version, about, long_about = None)]
-pub struct Cli {
-    #[command(flatten)]
-    pub image_size: CliImageSize,
-
-    #[command(flatten)]
-    pub output: CliOutput,
-
-    /// Specify how many samples per pixels anti-aliasing will use.
-    #[arg(
-        short = 'A', long,
-        value_name = "SAMPLES_PER_PIXELS",
-        default_value_t = DEFAULT_SAMPLES_PER_PIXELS
-    )]
-    pub anti_aliasing: usize,
-
+#[derive(Args)]
+#[group()]
+pub struct CliCamera{
     /// Specify the camera focal length.
     #[arg(
-        short = 'F', long,
+        long,
         value_name = "FOCAL_LENGTH",
         default_value_t = DEFAULT_CAMERA_FOCAL_LENGTH
     )]
@@ -204,10 +219,10 @@ pub struct Cli {
     /// Specify the camera focal length.
     #[arg(
         long,
-        value_name = "VFOV",
-        default_value_t = DEFAULT_CAMERA_VERTICAL_FIELD_OF_VIEW
+        value_name = "FOV",
+        default_value_t = DEFAULT_CAMERA_FIELD_OF_VIEW
     )]
-    pub vfov: f64,
+    pub field_of_view: f64,
 
     /// Specify the defocus angle.
     #[arg(
@@ -224,24 +239,63 @@ pub struct Cli {
         default_value_t = DEFAULT_CAMERA_FOCUS_DISTANCE
     )]
     pub focus_distance: f64,
+}
 
-    /// Specify the gamma value.
-    #[arg(
-        short = 'G', long,
-        value_name = "GAMMA_VALUE",
-        default_value_t = DEFAULT_GAMMA_VALUE
-    )]
-    pub gamma_value: f32,
+#[derive(Parser)]
+#[command(version, about, long_about = None)]
+pub struct Cli {
+    pub scene: PathBuf,
 
-    /// Maximum ray bounce count.
-    #[arg(
-        short = 'D', long,
-        value_name = "MAX_DEPTH",
-        default_value_t = DEFAULT_RAY_MAX_DEPTH
-    )]
-    pub max_depth: usize,
+    #[command(flatten)]
+    pub image: CliImage,
+
+    #[command(flatten)]
+    pub camera: CliCamera,
 
     /// Show progress.
     #[arg(short, long)]
     pub verbose: bool
+}
+
+impl Cli {
+    pub fn get_progress(
+        &self,
+        prefix: impl Into<Cow<'static, str>>,
+    ) -> Option<ProgressBar> {
+        if self.verbose {
+            ProgressStyle::with_template(PROGRESS_TEMPLATE)
+                .map(|style| style.progress_chars("#>-"))
+                .map(|style| {
+                    let bar =
+                        ProgressBar::no_length()
+                            .with_style(style)
+                            .with_prefix(prefix);
+                    bar
+                })
+                .ok()
+        } else {
+            None
+        }
+    }
+
+    pub fn get_spinner(
+        &self,
+        prefix: impl Into<Cow<'static, str>>,
+    ) -> Option<ProgressBar> {
+        if self.verbose {
+            ProgressStyle::with_template(SPINNER_TEMPLATE)
+                .map(|style| {
+                    let bar =
+                        ProgressBar::new_spinner()
+                            .with_style(style)
+                            .with_prefix(prefix);
+
+                    bar.enable_steady_tick(Duration::from_millis(100));
+                    bar
+                })
+                .ok()
+        } else {
+            None
+        }
+    }
 }
