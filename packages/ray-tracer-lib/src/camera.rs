@@ -44,17 +44,26 @@ pub struct Camera {
 #[skip_serializing_none]
 #[derive(Clone, Copy, Default, Deserialize, Serialize)]
 pub struct CameraConfig {
-    image_size: Option<ImageSize>,
-
     look_at: Option<DVec3>,
     look_from: Option<DVec3>,
     view_up: Option<DVec3>,
 
+    #[serde(skip)]
+    image_size: Option<ImageSize>,
+
+    #[serde(skip)]
     defocus_angle: Option<f64>,
+
+    #[serde(skip)]
     focus_dist: Option<f64>,
+
+    #[serde(skip)]
     field_of_view: Option<f64>,
 
+    #[serde(skip)]
     max_depth: Option<usize>,
+
+    #[serde(skip)]
     sample_per_pixels: Option<usize>,
 }
 
