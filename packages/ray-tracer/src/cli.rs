@@ -81,11 +81,11 @@ fn report_image_size_conflicting_args_error() -> ! {
 #[group()]
 pub struct CliImage {
     /// The image width.
-    #[arg(long, value_name = "WIDTH")]
+    #[arg(short = 'w', long, value_name = "WIDTH")]
     width: Option<usize>,
 
     /// The image height.
-    #[arg(long, value_name = "HEIGHT")]
+    #[arg(short = 'h', long, value_name = "HEIGHT")]
     height: Option<usize>,
 
     /// The image aspect ratio.
@@ -107,10 +107,10 @@ pub struct CliImage {
     /// Specify how many samples per pixels anti-aliasing will use.
     #[arg(
         long,
-        value_name = "SAMPLES_PER_PIXELS",
-        default_value_t = DEFAULT_SAMPLES_PER_PIXELS
+        value_name = "SAMPLES_PER_PIXEL",
+        default_value_t = DEFAULT_SAMPLES_PER_PIXEL
     )]
-    pub anti_aliasing: usize,
+    pub samples_per_pixel: usize,
 
     /// Maximum ray bounce count.
     #[arg(
@@ -118,14 +118,14 @@ pub struct CliImage {
         value_name = "MAX_DEPTH",
         default_value_t = DEFAULT_RAY_MAX_DEPTH
     )]
-    pub max_depth: usize,
+    pub ray_max_bounce: usize,
 
     /// Force output overwrite.
-    #[arg(long)]
+    #[arg(short = 'f', long)]
     force_overwrite: bool,
 
     /// Output file path.
-    #[arg(long, value_name = "FILE")]
+    #[arg(short = 'o', long, value_name = "FILE")]
     output: Option<PathBuf>,
 }
 

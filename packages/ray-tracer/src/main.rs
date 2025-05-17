@@ -78,8 +78,8 @@ fn load_scene(
 
     scene_config.camera
         .with_image_size(image_size)
-        .with_sample_per_pixels(cli.image.anti_aliasing)
-        .with_max_depth(cli.image.max_depth)
+        .with_samples_per_pixel(cli.image.samples_per_pixel)
+        .with_ray_max_bounce(cli.image.ray_max_bounce)
         .with_field_of_view(cli.camera.field_of_view*(PI/180.))
         .with_focus_dist(cli.camera.focus_distance)
         .with_defocus_angle(cli.camera.defocus_angle*(PI/180.))

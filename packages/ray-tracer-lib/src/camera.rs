@@ -28,8 +28,8 @@ use crate::vector::*;
 pub struct Camera {
     image_size: ImageSize,
 
-    max_depth: usize,
-    sample_per_pixels: Option<usize>,
+    ray_max_bounce: usize,
+    samples_per_pixel: Option<usize>,
 
     defocus_disk_u: DVec3,
     defocus_disk_v: DVec3,
@@ -61,10 +61,10 @@ pub struct CameraConfig {
     field_of_view: Option<f64>,
 
     #[serde(skip)]
-    max_depth: Option<usize>,
+    ray_max_bounce: Option<usize>,
 
     #[serde(skip)]
-    sample_per_pixels: Option<usize>,
+    samples_per_pixel: Option<usize>,
 }
 
 impl CameraConfig {
@@ -124,19 +124,19 @@ impl CameraConfig {
         self
     }
 
-    pub fn with_max_depth(
+    pub fn with_ray_max_bounce(
         &mut self,
         max_depth: usize,
     ) -> &mut Self {
-        self.max_depth.replace(max_depth);
+        self.ray_max_bounce.replace(max_depth);
         self
     }
 
-    pub fn with_sample_per_pixels(
+    pub fn with_samples_per_pixel(
         &mut self,
         count: usize,
     ) -> &mut Self {
-        self.sample_per_pixels.replace(count);
+        self.samples_per_pixel.replace(count);
         self
     }
 
@@ -149,8 +149,8 @@ impl CameraConfig {
         let look_at = self.look_at.unwrap_or(DVec3::NEG_Z);
         let view_up = self.view_up.unwrap_or(DVec3::Y);
 
-        let max_depth = self.max_depth.unwrap_or(10);
-        let sample_per_pixels = self.sample_per_pixels;
+        let ray_max_bounce = self.ray_max_bounce.unwrap_or(10);
+        let samples_per_pixel = self.samples_per_pixel;
 
         let defocus_angle = self.defocus_angle.unwrap_or(0.0).clamp(0., PI);
         let focus_dist = self.focus_dist.unwrap_or(1.);
@@ -186,8 +186,8 @@ impl CameraConfig {
         Camera {
             image_size,
 
-            max_depth,
-            sample_per_pixels,
+            ray_max_bounce,
+            samples_per_pixel,
 
             defocus_disk_u,
             defocus_disk_v,
@@ -221,7 +221,7 @@ impl Camera {
         y: u32,
         rng: &mut ThreadRng,
     ) -> Ray {
-        let offset = if self.sample_per_pixels.is_some() {
+        let offset = if self.samples_per_pixel.is_some() {
             DVec2::from_rng_ranged(rng, -0.5..=0.5)
         } else {
             DVec2::ZERO
@@ -242,18 +242,18 @@ impl Camera {
     fn get_ray_color(
         &self,
         ray: &Ray,
+        ray_bounce: usize,
         hitable: &impl Hitable,
-        depth: usize,
         rng: &mut ThreadRng,
     ) -> DVec3 {
-        if depth >= self.max_depth {
+        if ray_bounce >= self.ray_max_bounce {
             return DVec3::ZERO;
         }
 
         match hitable.hit(ray, Interval::new(0.001, INFINITY)).as_ref() {
             Some(hit_record) => {
                 if let Some((scattered_ray, color)) = hit_record.material.scatter(ray, hit_record, rng) {
-                    color*self.get_ray_color(&scattered_ray, hitable, depth + 1, rng)
+                    color*self.get_ray_color(&scattered_ray, ray_bounce + 1, hitable, rng)
                 } else {
                     DVec3::ZERO
                 }
@@ -276,7 +276,7 @@ impl Camera {
             T: Hitable + Send + Sync,
             P: Fn() + Sync,
     {
-        let sample_per_pixels = self.sample_per_pixels.unwrap();
+        let sample_per_pixels = self.samples_per_pixel.unwrap();
         let width = self.image_size.width as u32;
         let height = self.image_size.height as u32;
 
@@ -291,7 +291,7 @@ impl Camera {
                 let s = (0..sample_per_pixels).map(|_| {
                     let ray = self.get_ray(x, y, &mut rng);
 
-                    self.get_ray_color(&ray, hitable, 0, &mut rng)
+                    self.get_ray_color(&ray, 0, hitable, &mut rng)
                 }).sum::<DVec3>();
 
                 let color = s/(sample_per_pixels as f64);
@@ -329,7 +329,7 @@ impl Camera {
                 let y = n/width;
 
                 let ray = self.get_ray(x, y, &mut rng);
-                let color = self.get_ray_color(&ray, hitable, 0, &mut rng);
+                let color = self.get_ray_color(&ray, 0, hitable, &mut rng);
 
                 if let Some(progress) = progress {
                     progress();
@@ -354,7 +354,7 @@ impl Camera {
     {
         let progress_ref = progress.as_ref();
 
-        match self.sample_per_pixels {
+        match self.samples_per_pixel {
             Some(sample_per_pixels) if sample_per_pixels > 1 => {
                 self.render_with_anti_aliasing(hitable, progress_ref)
             },
