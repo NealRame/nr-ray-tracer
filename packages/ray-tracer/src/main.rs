@@ -12,8 +12,6 @@ use clap::{
 };
 use clap::error::ErrorKind;
 
-use glam::DVec3;
-
 use image::{
     DynamicImage,
     ImageFormat,
@@ -83,7 +81,7 @@ fn load_scene(
         .with_field_of_view(cli.camera.field_of_view*(PI/180.))
         .with_focus_dist(cli.camera.focus_distance)
         .with_defocus_angle(cli.camera.defocus_angle*(PI/180.))
-        .with_look_from(DVec3::new(13.0,  2.0,  3.0));
+    ;
 
     Scene::from(scene_config)
 }
