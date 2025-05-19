@@ -1,6 +1,6 @@
 /**/.DS_Store
-/*.bmp
-/*.ppm
-/*.png
+/**/*.bmp
+/**/*.ppm
+/**/*.png
 
 /target
