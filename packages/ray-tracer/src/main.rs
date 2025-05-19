@@ -83,6 +83,18 @@ fn load_scene(
         .with_defocus_angle(cli.camera.defocus_angle*(PI/180.))
     ;
 
+    if let Some(value) = cli.camera.look_at {
+        scene_config.camera.with_look_at(value);
+    }
+
+    if let Some(value) = cli.camera.look_from {
+        scene_config.camera.with_look_from(value);
+    }
+
+    if let Some(value) = cli.camera.view_up {
+        scene_config.camera.with_view_up(value);
+    }
+
     Scene::from(scene_config)
 }
 

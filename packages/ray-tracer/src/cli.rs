@@ -18,6 +18,8 @@ use color_print::{
     cstr,
 };
 
+use glam::DVec3;
+
 use image::ImageFormat;
 
 use indicatif::{
@@ -33,7 +35,30 @@ use nr_ray_tracer_lib::prelude::*;
 
 use crate::constants::*;
 
-fn aspect_ratio(s: &str) -> Result<f64, String> {
+fn parse_vector(s: &str) -> std::result::Result<DVec3, String> {
+    static RE: Lazy<Regex> = Lazy::new(|| {
+        Regex::new(r"^(\S+),(\S+),(\S+)$").unwrap()
+    });
+
+    RE.captures(s.trim())
+        .ok_or(format!("Invalid ratio: '{s}'"))
+        .and_then(|caps| {
+            match (
+                caps.get(1).unwrap().as_str().trim().parse::<f64>(),
+                caps.get(2).unwrap().as_str().trim().parse::<f64>(),
+                caps.get(3).unwrap().as_str().trim().parse::<f64>(),
+            ) {
+                (Ok(x), Ok(y), Ok(z),) => {
+                    Ok(DVec3::new(x, y, z))
+                },
+                _ => {
+                    Err(format!("Invalid vector: '{s}'"))
+                }
+            }
+        })
+}
+
+fn parse_aspect_ratio(s: &str) -> Result<f64, String> {
     static RE: Lazy<Regex> = Lazy::new(|| {
         Regex::new(r"^(\d+)\s*/\s*(\d+)$").unwrap()
     });
@@ -93,7 +118,7 @@ pub struct CliImage {
     #[arg(
         long,
         value_name = "ASPECT_RATIO",
-        value_parser = aspect_ratio,
+        value_parser = parse_aspect_ratio,
     )]
     aspect_ratio: Option<f64>,
 
@@ -168,6 +193,18 @@ impl CliImage {
 #[derive(Args)]
 #[group()]
 pub struct CliCamera{
+    /// Specify the position where the camera is looking at.
+    #[arg(long, value_name = "POSITION", value_parser = parse_vector)]
+    pub look_at: Option<DVec3>,
+
+    /// Specify the position from where the camera is looking.
+    #[arg(long, value_name = "POSITION", value_parser = parse_vector)]
+    pub look_from: Option<DVec3>,
+
+    /// Specify the view up direction of the camera.
+    #[arg(long, value_name = "POSITION", value_parser = parse_vector)]
+    pub view_up: Option<DVec3>,
+
     /// Specify the camera focal length.
     #[arg(
         long,
