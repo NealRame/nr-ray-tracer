@@ -42,7 +42,7 @@ pub struct Camera {
 }
 
 #[skip_serializing_none]
-#[derive(Clone, Copy, Default, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Serialize)]
 pub struct CameraConfig {
     look_at: Option<DVec3>,
     look_from: Option<DVec3>,
