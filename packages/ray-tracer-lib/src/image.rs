@@ -5,7 +5,7 @@ use serde::{
     Serialize,
 };
 
-#[derive(Clone, Copy, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 pub struct ImageSize {
     pub height: usize,
     pub width: usize,
