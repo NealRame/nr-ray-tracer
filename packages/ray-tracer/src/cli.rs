@@ -1,4 +1,5 @@
 use std::borrow::Cow;
+use std::ffi::OsStr;
 use std::fs::File;
 use std::path::PathBuf;
 use std::time::Duration;
@@ -119,14 +120,6 @@ pub struct CliImage {
         default_value_t = DEFAULT_RAY_MAX_DEPTH
     )]
     pub ray_max_bounce: usize,
-
-    /// Force output overwrite.
-    #[arg(short = 'f', long)]
-    force_overwrite: bool,
-
-    /// Output file path.
-    #[arg(short = 'o', long, value_name = "FILE")]
-    output: Option<PathBuf>,
 }
 
 impl CliImage {
@@ -169,39 +162,6 @@ impl CliImage {
                 report_image_size_conflicting_args_error();
             },
         }
-    }
-}
-
-impl CliImage {
-    pub fn get_file(&self) -> (File, ImageFormat) {
-        let overwrite = self.force_overwrite;
-        let filepath = self.output.clone().unwrap_or("out.bmp".try_into().unwrap());
-
-        let format =
-            ImageFormat::from_path(filepath.as_path())
-                .unwrap_or_else(|err| {
-                    Cli::command().error(
-                        ErrorKind::InvalidValue,
-                        err.to_string(),
-                    ).exit();
-                });
-
-        let file =
-            File::options()
-                .create_new(!overwrite)
-                .create(true)
-                .truncate(true)
-                .write(true)
-                .open(filepath.as_path())
-                .unwrap_or_else(|err| {
-                    Cli::command().error(ErrorKind::Io, format!(
-                        "Fail to open '{}' for writing. {}.",
-                        filepath.to_string_lossy(),
-                        err.to_string(),
-                    )).exit();
-                });
-
-        (file, format)
     }
 }
 
@@ -252,12 +212,65 @@ pub struct Cli {
     #[command(flatten)]
     pub camera: CliCamera,
 
+    /// Force output overwrite.
+    #[arg(short = 'f', long)]
+    force_overwrite: bool,
+
+    /// Output file path.
+    #[arg(short = 'o', long, value_name = "FILE")]
+    output: Option<PathBuf>,
+
     /// Show progress.
     #[arg(short, long)]
     pub verbose: bool
 }
 
 impl Cli {
+    pub fn get_file(&self) -> (File, ImageFormat) {
+        let overwrite = self.force_overwrite;
+        let filepath =
+            self.output
+                .clone()
+                .or_else(|| {
+                    match (
+                        self.scene.parent(),
+                        self.scene.file_stem().and_then(OsStr::to_str),
+                    ) {
+                        (Some(parent), Some(name)) => {
+                            Some(parent.join(format!("{name}.png")))
+                        },
+                        _ => None
+                    }
+                })
+                .unwrap_or("out.bmp".try_into().unwrap());
+
+        let format =
+            ImageFormat::from_path(filepath.as_path())
+                .unwrap_or_else(|err| {
+                    Cli::command().error(
+                        ErrorKind::InvalidValue,
+                        err.to_string(),
+                    ).exit();
+                });
+
+        let file =
+            File::options()
+                .create_new(!overwrite)
+                .create(true)
+                .truncate(true)
+                .write(true)
+                .open(filepath.as_path())
+                .unwrap_or_else(|err| {
+                    Cli::command().error(ErrorKind::Io, format!(
+                        "Fail to open '{}' for writing. {}.",
+                        filepath.to_string_lossy(),
+                        err.to_string(),
+                    )).exit();
+                });
+
+        (file, format)
+    }
+
     pub fn get_progress(
         &self,
         prefix: impl Into<Cow<'static, str>>,

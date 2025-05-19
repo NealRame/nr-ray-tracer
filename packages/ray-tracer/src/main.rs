@@ -150,7 +150,7 @@ fn dump_image(
 fn main() {
     let cli = Cli::parse();
 
-    let (mut file, format) = cli.image.get_file();
+    let (mut file, format) = cli.get_file();
 
     let scene = load_scene(&cli);
     let image = render_scene(&cli, &scene);
