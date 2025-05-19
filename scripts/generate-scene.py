@@ -10,8 +10,7 @@ from math import pi as PI, cos, sin
 assert sys.version_info >= (3, 10)
 
 class Serializable:
-    def serialize(self) -> dict | float | int | list | str | tuple:
-        ...
+    def serialize(self) -> dict | float | int | list | str | tuple: ...
 
 @dataclass
 class Vec3(Serializable):
@@ -137,6 +136,9 @@ if __name__ == "__main__":
     step = 4/1001
     r = 1001
 
+    choices = ["dielectric", "lambertian", "metal"]
+    weights = [1, 4, 8]
+
     for sigma in seq(-step, step, step):
         r = 1001*cos(sigma)
         z = sin(sigma)
@@ -147,11 +149,7 @@ if __name__ == "__main__":
                 z = z
             ).mul(r).add(Vec3(y=-r + 1)).round(4)
 
-            [s, ] = random.choices(
-                ["dielectric", "lambertian", "metal"],
-                weights=[1, 4, 8],
-                k=1
-            )
+            s, = random.choices(choices, weights)
 
             if s == "lambertian":
                 m = Lambertian(albedo=Vec3(
