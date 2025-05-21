@@ -1,6 +1,10 @@
 /**/.DS_Store
+/**/.venv
+
 /**/*.bmp
 /**/*.ppm
 /**/*.png
+
+/**/__pycache__
 
 /target
