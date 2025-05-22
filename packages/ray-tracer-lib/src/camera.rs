@@ -11,6 +11,7 @@ use image::Rgb32FImage;
 
 use rand::rngs::ThreadRng;
 
+use rand::Rng;
 use rayon::iter::{
     IntoParallelIterator,
     ParallelIterator,
@@ -235,8 +236,9 @@ impl Camera {
 
         let origin = self.defocus_disk_sample(rng);
         let direction = point - origin;
+        let time = rng.random_range(0.0..1.0);
 
-        Ray::new(origin, direction)
+        Ray::new_at_time(origin, direction, time)
     }
 
     fn get_ray_color(
