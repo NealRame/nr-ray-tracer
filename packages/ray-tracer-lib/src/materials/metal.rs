@@ -7,19 +7,19 @@ use crate::ray::Ray;
 use crate::vector::*;
 
 pub(super) fn scatter(
-    albedo: DVec3,
-    fuzz: f64,
     ray: &Ray,
     hit_record: &HitRecord,
     rng: &mut ThreadRng,
+    albedo: DVec3,
+    fuzz: f64,
 ) -> Option<(Ray, DVec3)> {
-    let reflected_direction =
+    let scatter_direction =
         ray.get_direction().reflect(hit_record.normal).normalize()
             + fuzz*random_in_unit_sphere(rng);
 
-    if reflected_direction.dot(hit_record.normal) > 0.0 {
+    if scatter_direction.dot(hit_record.normal) > 0.0 {
         Some((
-            Ray::new(hit_record.point, reflected_direction),
+            Ray::new_at_time(hit_record.point, scatter_direction, ray.get_time()),
             albedo,
         ))
     } else {

@@ -64,13 +64,13 @@ impl Material {
     ) -> Option<(Ray, DVec3)> {
         match *self {
             Self::Dielectric { refraction_index } => {
-                dielectric::scatter(refraction_index, ray, hit_record, rng)
+                dielectric::scatter(ray, hit_record, rng, refraction_index, )
             },
             Self::Lambertian { albedo } => {
-                lambertian::scatter(albedo, hit_record, rng)
+                lambertian::scatter(ray, hit_record, rng, albedo, )
             },
             Self::Metal { albedo, fuzz } => {
-                metal::scatter(albedo, fuzz, ray, hit_record, rng)
+                metal::scatter(ray, hit_record, rng, albedo, fuzz, )
             },
         }
     }

@@ -4,6 +4,7 @@ use serde::{
     Deserialize,
     Serialize,
 };
+use serde_with::skip_serializing_none;
 
 use super::hitable::{
     HitRecord,
@@ -14,32 +15,47 @@ use crate::interval::Interval;
 use crate::materials::Material;
 use crate::ray::Ray;
 
+#[skip_serializing_none]
 #[derive(Clone, Copy, Deserialize, Serialize)]
 pub struct Sphere {
     center: DVec3,
+    speed: Option<DVec3>,
     radius: f64,
     material: Material,
 }
 
 impl Sphere {
-    pub fn new(
+    pub fn with_speed(
         center: DVec3,
+        speed: Option<DVec3>,
         radius: f64,
         material: Material,
     ) -> Self {
         Self {
             center,
+            speed,
             radius,
             material,
         }
+    }
+
+    pub fn new(
+        center: DVec3,
+        radius: f64,
+        material: Material,
+    ) -> Self {
+        Self::with_speed(center, None, radius, material)
     }
 }
 
 impl Hitable for Sphere {
     fn hit(&self, ray: &Ray, hit_range: Interval) -> Option<HitRecord> {
+        let speed = Ray::new(self.center, self.speed.unwrap_or(DVec3::ZERO));
+        let center = speed.at(ray.get_time());
+
         let dir = ray.get_direction();
         let eye = ray.get_origin();
-        let ec = self.center - eye;
+        let ec = center - eye;
 
         let a = dir.length_squared();
         let h = ec.dot(dir);
@@ -74,7 +90,7 @@ impl Hitable for Sphere {
             })
             .map(|t| {
                 let point = ray.at(t);
-                let normal = (point - self.center).normalize();
+                let normal = (point - center).normalize();
                 let material = self.material.clone();
 
                 HitRecord::new(ray, material, point, normal, t)
