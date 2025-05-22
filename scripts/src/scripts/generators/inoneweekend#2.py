@@ -18,16 +18,21 @@ def generate():
 
     for a in seq(-11, 11, 1):
         for b in seq(-11, 11, 1):
-            Material, = random.choices(choices, weights)
-
-            m = Material()
             c = Vec3(
                 x = a + 0.9*random.random(),
                 y = 0.2,
                 z = b + 0.9*random.random(),
             )
 
-            shapes.append(Sphere(center=c, radius=0.2, material=m))
+            if c.sub(Vec3(x = 4, y = 0.2, z = 0)).length() > 0.9:
+                Material, = random.choices(choices, weights)
+
+                if random.random() < 8/10:
+                    v = Vec3(x = 0, y = random.random()*0.5, z = 0.0)
+                else:
+                    v = None
+
+                shapes.append(Sphere(center=c, speed=v, radius=0.2, material=Material()))
 
     shapes.append(Sphere(
         center = Vec3(x = 0, y = 1, z = 0),

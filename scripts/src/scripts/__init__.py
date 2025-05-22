@@ -3,7 +3,6 @@ import json
 import pkgutil
 import sys
 
-
 def run_generator(generator_module):
     module = importlib.import_module(f"scripts.generators.{generator_module}",)
     scene = module.generate()

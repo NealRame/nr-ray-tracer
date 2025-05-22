@@ -1,4 +1,5 @@
 from dataclasses import dataclass, astuple, KW_ONLY
+from math import sqrt
 
 from .serializable import Serializable
 
@@ -25,6 +26,9 @@ class Vec3(Serializable):
             z = 0.0,
         )
 
+    def length(self):
+        return sqrt(self.x*self.x + self.y*self.y + self.z*self.z)
+
     def mul(self, k: float):
         return Vec3(
             x = k*self.x,
@@ -37,6 +41,13 @@ class Vec3(Serializable):
             x = self.x + v.x,
             y = self.y + v.y,
             z = self.z + v.z,
+        )
+
+    def sub(self, v):
+        return Vec3(
+            x = self.x - v.x,
+            y = self.y - v.y,
+            z = self.z - v.z,
         )
 
     def round(self, r = 0):
