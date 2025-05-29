@@ -16,7 +16,7 @@ pub struct SceneConfig {
 
 pub struct Scene {
     pub camera: Camera,
-    pub objects: Vec<Object>,
+    pub objects: BVH,
 }
 
 impl Scene {
@@ -29,10 +29,10 @@ impl Scene {
 }
 
 impl From<SceneConfig> for Scene {
-    fn from(config: SceneConfig) -> Self {
-        Self {
-            camera: config.camera.build(),
-            objects: config.objects,
-        }
+    fn from(mut config: SceneConfig) -> Self {
+        let camera = config.camera.build();
+        let objects = BVH::from(config.objects.as_mut_slice());
+
+        Self { camera, objects }
     }
 }

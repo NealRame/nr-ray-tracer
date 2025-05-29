@@ -3,7 +3,7 @@ use glam::DVec3;
 use rand::Rng;
 use rand::rngs::ThreadRng;
 
-use crate::objects::HitRecord;
+use crate::hitable::HitRecord;
 use crate::ray::Ray;
 
 fn reflectance(cosine: f64, refraction_index: f64) -> f64 {

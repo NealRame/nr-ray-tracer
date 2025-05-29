@@ -20,9 +20,9 @@ use rayon::iter::{
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
+use crate::hitable::Hitable;
 use crate::image::ImageSize;
 use crate::interval::Interval;
-use crate::objects::Hitable;
 use crate::ray::Ray;
 use crate::vector::*;
 

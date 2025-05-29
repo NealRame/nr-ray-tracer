@@ -2,7 +2,7 @@ use glam::DVec3;
 
 use rand::rngs::ThreadRng;
 
-use crate::objects::HitRecord;
+use crate::hitable::HitRecord;
 use crate::ray::Ray;
 use crate::vector::*;
 

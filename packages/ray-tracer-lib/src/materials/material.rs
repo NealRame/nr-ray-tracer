@@ -5,7 +5,7 @@ use rand::rngs::ThreadRng;
 use serde::Deserialize;
 use serde::Serialize;
 
-use crate::objects::HitRecord;
+use crate::hitable::HitRecord;
 use crate::ray::Ray;
 use crate::vector::FromRng;
 
@@ -13,7 +13,7 @@ use super::dielectric;
 use super::lambertian;
 use super::metal;
 
-#[derive(Clone, Copy, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
 pub enum Material {
     Dielectric { refraction_index: f64 },
     Lambertian { albedo: DVec3 },

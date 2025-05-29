@@ -1,4 +1,6 @@
+pub mod aabb;
 pub mod camera;
+pub mod hitable;
 pub mod image;
 pub mod interval;
 pub mod materials;
