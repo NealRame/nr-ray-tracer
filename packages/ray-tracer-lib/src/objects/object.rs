@@ -37,31 +37,6 @@ impl Hitable for Object {
     }
 }
 
-impl Hitable for Vec<Object> {
-    fn bbox(&self) -> AABB {
-        self.iter().fold(AABB::EMPTY, |bbox, object| {
-            bbox.union(&object.bbox())
-        })
-    }
-
-    fn hit(
-        &self,
-        ray: &Ray,
-        mut hit_range: Interval,
-    ) -> Option<HitRecord> {
-        let mut hit_record = Option::<HitRecord>::None;
-
-        for obj in self.iter() {
-            if let Some(rec) = obj.hit(ray, hit_range.clone()).as_ref() {
-                hit_record.replace(rec.clone());
-                hit_range = hit_range.with_upper_bound(rec.t);
-            }
-        }
-
-        hit_record
-    }
-}
-
 pub enum BVH {
     Leaf(Option<Object>),
     Node {
