@@ -1,12 +1,16 @@
+use std::sync::Arc;
+
+use rand::Rng;
 use serde::{
     Deserialize,
     Serialize,
 };
 
+use crate::aabb::AABB;
+use crate::hitable::*;
 use crate::interval::Interval;
 use crate::ray::Ray;
 
-use super::*;
 use super::Sphere;
 
 #[derive(Clone, Copy, Deserialize, Serialize)]
@@ -21,6 +25,12 @@ impl From<Sphere> for Object {
 }
 
 impl Hitable for Object {
+    fn bbox(&self) -> AABB {
+        match self {
+            Self::Sphere(sphere) => sphere.bbox(),
+        }
+    }
+
     fn hit(&self, ray: &Ray, hit_range: Interval) -> Option<HitRecord> {
         match self {
             Self::Sphere(sphere) => sphere.hit(ray, hit_range),
@@ -29,11 +39,17 @@ impl Hitable for Object {
 }
 
 impl Hitable for Vec<Object> {
+    fn bbox(&self) -> AABB {
+        self.iter().fold(AABB::default(), |bbox, object| {
+            bbox.union(&object.bbox())
+        })
+    }
+
     fn hit(
         &self,
         ray: &Ray,
         mut hit_range: Interval,
-    ) -> Option<super::HitRecord> {
+    ) -> Option<HitRecord> {
         let mut hit_record = Option::<HitRecord>::None;
 
         for obj in self.iter() {
@@ -44,5 +60,97 @@ impl Hitable for Vec<Object> {
         }
 
         hit_record
+    }
+}
+
+pub enum BVH {
+    Leaf(Option<Object>),
+    Node {
+        bbox: AABB,
+        left: Arc<BVH>,
+        right: Arc<BVH>,
+    },
+}
+
+impl BVH {
+    pub fn from(objects: &mut [Object]) -> Self {
+        match objects{
+            [ ] =>  Self::Leaf(None),
+            [o] =>  Self::Leaf(Some(o.clone())),
+            [o1, o2] => {
+                let left  = Arc::new(Self::Leaf(Some(o1.clone())));
+                let right = Arc::new(Self::Leaf(Some(o2.clone())));
+                let bbox  = AABB::union(&o1.bbox(), &o2.bbox());
+
+                Self::Node { bbox, left, right }
+            },
+            _ => {
+                let mut rng = rand::rng();
+                let axis = rng.random_range(0..=2);
+
+                objects.sort_by(|o1, o2| {
+                    let bb1_axis_interval = o1.bbox().axis_interval(axis).min;
+                    let bb2_axis_interval = o2.bbox().axis_interval(axis).min;
+
+                    f64::total_cmp(&bb1_axis_interval, &bb2_axis_interval)
+                });
+
+                let mid = objects.len()/2;
+
+                let left  = Arc::new(BVH::from(&mut objects[..mid]));
+                let right = Arc::new(BVH::from(&mut objects[mid..]));
+                let bbox  = AABB::union(&left.bbox(), &right.bbox());
+
+                Self::Node { bbox, left, right }
+            },
+        }
+    }
+}
+
+impl Hitable for BVH {
+    fn bbox(&self) -> AABB {
+        match self {
+            Self::Node { bbox, .. } => {
+                *bbox
+            },
+            Self::Leaf(Some(object)) => {
+                object.bbox()
+            },
+            _ => AABB::default(),
+        }
+    }
+
+    fn hit(
+        &self,
+        ray: &Ray,
+        hit_range: Interval,
+    ) -> Option<HitRecord> {
+        match self {
+            Self::Leaf(Some(object)) => {
+                object.hit(ray, hit_range)
+            },
+            Self::Node {
+                bbox,
+                left,
+                right
+            } if bbox.hit(ray, hit_range) => {
+                match (
+                    left.hit(ray, hit_range),
+                    right.hit(ray, hit_range),
+                ) {
+                    (Some(hit_l), None) => Some(hit_l),
+                    (None, Some(hit_r)) => Some(hit_r),
+                    (Some(hit_l), Some(hit_r)) => {
+                        if hit_l.t < hit_r.t {
+                            Some(hit_l)
+                        } else {
+                            Some(hit_r)
+                        }
+                    },
+                    _ => None,
+                }
+            },
+            _ => None,
+        }
     }
 }

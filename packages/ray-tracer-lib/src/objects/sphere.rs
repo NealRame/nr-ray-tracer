@@ -6,22 +6,38 @@ use serde::{
 };
 use serde_with::skip_serializing_none;
 
-use super::hitable::{
-    HitRecord,
-    Hitable,
-};
-
+use crate::aabb::AABB;
+use crate::hitable::*;
 use crate::interval::Interval;
 use crate::materials::Material;
 use crate::ray::Ray;
 
+#[derive(Clone, Copy, Deserialize)]
+#[serde(rename = "Sphere")]
+struct SphereData {
+    center: DVec3,
+    speed: Option<DVec3>,
+    radius: f64,
+    material: Material,
+}
+
 #[skip_serializing_none]
-#[derive(Clone, Copy, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
+#[serde(from = "SphereData")]
 pub struct Sphere {
     center: DVec3,
     speed: Option<DVec3>,
     radius: f64,
     material: Material,
+
+    #[serde(skip)]
+    bbox: AABB,
+}
+
+impl From<SphereData> for Sphere {
+    fn from(data: SphereData) -> Self {
+        Self::with_speed(data.center, data.speed, data.radius, data.material)
+    }
 }
 
 impl Sphere {
@@ -31,11 +47,21 @@ impl Sphere {
         radius: f64,
         material: Material,
     ) -> Self {
+        let rvec = DVec3::new(radius, radius, radius);
+
+        let center_t0 = center;
+        let center_t1 = center + speed.unwrap_or(DVec3::ZERO);
+
+        let bbox_t0 = AABB::from_points(center_t0 - rvec, center_t0 + rvec);
+        let bbox_t1 = AABB::from_points(center_t1 - rvec, center_t1 + rvec);
+        let bbox = bbox_t0.union(&bbox_t1);
+
         Self {
             center,
             speed,
             radius,
             material,
+            bbox,
         }
     }
 
@@ -49,6 +75,10 @@ impl Sphere {
 }
 
 impl Hitable for Sphere {
+    fn bbox(&self) -> AABB {
+        self.bbox
+    }
+
     fn hit(&self, ray: &Ray, hit_range: Interval) -> Option<HitRecord> {
         let speed = Ray::new(self.center, self.speed.unwrap_or(DVec3::ZERO));
         let center = speed.at(ray.get_time());
@@ -95,5 +125,46 @@ impl Hitable for Sphere {
 
                 HitRecord::new(ray, material, point, normal, t)
             })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use glam::DVec3;
+
+    use serde_test::{
+        Token,
+        assert_tokens,
+    };
+
+    use crate::materials::Material;
+    use super::Sphere;
+
+    #[test]
+    fn test_sphere_serde() {
+        let center = DVec3::new(1.0, 2.0, 3.0);
+        let radius = 4.0;
+        let material = Material::Dielectric { refraction_index: 1.42 };
+
+        let sphere = Sphere::new(center, radius, material);
+        assert_tokens(&sphere, &[
+            Token::Struct { name: "Sphere", len: 3, },
+            Token::Str("center"),
+            Token::TupleStruct { name: "DVec3", len: 3, },
+            Token::F64(1.0),
+            Token::F64(2.0),
+            Token::F64(3.0),
+            Token::TupleStructEnd,
+            Token::Str("radius"),
+            Token::F64(4.0),
+            Token::Str("material"),
+            Token::Enum { name: "Material", },
+            Token::Str("Dielectric"),
+            Token::Map { len: Some(1), },
+            Token::Str("refraction_index"),
+            Token::F64(1.42),
+            Token::MapEnd,
+            Token::StructEnd,
+        ]);
     }
 }

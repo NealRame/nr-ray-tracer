@@ -1,5 +1,6 @@
 use glam::DVec3;
 
+use crate::aabb::AABB;
 use crate::interval::Interval;
 use crate::materials::Material;
 use crate::ray::Ray;
@@ -37,5 +38,6 @@ impl HitRecord {
 }
 
 pub trait Hitable {
+    fn bbox(&self) -> AABB;
     fn hit(&self, ray: &Ray, hit_range: Interval) -> Option<HitRecord>;
 }
