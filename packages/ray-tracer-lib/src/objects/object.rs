@@ -1,6 +1,5 @@
 use std::sync::Arc;
 
-use rand::Rng;
 use serde::{
     Deserialize,
     Serialize,
@@ -40,7 +39,7 @@ impl Hitable for Object {
 
 impl Hitable for Vec<Object> {
     fn bbox(&self) -> AABB {
-        self.iter().fold(AABB::default(), |bbox, object| {
+        self.iter().fold(AABB::EMPTY, |bbox, object| {
             bbox.union(&object.bbox())
         })
     }
@@ -85,8 +84,11 @@ impl BVH {
                 Self::Node { bbox, left, right }
             },
             _ => {
-                let mut rng = rand::rng();
-                let axis = rng.random_range(0..=2);
+                let bbox = objects.iter().fold(AABB::EMPTY, |bbox, object| {
+                    bbox.union(&object.bbox())
+                });
+
+                let axis = bbox.longest_axis();
 
                 objects.sort_by(|o1, o2| {
                     let bb1_axis_interval = o1.bbox().axis_interval(axis).min;
@@ -96,10 +98,8 @@ impl BVH {
                 });
 
                 let mid = objects.len()/2;
-
                 let left  = Arc::new(BVH::from(&mut objects[..mid]));
                 let right = Arc::new(BVH::from(&mut objects[mid..]));
-                let bbox  = AABB::union(&left.bbox(), &right.bbox());
 
                 Self::Node { bbox, left, right }
             },
@@ -116,7 +116,7 @@ impl Hitable for BVH {
             Self::Leaf(Some(object)) => {
                 object.bbox()
             },
-            _ => AABB::default(),
+            _ => AABB::EMPTY,
         }
     }
 

@@ -3,7 +3,7 @@ use glam::DVec3;
 use crate::interval::*;
 use crate::ray::*;
 
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct AABB {
     pub x: Interval,
     pub y: Interval,
@@ -11,7 +11,7 @@ pub struct AABB {
 }
 
 impl AABB {
-    pub fn new(
+    pub const fn new(
         x: Interval,
         y: Interval,
         z: Interval,
@@ -54,6 +54,18 @@ impl AABB {
 
         Self::new(x, y, z)
     }
+
+    pub const EMPTY: Self = Self {
+        x: Interval::EMPTY,
+        y: Interval::EMPTY,
+        z: Interval::EMPTY,
+    };
+
+    pub const UNIVERSE: Self = Self {
+        x: Interval::UNIVERSE,
+        y: Interval::UNIVERSE,
+        z: Interval::UNIVERSE,
+    };
 }
 
 impl AABB {
@@ -64,6 +76,15 @@ impl AABB {
             2 => &self.z,
             _ => panic!("Invalid axis index")
         }
+    }
+
+    pub fn longest_axis(&self) -> usize {
+        [self.x.size(), self.y.size(), self.z.size()]
+            .iter()
+            .enumerate()
+            .max_by(|a, b| a.1.total_cmp(b.1))
+            .map(|el| el.0)
+            .unwrap()
     }
 
     pub fn hit(&self, ray: &Ray, hit_range: Interval) -> bool {
