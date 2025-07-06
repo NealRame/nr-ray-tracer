@@ -3,7 +3,7 @@ import random
 from dataclasses import dataclass, field
 
 from .serializable import Serializable
-from .vec import Vec3
+from .texture import Texture, SolidColor
 
 class Material(Serializable): ...
 
@@ -24,62 +24,43 @@ class Dielectric(Material):
 
 @dataclass
 class Lambertian(Material):
-    albedo: Vec3 = field(default_factory=Vec3)
+    texture: Texture = field(default_factory=SolidColor.default)
 
     @classmethod
     def default(cls):
-        return cls(albedo = Vec3(
-            x = 0.5,
-            y = 0.5,
-            z = 0.5,
-        ))
+        return cls()
 
     @classmethod
     def random(cls):
-        return cls(albedo = Vec3(
-            x = random.random(),
-            y = random.random(),
-            z = random.random(),
-        ))
+        return cls(texture = SolidColor.random())
 
     def serialize(self) -> dict | float | int | list | str | tuple:
         return {
             "Lambertian": {
-                "albedo": self.albedo.serialize(),
+                "texture": self.texture.serialize(),
             },
         }
 
 @dataclass
 class Metal(Material):
-    albedo: Vec3 = field(default_factory=Vec3)
-    fuzz: float = 0
+    texture: Texture = field(default_factory=SolidColor.default)
+    fuzz: float = 0.5
 
     @classmethod
     def default(cls):
-        return cls(
-            albedo = Vec3(
-                x = 0.5,
-                y = 0.5,
-                z = 0.5,
-            ),
-            fuzz =  0.5,
-        )
+        return cls()
 
     @classmethod
     def random(cls):
         return cls(
-            albedo = Vec3(
-                x = random.random(),
-                y = random.random(),
-                z = random.random(),
-            ),
+            texture = SolidColor.random(),
             fuzz = random.random(),
         )
 
     def serialize(self) -> dict | float | int | list | str | tuple:
         return {
             "Metal": {
-                "albedo": self.albedo.serialize(),
+                "texture": self.texture.serialize(),
                 "fuzz": self.fuzz,
             },
         }

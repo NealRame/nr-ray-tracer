@@ -3,6 +3,7 @@ import random
 from scripts.common.camera import Camera
 from scripts.common.materials import Dielectric, Lambertian, Metal
 from scripts.common.shapes import Shape, Sphere
+from scripts.common.texture import SolidColor
 from scripts.common.vec import Vec3
 from scripts.common.seq import seq
 
@@ -10,7 +11,11 @@ def generate():
     shapes: list[Shape] = [Sphere(
         center = Vec3(x=0, y=-1000, z=0),
         radius = 1000,
-        material = Lambertian.default()
+        material = Lambertian(texture = SolidColor(color = Vec3(
+            x = 0.5,
+            y = 0.5,
+            z = 0.5,
+        )))
     )]
 
     choices = [Dielectric.default, Lambertian.random, Metal.random]
@@ -42,12 +47,12 @@ def generate():
     shapes.append(Sphere(
         center = Vec3(x = -4, y = 1, z = 0),
         radius = 1.0,
-        material = Lambertian(albedo = Vec3(x = 0.4, y = 0.2, z = 0.1))
+        material = Lambertian(texture = SolidColor(color = Vec3(x = 0.4, y = 0.2, z = 0.1)))
     ))
     shapes.append(Sphere(
         center = Vec3(x = 4, y=1, z=0),
         radius = 1.0,
-        material = Metal(albedo = Vec3(x = 0.7, y = 0.6, z = 0.5), fuzz = 0)
+        material = Metal(texture = SolidColor(color = Vec3(x = 0.7, y = 0.6, z = 0.5)), fuzz = 0)
     ))
 
     camera = Camera(

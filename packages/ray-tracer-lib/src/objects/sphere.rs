@@ -1,4 +1,10 @@
-use glam::DVec3;
+use std::f64::consts::PI;
+use std::ops::Neg;
+
+use glam::{
+    DVec2,
+    DVec3,
+};
 
 use serde::{
     Deserialize,
@@ -123,7 +129,15 @@ impl Hitable for Sphere {
                 let normal = (point - center).normalize();
                 let material = self.material.clone();
 
-                HitRecord::new(ray, material, point, normal, t)
+                let theta = f64::acos(normal.y.neg());
+                let phi = f64::atan2(normal.z.neg(), normal.x) + PI;
+
+                let uv = DVec2::new(
+                    phi/(2.0*PI), // u
+                    theta/PI,     // v
+                );
+
+                HitRecord::new_with_uv(ray, material, point, normal, uv, t)
             })
     }
 }

@@ -5,18 +5,30 @@ from math import cos, sin, pi as PI
 from scripts.common.camera import Camera
 from scripts.common.materials import Dielectric, Lambertian, Metal
 from scripts.common.shapes import Shape, Sphere
-from scripts.common.vec import Vec3
 from scripts.common.seq import seq
+from scripts.common.texture import Checker
+from scripts.common.vec import Vec3
 
 def generate():
-    shapes: list[Shape] = [Sphere(
-        center = Vec3(x=0, y=-1000, z=0),
-        radius = 1000,
-        material = Lambertian(albedo=Vec3(
-            x = 0.25,
-            y = 0.25,
-            z = 0.25,
-        )))]
+    shapes: list[Shape] = [
+        Sphere(
+            center = Vec3(x=0, y=-1000, z=0),
+            radius = 1000,
+            material = Lambertian(texture=Checker(
+                odd=Vec3(
+                    x = 0.2,
+                    y = 0.3,
+                    z = 0.1,
+                ),
+                even=Vec3(
+                    x = 0.9,
+                    y = 0.9,
+                    z = 0.9,
+                ),
+                scale=0.32,
+            )),
+        )
+    ]
 
     step = 4/1001
     r = 1001
