@@ -8,4 +8,5 @@ pub mod objects;
 pub mod prelude;
 pub mod ray;
 pub mod scene;
+pub mod textures;
 pub mod vector;

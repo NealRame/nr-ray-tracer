@@ -4,14 +4,15 @@ use rand::rngs::ThreadRng;
 
 use crate::hitable::HitRecord;
 use crate::ray::Ray;
+use crate::textures::Texture;
 use crate::vector::*;
 
 pub(super) fn scatter(
     ray: &Ray,
     hit_record: &HitRecord,
-    rng: &mut ThreadRng,
-    albedo: DVec3,
+    texture: &Texture,
     fuzz: f64,
+    rng: &mut ThreadRng,
 ) -> Option<(Ray, DVec3)> {
     let scatter_direction =
         ray.get_direction().reflect(hit_record.normal).normalize()
@@ -20,7 +21,7 @@ pub(super) fn scatter(
     if scatter_direction.dot(hit_record.normal) > 0.0 {
         Some((
             Ray::new_at_time(hit_record.point, scatter_direction, ray.get_time()),
-            albedo,
+            texture.get_color(hit_record.texture_coordinates, hit_record.point),
         ))
     } else {
         None

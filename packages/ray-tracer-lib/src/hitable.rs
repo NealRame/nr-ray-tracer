@@ -1,4 +1,7 @@
-use glam::DVec3;
+use glam::{
+    DVec2,
+    DVec3,
+};
 
 use crate::aabb::AABB;
 use crate::interval::Interval;
@@ -12,14 +15,16 @@ pub struct HitRecord {
     pub normal: DVec3,
     pub point: DVec3,
     pub t: f64,
+    pub texture_coordinates: DVec2,
 }
 
 impl HitRecord {
-    pub fn new(
+    pub fn new_with_uv(
         ray: &Ray,
         material: Material,
         point: DVec3,
         outward_normal: DVec3,
+        texture_coordinates: DVec2,
         t: f64,
     ) -> Self {
         let sign = ray.get_direction().dot(outward_normal).signum();
@@ -32,8 +37,26 @@ impl HitRecord {
             material,
             normal,
             point,
+            texture_coordinates,
             t,
         }
+    }
+
+    pub fn new(
+        ray: &Ray,
+        material: Material,
+        point: DVec3,
+        outward_normal: DVec3,
+        t: f64,
+    ) -> Self {
+        Self::new_with_uv(
+            ray,
+            material,
+            point,
+            outward_normal,
+            DVec2::default(),
+            t,
+        )
     }
 }
 

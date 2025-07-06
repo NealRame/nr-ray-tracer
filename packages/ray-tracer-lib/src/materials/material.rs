@@ -2,12 +2,14 @@ use glam::DVec3;
 
 use rand::Rng;
 use rand::rngs::ThreadRng;
+
 use serde::Deserialize;
 use serde::Serialize;
 
 use crate::hitable::HitRecord;
 use crate::ray::Ray;
-use crate::vector::FromRng;
+
+use crate::textures::Texture;
 
 use super::dielectric;
 use super::lambertian;
@@ -16,8 +18,8 @@ use super::metal;
 #[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
 pub enum Material {
     Dielectric { refraction_index: f64 },
-    Lambertian { albedo: DVec3 },
-    Metal      { albedo: DVec3, fuzz: f64 },
+    Lambertian { texture: Texture },
+    Metal      { texture: Texture, fuzz: f64 },
 }
 
 impl Material {
@@ -26,11 +28,16 @@ impl Material {
     }
 
     pub fn lambertian_default() -> Self {
-        Self::Lambertian { albedo: DVec3::ONE/2.0 }
+        Self::Lambertian {
+            texture: Texture::default_solid_color(),
+        }
     }
 
     pub fn metal_default() -> Self {
-        Self::Metal { albedo: DVec3::ONE/2.0, fuzz: 0.0 }
+        Self::Metal {
+            texture: Texture::default_solid_color(),
+            fuzz: 0.0,
+        }
     }
 }
 
@@ -43,13 +50,13 @@ impl Material {
 
     pub fn lambertian_from_rng(rng: &mut ThreadRng) -> Self {
         Self::Lambertian {
-            albedo: DVec3::from_rng_ranged(rng, 0.0..=1.0),
+            texture: Texture::solid_color_from_rng(rng),
         }
     }
 
     pub fn metal_from_rng(rng: &mut ThreadRng) -> Self {
         Self::Metal{
-            albedo: DVec3::from_rng_ranged(rng, 0.0..=1.0),
+            texture: Texture::solid_color_from_rng(rng),
             fuzz: rng.random_range(0.0..=1.0),
         }
     }
@@ -62,15 +69,15 @@ impl Material {
         hit_record: &HitRecord,
         rng: &mut ThreadRng,
     ) -> Option<(Ray, DVec3)> {
-        match *self {
+        match self {
             Self::Dielectric { refraction_index } => {
-                dielectric::scatter(ray, hit_record, rng, refraction_index, )
+                dielectric::scatter(ray, hit_record, rng, *refraction_index, )
             },
-            Self::Lambertian { albedo } => {
-                lambertian::scatter(ray, hit_record, rng, albedo, )
+            Self::Lambertian { texture } => {
+                lambertian::scatter(ray, hit_record, texture, rng)
             },
-            Self::Metal { albedo, fuzz } => {
-                metal::scatter(ray, hit_record, rng, albedo, fuzz, )
+            Self::Metal { texture, fuzz } => {
+                metal::scatter(ray, hit_record, texture, *fuzz, rng)
             },
         }
     }
