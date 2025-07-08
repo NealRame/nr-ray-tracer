@@ -8,44 +8,16 @@ use serde::{
 use glam::{
     DVec2,
     DVec3,
+    U64Vec2,
 };
 
 use crate::vector::FromRng;
 
-#[derive(Clone, Copy, Deserialize, Serialize)]
-#[serde(rename = "Checker")]
-struct CheckerData {
-    even: DVec3,
-    odd: DVec3,
-    scale: f64,
-}
-
 #[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
-#[serde(from = "CheckerData", into = "CheckerData")]
 pub struct Checker {
     even: DVec3,
     odd: DVec3,
-    inv_scale: f64,
-}
-
-impl Into<CheckerData> for Checker {
-    fn into(self) -> CheckerData {
-        CheckerData {
-            even: self.even,
-            odd: self.odd,
-            scale: self.inv_scale.recip(),
-        }
-    }
-}
-
-impl From<CheckerData> for Checker {
-    fn from(value: CheckerData) -> Self {
-        Checker {
-            even: value.even,
-            odd: value.odd,
-            inv_scale: value.scale.recip(),
-        }
-    }
+    scale: f64,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
@@ -60,7 +32,7 @@ impl Texture {
         odd: DVec3,
         scale: f64,
     ) -> Self {
-        Self::Checker(Checker { even, odd, inv_scale: 1.0/scale })
+        Self::Checker(Checker { even, odd, scale })
     }
 
     pub fn default_checker() -> Self {
@@ -93,17 +65,14 @@ impl Texture {
 impl Texture {
     pub fn get_color(
         &self,
-        _: DVec2,
-        point: DVec3,
+        uv: DVec2,
+        _: DVec3,
     ) -> DVec3 {
         match *self {
-            Self::Checker(Checker { even, odd, inv_scale }) => {
+            Self::Checker(Checker { even, odd, scale }) => {
+                let v = (uv*scale).as_u64vec2().dot(U64Vec2::ONE);
 
-                let x_int = (inv_scale*point.x).floor() as i32;
-                let y_int = (inv_scale*point.y).floor() as i32;
-                let z_int = (inv_scale*point.z).floor() as i32;
-
-                if (x_int + y_int + z_int)%2 == 0 {
+                if v%2 == 0 {
                     even
                 } else {
                     odd
@@ -145,7 +114,7 @@ mod tests {
         let solid_color_texture = Texture::Checker(Checker {
             even: DVec3::ONE,
             odd: DVec3::ZERO,
-            inv_scale: 1.0,
+            scale: 1.0,
         });
 
         assert_tokens(&solid_color_texture, &[
