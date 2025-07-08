@@ -33,7 +33,7 @@ class SolidColor(Texture):
 class Checker(Texture):
     even: Vec3 = field(default_factory=Vec3)
     odd: Vec3 = field(default_factory=Vec3)
-    scale: float = 1.0
+    scale: int = 1;
 
     @classmethod
     def default(cls):
@@ -51,19 +51,19 @@ class Checker(Texture):
         )
 
     @classmethod
-    def random(cls):
+    def random(cls, *args, **kwargs):
         return cls(
-            even = Vec3(
+            even = kwargs.get("even", Vec3(
                 x = random.random(),
                 y = random.random(),
                 z = random.random(),
-            ),
-            odd = Vec3(
+            )),
+            odd = kwargs.get("odd", Vec3(
                 x = random.random(),
                 y = random.random(),
                 z = random.random(),
-            ),
-            scale = random.random(),
+            )),
+            scale = kwargs.get("scale", random.randint(2, 32)),
         )
 
     def serialize(self) -> dict | float | int | list | str | tuple:

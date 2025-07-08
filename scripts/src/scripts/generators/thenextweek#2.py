@@ -5,16 +5,19 @@ from scripts.common.texture import Checker, SolidColor
 from scripts.common.vec import Vec3
 
 def generate():
+    tex1 = SolidColor.random()
+    tex2 = Checker.random(scale = 24)
+
     shapes: list[Shape] = [
         Sphere(
             center = Vec3(x=0, y=-10, z=0),
             radius = 10,
-            material = Metal(texture = SolidColor.random(), fuzz = 0),
+            material = Metal(texture = tex1, fuzz = 0.03125),
         ),
         Sphere(
             center = Vec3(x=0, y=+10, z=0),
             radius = 10,
-            material = Lambertian(texture = Checker.random()),
+            material = Lambertian(texture = tex2),
         ),
     ]
 

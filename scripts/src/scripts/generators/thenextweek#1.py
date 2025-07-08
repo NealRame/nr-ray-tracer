@@ -25,7 +25,7 @@ def generate():
                     y = 0.9,
                     z = 0.9,
                 ),
-                scale=0.32,
+                scale=128,
             )),
         )
     ]
