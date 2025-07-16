@@ -1,17 +1,17 @@
 use glam::DVec3;
 
-use rand::rngs::ThreadRng;
+use rand::Rng;
 
 use crate::hitable::HitRecord;
 use crate::ray::Ray;
 use crate::textures::Texture;
 use crate::vector::*;
 
-pub(super) fn scatter(
+pub(super) fn scatter<T: Rng>(
     ray: &Ray,
     hit_record: &HitRecord,
     texture: &Texture,
-    rng: &mut ThreadRng,
+    rng: &mut T,
 ) -> Option<(Ray, DVec3)> {
     let mut scatter_direction = hit_record.normal + random_in_unit_sphere(rng);
 
