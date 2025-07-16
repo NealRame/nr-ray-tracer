@@ -1,7 +1,6 @@
 use glam::DVec3;
 
 use rand::Rng;
-use rand::rngs::ThreadRng;
 
 use crate::hitable::HitRecord;
 use crate::ray::Ray;
@@ -14,10 +13,10 @@ fn reflectance(cosine: f64, refraction_index: f64) -> f64 {
     r0 + (1.0 - r0)*(1.0 - cosine).powi(5)
 }
 
-pub(super) fn scatter(
+pub(super) fn scatter<T: Rng>(
     ray: &Ray,
     hit_record: &HitRecord,
-    rng: &mut ThreadRng,
+    rng: &mut T,
     refraction_index: f64,
 ) -> Option<(Ray, DVec3)> {
     let ri = if hit_record.front_face {

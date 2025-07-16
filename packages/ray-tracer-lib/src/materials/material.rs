@@ -63,11 +63,11 @@ impl Material {
 }
 
 impl Material {
-    pub fn scatter(
+    pub fn scatter<T: Rng>(
         &self,
         ray: &Ray,
         hit_record: &HitRecord,
-        rng: &mut ThreadRng,
+        rng: &mut T,
     ) -> Option<(Ray, DVec3)> {
         match self {
             Self::Dielectric { refraction_index } => {

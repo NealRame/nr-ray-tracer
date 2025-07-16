@@ -9,15 +9,20 @@ use glam::{
 
 use image::Rgb32FImage;
 
-use rand::rngs::ThreadRng;
-
 use rand::Rng;
+
+use rand_chacha::ChaCha8Rng;
+use rand_chacha::rand_core::SeedableRng;
+
 use rayon::iter::{
     IntoParallelIterator,
     ParallelIterator,
 };
 
-use serde::{Deserialize, Serialize};
+use serde::{
+    Deserialize,
+    Serialize,
+};
 use serde_with::skip_serializing_none;
 
 use crate::hitable::Hitable;
@@ -210,7 +215,7 @@ impl Camera {
 impl Camera {
     fn defocus_disk_sample(
         &self,
-        rng: &mut ThreadRng,
+        rng: &mut impl Rng,
     ) -> DVec3 {
         let p = random_in_unit_disk(rng);
         self.look_from + p.x*self.defocus_disk_u + p.y*self.defocus_disk_v
@@ -220,7 +225,7 @@ impl Camera {
         &self,
         x: u32,
         y: u32,
-        rng: &mut ThreadRng,
+        rng: &mut impl Rng,
     ) -> Ray {
         let offset = if self.samples_per_pixel.is_some() {
             DVec2::from_rng_ranged(rng, -0.5..=0.5)
@@ -246,7 +251,7 @@ impl Camera {
         ray: &Ray,
         ray_bounce: usize,
         hitable: &impl Hitable,
-        rng: &mut ThreadRng,
+        rng: &mut impl Rng,
     ) -> DVec3 {
         if ray_bounce >= self.ray_max_bounce {
             return DVec3::ZERO;
@@ -269,23 +274,25 @@ impl Camera {
         }
     }
 
-    fn render_with_anti_aliasing<T, P>(
+    pub fn render<T, P>(
         &self,
         hitable: &T,
-        progress: Option<&P>,
+        progress: Option<P>,
     ) -> Rgb32FImage
         where
             T: Hitable + Send + Sync,
             P: Fn() + Sync,
     {
-        let sample_per_pixels = self.samples_per_pixel.unwrap();
+        let sample_per_pixels = self.samples_per_pixel.unwrap_or(1);
         let width = self.image_size.width as u32;
         let height = self.image_size.height as u32;
 
         let pixels = (0..width*height)
             .into_par_iter()
             .map(|n| {
-                let mut rng = rand::rng();
+                let mut rng = ChaCha8Rng::seed_from_u64(0);
+
+                rng.set_stream(n as u64);
 
                 let x = n%width;
                 let y = n/width;
@@ -298,7 +305,7 @@ impl Camera {
 
                 let color = s/(sample_per_pixels as f64);
 
-                if let Some(progress) = progress {
+                if let Some(progress) = progress.as_ref() {
                     progress();
                 }
 
@@ -308,61 +315,5 @@ impl Camera {
             .collect::<Vec<_>>();
 
         Rgb32FImage::from_vec(width, height, pixels).unwrap()
-    }
-
-    fn render_without_anti_aliasing<T, P>(
-        &self,
-        hitable: &T,
-        progress: Option<&P>,
-    ) -> Rgb32FImage
-        where
-            T: Hitable + Send + Sync,
-            P: Fn() + Sync,
-    {
-        let width = self.image_size.width as u32;
-        let height = self.image_size.height as u32;
-
-        let pixels = (0..width*height)
-            .into_par_iter()
-            .map(|n| {
-                let mut rng = rand::rng();
-
-                let x = n%width;
-                let y = n/width;
-
-                let ray = self.get_ray(x, y, &mut rng);
-                let color = self.get_ray_color(&ray, 0, hitable, &mut rng);
-
-                if let Some(progress) = progress {
-                    progress();
-                }
-
-                color.as_vec3().to_array()
-            })
-            .flatten()
-            .collect::<Vec<_>>();
-
-        Rgb32FImage::from_vec(width, height, pixels).unwrap()
-    }
-
-    pub fn render<T, P>(
-        &self,
-        hitable: &T,
-        progress: Option<P>,
-    ) -> Rgb32FImage
-        where
-            T: Hitable + Send + Sync,
-            P: Fn() + Sync,
-    {
-        let progress_ref = progress.as_ref();
-
-        match self.samples_per_pixel {
-            Some(sample_per_pixels) if sample_per_pixels > 1 => {
-                self.render_with_anti_aliasing(hitable, progress_ref)
-            },
-            _ => {
-                self.render_without_anti_aliasing(hitable, progress_ref)
-            }
-        }
     }
 }
