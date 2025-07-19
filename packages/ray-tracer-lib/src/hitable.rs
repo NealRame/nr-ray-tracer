@@ -5,13 +5,12 @@ use glam::{
 
 use crate::aabb::AABB;
 use crate::interval::Interval;
-use crate::materials::Material;
 use crate::ray::Ray;
 
 #[derive(Clone)]
 pub struct HitRecord {
     pub front_face: bool,
-    pub material: Material,
+    pub material: usize,
     pub normal: DVec3,
     pub point: DVec3,
     pub t: f64,
@@ -21,7 +20,7 @@ pub struct HitRecord {
 impl HitRecord {
     pub fn new_with_uv(
         ray: &Ray,
-        material: Material,
+        material: usize,
         point: DVec3,
         outward_normal: DVec3,
         texture_coordinates: DVec2,
@@ -44,7 +43,7 @@ impl HitRecord {
 
     pub fn new(
         ray: &Ray,
-        material: Material,
+        material: usize,
         point: DVec3,
         outward_normal: DVec3,
         t: f64,

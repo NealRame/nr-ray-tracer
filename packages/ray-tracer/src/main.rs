@@ -3,6 +3,7 @@ mod constants;
 
 use std::f64::consts::PI;
 use std::fs;
+use std::io::{stdout, Write};
 
 use chrono::Utc;
 
@@ -22,7 +23,6 @@ use image::{
 use indicatif::ProgressStyle;
 
 use nr_ray_tracer_lib::prelude::*;
-use nr_ray_tracer_lib::textures::Texture;
 
 use crate::cli::*;
 use crate::constants::*;
@@ -180,28 +180,32 @@ fn main() {
             .clone()
             ;
 
+    let textures = vec![
+        Texture::SolidColor(DVec3::new(3./255., 155./255., 229./255.)),
+        Texture::SolidColor(DVec3::new(229./255., 57./255., 53./255.)),
+    ];
+
+    let materials = vec![
+        Material::Metal { texture: 0, fuzz: 0.5, },
+        Material::Metal { texture: 1, fuzz: 0.,  },
+    ];
+
     let scene = Scene::from(SceneConfig {
         camera,
         objects: vec![
             Object::Sphere(Sphere::new(
                 DVec3::new(0.0, -1000.0, 0.0),
                 1000.0,
-                Material::Metal {
-                    texture: Texture::SolidColor(DVec3::new(3./255., 155./255., 229./255.)),
-                    fuzz: 0.5,
-                }
+                0,
             )),
             Object::Sphere(Sphere::new(
                 DVec3::new(0., 4., 0.),
                 4.0,
-                Material::Metal {
-                    texture: Texture::SolidColor(DVec3::new(229./255., 57./255., 53./255.)),
-                    fuzz: 0.,
-                },
+                1,
             )),
         ],
-        materials: vec![],
-        textures: vec![],
+        materials,
+        textures,
     });
 
     let image = render_scene(&cli, &scene);
@@ -214,4 +218,8 @@ fn main() {
             .expect("Failed");
 
     dump_image(&cli, &mut file, image, ImageFormat::Png);
+
+    let json_s = serde_json::to_string_pretty(&scene).unwrap();
+
+    stdout().write(json_s.as_bytes()).unwrap();
 }

@@ -15,7 +15,6 @@ use serde_with::skip_serializing_none;
 use crate::aabb::AABB;
 use crate::hitable::*;
 use crate::interval::Interval;
-use crate::materials::Material;
 use crate::ray::Ray;
 
 #[derive(Clone, Copy, Deserialize)]
@@ -24,7 +23,7 @@ struct SphereConfig {
     center: DVec3,
     speed: Option<DVec3>,
     radius: f64,
-    material: Material,
+    material: usize,
 }
 
 #[skip_serializing_none]
@@ -34,7 +33,7 @@ pub struct Sphere {
     center: DVec3,
     speed: Option<DVec3>,
     radius: f64,
-    material: Material,
+    material: usize,
 
     #[serde(skip)]
     bbox: AABB,
@@ -51,7 +50,7 @@ impl Sphere {
         center: DVec3,
         speed: Option<DVec3>,
         radius: f64,
-        material: Material,
+        material: usize,
     ) -> Self {
         let rvec = DVec3::new(radius, radius, radius);
 
@@ -74,7 +73,7 @@ impl Sphere {
     pub fn new(
         center: DVec3,
         radius: f64,
-        material: Material,
+        material: usize,
     ) -> Self {
         Self::with_speed(center, None, radius, material)
     }
@@ -85,7 +84,11 @@ impl Hitable for Sphere {
         self.bbox
     }
 
-    fn hit(&self, ray: &Ray, hit_range: Interval) -> Option<HitRecord> {
+    fn hit(
+        &self,
+        ray: &Ray,
+        hit_range: Interval,
+    ) -> Option<HitRecord> {
         let speed = Ray::new(self.center, self.speed.unwrap_or(DVec3::ZERO));
         let center = speed.at(ray.get_time());
 
@@ -126,8 +129,8 @@ impl Hitable for Sphere {
             })
             .map(|t| {
                 let point = ray.at(t);
+                let material = self.material;
                 let normal = (point - center).normalize();
-                let material = self.material.clone();
 
                 let theta = f64::acos(normal.y.neg());
                 let phi = f64::atan2(normal.z.neg(), normal.x) + PI;
@@ -151,14 +154,13 @@ mod tests {
         assert_tokens,
     };
 
-    use crate::materials::Material;
     use super::Sphere;
 
     #[test]
     fn test_sphere_serde() {
         let center = DVec3::new(1.0, 2.0, 3.0);
         let radius = 4.0;
-        let material = Material::Dielectric { refraction_index: 1.42 };
+        let material = 4;
 
         let sphere = Sphere::new(center, radius, material);
         assert_tokens(&sphere, &[

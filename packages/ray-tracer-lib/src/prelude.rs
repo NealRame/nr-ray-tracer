@@ -6,4 +6,5 @@ pub use crate::interval::*;
 pub use crate::materials::*;
 pub use crate::objects::*;
 pub use crate::scene::*;
+pub use crate::textures::*;
 pub use crate::vector::*;

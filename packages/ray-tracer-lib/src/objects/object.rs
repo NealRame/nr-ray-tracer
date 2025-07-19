@@ -30,14 +30,18 @@ impl Hitable for Object {
         }
     }
 
-    fn hit(&self, ray: &Ray, hit_range: Interval) -> Option<HitRecord> {
+    fn hit(
+        &self,
+        ray: &Ray,
+        hit_range: Interval,
+    ) -> Option<HitRecord> {
         match self {
             Self::Sphere(sphere) => sphere.hit(ray, hit_range),
         }
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum BVH {
     Leaf(Option<Object>),
     Node {
