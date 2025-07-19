@@ -29,9 +29,10 @@ use crate::hitable::Hitable;
 use crate::image::ImageSize;
 use crate::interval::Interval;
 use crate::ray::Ray;
+use crate::scene::Scene;
 use crate::vector::*;
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 #[serde(from = "CameraConfig")]
 #[serde(into = "CameraConfig")]
 pub struct Camera {
@@ -278,6 +279,7 @@ impl Camera {
 
     fn get_ray_color(
         &self,
+        scene: &Scene,
         ray: &Ray,
         ray_bounce: usize,
         hitable: &impl Hitable,
@@ -289,11 +291,20 @@ impl Camera {
 
         match hitable.hit(ray, Interval::new(0.001, INFINITY)).as_ref() {
             Some(hit_record) => {
-                if let Some((scattered_ray, color)) = hit_record.material.scatter(ray, hit_record, rng) {
-                    color*self.get_ray_color(&scattered_ray, ray_bounce + 1, hitable, rng)
-                } else {
-                    DVec3::ZERO
-                }
+                let material = scene.materials.get(hit_record.material).expect("material not found");
+
+                material.scatter(scene, ray, hit_record, rng)
+                    .as_ref()
+                    .map(|(scattered_ray, color)| {
+                        color*self.get_ray_color(
+                            scene,
+                            scattered_ray,
+                            ray_bounce + 1,
+                            hitable,
+                            rng
+                        )
+                    })
+                    .unwrap_or(DVec3::ZERO)
             },
             _ => {
                 let d = ray.get_direction().normalize();
@@ -306,6 +317,7 @@ impl Camera {
 
     pub fn render<T, P>(
         &self,
+        scene: &Scene,
         hitable: &T,
         progress: Option<P>,
     ) -> Rgb32FImage
@@ -330,7 +342,7 @@ impl Camera {
                 let s = (0..sample_per_pixel).map(|_| {
                     let ray = self.get_ray(x, y, &mut rng);
 
-                    self.get_ray_color(&ray, 0, hitable, &mut rng)
+                    self.get_ray_color(scene, &ray, 0, hitable, &mut rng)
                 }).sum::<DVec3>();
 
                 let color = s/(sample_per_pixel as f64);
