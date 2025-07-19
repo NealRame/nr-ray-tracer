@@ -12,7 +12,7 @@ use crate::ray::Ray;
 
 use super::Sphere;
 
-#[derive(Clone, Copy, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 pub enum Object {
     Sphere(Sphere)
 }
@@ -37,6 +37,7 @@ impl Hitable for Object {
     }
 }
 
+#[derive(Debug)]
 pub enum BVH {
     Leaf(Option<Object>),
     Node {
@@ -44,6 +45,28 @@ pub enum BVH {
         left: Arc<BVH>,
         right: Arc<BVH>,
     },
+}
+
+impl Into<Vec<Object>> for BVH {
+    fn into(self) -> Vec<Object> {
+        let mut objects =  Vec::new();
+        let mut node_stack = vec![&self];
+
+        while let Some(node) = node_stack.pop() {
+            match node {
+                BVH::Leaf(Some(o)) => {
+                    objects.push(o.clone());
+                },
+                BVH::Node { left, right, .. } => {
+                    node_stack.push(left.as_ref());
+                    node_stack.push(right.as_ref());
+                }
+                _ => {}
+            }
+        }
+
+        objects
+    }
 }
 
 impl BVH {

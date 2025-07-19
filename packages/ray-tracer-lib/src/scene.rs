@@ -4,19 +4,29 @@ use serde::{
     Deserialize,
     Serialize,
 };
+use serde_with::skip_serializing_none;
 
 use crate::camera::*;
 use crate::objects::*;
+use crate::materials::Material;
+use crate::textures::Texture;
 
 #[derive(Deserialize, Serialize)]
 pub struct SceneConfig {
     pub camera: CameraConfig,
     pub objects: Vec<Object>,
+    pub materials: Vec<Material>,
+    pub textures: Vec<Texture>,
 }
 
+#[skip_serializing_none]
+#[derive(Debug, Deserialize)]
+#[serde(from = "SceneConfig")]
 pub struct Scene {
     pub camera: Camera,
     pub objects: BVH,
+    pub materials: Vec<Material>,
+    pub textures: Vec<Texture>,
 }
 
 impl Scene {
@@ -33,6 +43,11 @@ impl From<SceneConfig> for Scene {
         let camera = config.camera.build();
         let objects = BVH::from(config.objects.as_mut_slice());
 
-        Self { camera, objects }
+        Self {
+            camera,
+            objects,
+            materials: config.materials,
+            textures: config.textures,
+        }
     }
 }

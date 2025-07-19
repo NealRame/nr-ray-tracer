@@ -20,7 +20,7 @@ use crate::ray::Ray;
 
 #[derive(Clone, Copy, Deserialize)]
 #[serde(rename = "Sphere")]
-struct SphereData {
+struct SphereConfig {
     center: DVec3,
     speed: Option<DVec3>,
     radius: f64,
@@ -29,7 +29,7 @@ struct SphereData {
 
 #[skip_serializing_none]
 #[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
-#[serde(from = "SphereData")]
+#[serde(from = "SphereConfig")]
 pub struct Sphere {
     center: DVec3,
     speed: Option<DVec3>,
@@ -40,8 +40,8 @@ pub struct Sphere {
     bbox: AABB,
 }
 
-impl From<SphereData> for Sphere {
-    fn from(data: SphereData) -> Self {
+impl From<SphereConfig> for Sphere {
+    fn from(data: SphereConfig) -> Self {
         Self::with_speed(data.center, data.speed, data.radius, data.material)
     }
 }
