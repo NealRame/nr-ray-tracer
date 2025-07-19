@@ -3,7 +3,6 @@ mod constants;
 
 use std::f64::consts::PI;
 use std::fs;
-use std::io::{stdout, Write};
 
 use chrono::Utc;
 
@@ -13,7 +12,6 @@ use clap::{
 };
 use clap::error::ErrorKind;
 
-use glam::DVec3;
 use image::{
     DynamicImage,
     ImageFormat,
@@ -164,62 +162,62 @@ fn dump_image(
 fn main() {
     let cli = Cli::parse();
 
-    // let (mut file, format) = cli.get_file();
+    let (mut file, format) = cli.get_file();
 
-    // let scene = load_scene(&cli);
-    // let image = render_scene(&cli, &scene);
-
-    // dump_image(&cli, &mut file, image, format);
-
-    let camera =
-        CameraConfig::default()
-            .with_look_at(DVec3::new(0., 0., 0.))
-            .with_look_from(DVec3::new(8.0, 8.0, 8.0))
-            .with_samples_per_pixel(500)
-            .with_ray_max_bounce(50)
-            .clone()
-            ;
-
-    let textures = vec![
-        Texture::SolidColor(DVec3::new(3./255., 155./255., 229./255.)),
-        Texture::SolidColor(DVec3::new(229./255., 57./255., 53./255.)),
-    ];
-
-    let materials = vec![
-        Material::Metal { texture: 0, fuzz: 0.5, },
-        Material::Metal { texture: 1, fuzz: 0.,  },
-    ];
-
-    let scene = Scene::from(SceneConfig {
-        camera,
-        objects: vec![
-            Object::Sphere(Sphere::new(
-                DVec3::new(0.0, -1000.0, 0.0),
-                1000.0,
-                0,
-            )),
-            Object::Sphere(Sphere::new(
-                DVec3::new(0., 4., 0.),
-                4.0,
-                1,
-            )),
-        ],
-        materials,
-        textures,
-    });
-
+    let scene = load_scene(&cli);
     let image = render_scene(&cli, &scene);
-    let mut file =
-        fs::File::options()
-            .create(true)
-            .truncate(true)
-            .write(true)
-            .open("out.png")
-            .expect("Failed");
 
-    dump_image(&cli, &mut file, image, ImageFormat::Png);
+    dump_image(&cli, &mut file, image, format);
 
-    let json_s = serde_json::to_string_pretty(&scene).unwrap();
+    // let camera =
+    //     CameraConfig::default()
+    //         .with_look_at(DVec3::new(0., 0., 0.))
+    //         .with_look_from(DVec3::new(8.0, 8.0, 8.0))
+    //         .with_samples_per_pixel(500)
+    //         .with_ray_max_bounce(50)
+    //         .clone()
+    //         ;
 
-    stdout().write(json_s.as_bytes()).unwrap();
+    // let textures = vec![
+    //     Texture::SolidColor(DVec3::new(3./255., 155./255., 229./255.)),
+    //     Texture::SolidColor(DVec3::new(229./255., 57./255., 53./255.)),
+    // ];
+
+    // let materials = vec![
+    //     Material::Metal { texture: 0, fuzz: 0.5, },
+    //     Material::Metal { texture: 1, fuzz: 0.,  },
+    // ];
+
+    // let scene = Scene::from(SceneConfig {
+    //     camera,
+    //     objects: vec![
+    //         Object::Sphere(Sphere::new(
+    //             DVec3::new(0.0, -1000.0, 0.0),
+    //             1000.0,
+    //             0,
+    //         )),
+    //         Object::Sphere(Sphere::new(
+    //             DVec3::new(0., 4., 0.),
+    //             4.0,
+    //             1,
+    //         )),
+    //     ],
+    //     materials,
+    //     textures,
+    // });
+
+    // let image = render_scene(&cli, &scene);
+    // let mut file =
+    //     fs::File::options()
+    //         .create(true)
+    //         .truncate(true)
+    //         .write(true)
+    //         .open("out.png")
+    //         .expect("Failed");
+
+    // dump_image(&cli, &mut file, image, ImageFormat::Png);
+
+    // let json_s = serde_json::to_string_pretty(&scene).unwrap();
+
+    // stdout().write(json_s.as_bytes()).unwrap();
 }

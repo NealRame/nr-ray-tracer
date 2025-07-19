@@ -1,6 +1,5 @@
 from dataclasses import dataclass, field
 
-from .materials import Material, Lambertian
 from .serializable import Serializable
 from .vec import Vec3
 
@@ -10,7 +9,7 @@ class Shape(Serializable): ...
 class Sphere(Shape):
     center: Vec3 = field(default_factory=Vec3.zero)
     radius: float = 1
-    material: Material = field(default_factory=Lambertian.default)
+    material: int = 0
     speed: Vec3|None = None
 
     @classmethod
@@ -23,7 +22,7 @@ class Sphere(Shape):
                 "Sphere": {
                     "center": self.center.serialize(),
                     "radius": self.radius,
-                    "material": self.material.serialize()
+                    "material": self.material,
                 },
             }
         else:
@@ -32,6 +31,6 @@ class Sphere(Shape):
                     "center": self.center.serialize(),
                     "speed": self.speed.serialize(),
                     "radius": self.radius,
-                    "material": self.material.serialize(),
+                    "material": self.material,
                 },
             }

@@ -1,23 +1,30 @@
 from scripts.common.camera import Camera
-from scripts.common.materials import Lambertian, Metal
+from scripts.common.materials import Lambertian, Metal, Material
 from scripts.common.shapes import Shape, Sphere
-from scripts.common.texture import Checker, SolidColor
+from scripts.common.texture import Checker, SolidColor, Texture
 from scripts.common.vec import Vec3
 
 def generate():
-    tex1 = SolidColor.random()
-    tex2 = Checker.random(scale = 24)
+    textures: list[Texture] = [
+        SolidColor.random(),
+        Checker.random(scale = 24),
+    ]
+
+    materials: list[Material] = [
+        Metal(texture = 0, fuzz = 0.03125),
+        Lambertian(texture = 1),
+    ]
 
     shapes: list[Shape] = [
         Sphere(
             center = Vec3(x=0, y=-10, z=0),
             radius = 10,
-            material = Metal(texture = tex1, fuzz = 0.03125),
+            material = 0,
         ),
         Sphere(
             center = Vec3(x=0, y=+10, z=0),
             radius = 10,
-            material = Lambertian(texture = tex2),
+            material = 1,
         ),
     ]
 
@@ -26,9 +33,9 @@ def generate():
         look_at = Vec3(x=0, y=0, z=0),
     ).serialize()
 
-    objects = [shape.serialize() for shape in shapes]
-
     return {
         "camera": camera,
-        "objects": objects,
+        "objects": [shape.serialize() for shape in shapes],
+        "materials": [material.serialize() for material in materials],
+        "textures": [texture.serialize() for texture in textures],
     }
