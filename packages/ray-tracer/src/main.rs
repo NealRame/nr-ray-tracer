@@ -12,6 +12,7 @@ use clap::{
 };
 use clap::error::ErrorKind;
 
+use glam::DVec3;
 use image::{
     DynamicImage,
     ImageFormat,
@@ -21,6 +22,7 @@ use image::{
 use indicatif::ProgressStyle;
 
 use nr_ray_tracer_lib::prelude::*;
+use nr_ray_tracer_lib::textures::Texture;
 
 use crate::cli::*;
 use crate::constants::*;
@@ -162,10 +164,54 @@ fn dump_image(
 fn main() {
     let cli = Cli::parse();
 
-    let (mut file, format) = cli.get_file();
+    // let (mut file, format) = cli.get_file();
 
-    let scene = load_scene(&cli);
+    // let scene = load_scene(&cli);
+    // let image = render_scene(&cli, &scene);
+
+    // dump_image(&cli, &mut file, image, format);
+
+    let camera =
+        CameraConfig::default()
+            .with_look_at(DVec3::new(0., 0., 0.))
+            .with_look_from(DVec3::new(8.0, 8.0, 8.0))
+            .with_samples_per_pixel(500)
+            .with_ray_max_bounce(50)
+            .clone()
+            ;
+
+    let scene = Scene::from(SceneConfig {
+        camera,
+        objects: vec![
+            Object::Sphere(Sphere::new(
+                DVec3::new(0.0, -1000.0, 0.0),
+                1000.0,
+                Material::Metal {
+                    texture: Texture::SolidColor(DVec3::new(3./255., 155./255., 229./255.)),
+                    fuzz: 0.5,
+                }
+            )),
+            Object::Sphere(Sphere::new(
+                DVec3::new(0., 4., 0.),
+                4.0,
+                Material::Metal {
+                    texture: Texture::SolidColor(DVec3::new(229./255., 57./255., 53./255.)),
+                    fuzz: 0.,
+                },
+            )),
+        ],
+        materials: vec![],
+        textures: vec![],
+    });
+
     let image = render_scene(&cli, &scene);
+    let mut file =
+        fs::File::options()
+            .create(true)
+            .truncate(true)
+            .write(true)
+            .open("out.png")
+            .expect("Failed");
 
-    dump_image(&cli, &mut file, image, format);
+    dump_image(&cli, &mut file, image, ImageFormat::Png);
 }

@@ -31,45 +31,46 @@ use crate::interval::Interval;
 use crate::ray::Ray;
 use crate::vector::*;
 
+#[derive(Debug, Deserialize)]
+#[serde(from = "CameraConfig")]
+#[serde(into = "CameraConfig")]
 pub struct Camera {
     image_size: ImageSize,
 
+    look_at: DVec3,
+    look_from: DVec3,
+    view_up: DVec3,
+
+    defocus_angle: f64,
+    focus_dist: f64,
+    field_of_view: f64,
+
     ray_max_bounce: usize,
-    samples_per_pixel: Option<usize>,
+    samples_per_pixel: usize,
 
     defocus_disk_u: DVec3,
     defocus_disk_v: DVec3,
-
-    look_from: DVec3,
 
     viewport_pixel_delta_u: DVec3,
     viewport_pixel_delta_v: DVec3,
     viewport_top_left: DVec3,
 }
 
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[serde(rename = "Camera")]
 #[skip_serializing_none]
-#[derive(Clone, Copy, Debug, Default, Deserialize, Serialize)]
 pub struct CameraConfig {
+    image_size: Option<ImageSize>,
+
     look_at: Option<DVec3>,
     look_from: Option<DVec3>,
     view_up: Option<DVec3>,
 
-    #[serde(skip)]
-    image_size: Option<ImageSize>,
-
-    #[serde(skip)]
     defocus_angle: Option<f64>,
-
-    #[serde(skip)]
     focus_dist: Option<f64>,
-
-    #[serde(skip)]
     field_of_view: Option<f64>,
 
-    #[serde(skip)]
     ray_max_bounce: Option<usize>,
-
-    #[serde(skip)]
     samples_per_pixel: Option<usize>,
 }
 
@@ -151,18 +152,18 @@ impl CameraConfig {
     ) -> Camera {
         let image_size = self.image_size.unwrap_or_default();
 
-        let look_from = self.look_from.unwrap_or(DVec3::ZERO);
         let look_at = self.look_at.unwrap_or(DVec3::NEG_Z);
+        let look_from = self.look_from.unwrap_or(DVec3::ZERO);
         let view_up = self.view_up.unwrap_or(DVec3::Y);
 
         let ray_max_bounce = self.ray_max_bounce.unwrap_or(10);
-        let samples_per_pixel = self.samples_per_pixel;
+        let samples_per_pixel = self.samples_per_pixel.unwrap_or(1).max(1);
 
         let defocus_angle = self.defocus_angle.unwrap_or(0.0).clamp(0., PI);
         let focus_dist = self.focus_dist.unwrap_or(1.);
 
-        let fov = self.field_of_view.unwrap_or(PI/2.0);
-        let h = (fov/2.).tan();
+        let field_of_view = self.field_of_view.unwrap_or(PI/2.0);
+        let h = (field_of_view/2.).tan();
 
         let viewport_height = focus_dist*h*2.0;
         let viewport_width = viewport_height*image_size.get_aspect_ratio();
@@ -192,16 +193,45 @@ impl CameraConfig {
         Camera {
             image_size,
 
+            look_at,
+            look_from,
+            view_up,
+
+            defocus_angle,
+            field_of_view,
+            focus_dist,
+
             ray_max_bounce,
             samples_per_pixel,
 
             defocus_disk_u,
             defocus_disk_v,
-            look_from,
 
             viewport_pixel_delta_u,
             viewport_pixel_delta_v,
             viewport_top_left,
+        }
+    }
+}
+
+impl From<CameraConfig> for Camera {
+    fn from(value: CameraConfig) -> Self {
+        value.build()
+    }
+}
+
+impl Into<CameraConfig> for Camera {
+    fn into(self) -> CameraConfig {
+        CameraConfig {
+            image_size: Some(self.image_size),
+            look_at: Some(self.look_at),
+            look_from: Some(self.look_from),
+            view_up: Some(self.view_up),
+            defocus_angle: Some(self.defocus_angle),
+            focus_dist: Some(self.focus_dist),
+            field_of_view: Some(self.field_of_view),
+            ray_max_bounce: Some(self.ray_max_bounce),
+            samples_per_pixel: Some(self.samples_per_pixel),
         }
     }
 }
@@ -227,7 +257,7 @@ impl Camera {
         y: u32,
         rng: &mut impl Rng,
     ) -> Ray {
-        let offset = if self.samples_per_pixel.is_some() {
+        let offset = if self.samples_per_pixel > 1 {
             DVec2::from_rng_ranged(rng, -0.5..=0.5)
         } else {
             DVec2::ZERO
@@ -283,7 +313,7 @@ impl Camera {
             T: Hitable + Send + Sync,
             P: Fn() + Sync,
     {
-        let sample_per_pixels = self.samples_per_pixel.unwrap_or(1);
+        let sample_per_pixel = self.samples_per_pixel;
         let width = self.image_size.width as u32;
         let height = self.image_size.height as u32;
 
@@ -297,13 +327,13 @@ impl Camera {
                 let x = n%width;
                 let y = n/width;
 
-                let s = (0..sample_per_pixels).map(|_| {
+                let s = (0..sample_per_pixel).map(|_| {
                     let ray = self.get_ray(x, y, &mut rng);
 
                     self.get_ray_color(&ray, 0, hitable, &mut rng)
                 }).sum::<DVec3>();
 
-                let color = s/(sample_per_pixels as f64);
+                let color = s/(sample_per_pixel as f64);
 
                 if let Some(progress) = progress.as_ref() {
                     progress();
