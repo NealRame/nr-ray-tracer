@@ -1,9 +1,8 @@
 import random
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from .serializable import Serializable
-from .texture import Texture, SolidColor
 
 class Material(Serializable): ...
 
@@ -24,26 +23,22 @@ class Dielectric(Material):
 
 @dataclass
 class Lambertian(Material):
-    texture: Texture = field(default_factory=SolidColor.default)
+    texture: int = 0
 
     @classmethod
     def default(cls):
         return cls()
 
-    @classmethod
-    def random(cls):
-        return cls(texture = SolidColor.random())
-
     def serialize(self) -> dict | float | int | list | str | tuple:
         return {
             "Lambertian": {
-                "texture": self.texture.serialize(),
+                "texture": self.texture,
             },
         }
 
 @dataclass
 class Metal(Material):
-    texture: Texture = field(default_factory=SolidColor.default)
+    texture: int = 0
     fuzz: float = 0.5
 
     @classmethod
@@ -51,16 +46,16 @@ class Metal(Material):
         return cls()
 
     @classmethod
-    def random(cls):
+    def random(cls, texture):
         return cls(
-            texture = SolidColor.random(),
+            texture = texture,
             fuzz = random.random(),
         )
 
     def serialize(self) -> dict | float | int | list | str | tuple:
         return {
             "Metal": {
-                "texture": self.texture.serialize(),
+                "texture": self.texture,
                 "fuzz": self.fuzz,
             },
         }
