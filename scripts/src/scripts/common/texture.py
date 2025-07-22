@@ -74,3 +74,14 @@ class Checker(Texture):
                 "scale": self.scale,
             },
         }
+
+@dataclass
+class Image(Texture):
+    file: str
+
+    def serialize(self) -> dict | float | int | list | str | tuple:
+        return {
+            "Image": {
+                "file": self.file,
+            },
+        }

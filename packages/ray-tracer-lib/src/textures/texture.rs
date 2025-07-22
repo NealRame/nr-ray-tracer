@@ -1,4 +1,4 @@
-use rand::{rngs::ThreadRng, Rng};
+use rand::Rng;
 
 use serde::{
     Deserialize,
@@ -9,9 +9,12 @@ use glam::{
     DVec2,
     DVec3,
     U64Vec2,
+    Vec3,
 };
 
 use crate::vector::FromRng;
+
+use super::image::Image;
 
 #[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
 pub struct Checker {
@@ -20,9 +23,10 @@ pub struct Checker {
     scale: f64,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub enum Texture {
     Checker(Checker),
+    Image(Image),
     SolidColor(DVec3),
 }
 
@@ -49,7 +53,7 @@ impl Texture {
 }
 
 impl Texture {
-    pub fn checker_from_rng(rng: &mut ThreadRng) -> Self {
+    pub fn checker_from_rng<R: Rng>(rng: &mut R) -> Self {
         Self::new_checker(
             DVec3::from_rng_ranged(rng, 0.0..=1.0),
             DVec3::from_rng_ranged(rng, 0.0..=1.0),
@@ -57,7 +61,7 @@ impl Texture {
         )
     }
 
-    pub fn solid_color_from_rng(rng: &mut ThreadRng) -> Self {
+    pub fn solid_color_from_rng<R: Rng>(rng: &mut R) -> Self {
         Self::SolidColor(DVec3::from_rng_ranged(rng, 0.0..=1.0))
     }
 }
@@ -68,18 +72,24 @@ impl Texture {
         uv: DVec2,
         _: DVec3,
     ) -> DVec3 {
-        match *self {
+        match self {
             Self::Checker(Checker { even, odd, scale }) => {
                 let v = (uv*scale).as_u64vec2().dot(U64Vec2::ONE);
 
                 if v%2 == 0 {
-                    even
+                    *even
                 } else {
-                    odd
+                    *odd
                 }
             },
+            Self::Image(Image { image, .. }) => {
+                let x = (uv.x.clamp(0., 1.)*(image.width() as f64)) as u32;
+                let y = ((1.0 - uv.y.clamp(0., 1.))*(image.height() as f64)) as u32;
+
+                Vec3::from_array(image.get_pixel(x, y).0).as_dvec3()
+            },
             Self::SolidColor(albedo) => {
-                albedo
+                *albedo
             },
         }
     }
