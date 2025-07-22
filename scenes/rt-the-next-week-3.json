@@ -6,8 +6,8 @@
             0
         ],
         "look_from": [
-            80.0,
-            30.0,
+            60.0,
+            20.0,
             3.0
         ]
     },
@@ -27,11 +27,22 @@
             "Sphere": {
                 "center": [
                     0,
-                    10,
+                    12,
                     0
                 ],
                 "radius": 10,
                 "material": 1
+            }
+        },
+        {
+            "Sphere": {
+                "center": [
+                    -12,
+                    12,
+                    -20
+                ],
+                "radius": 3,
+                "material": 2
             }
         }
     ],
@@ -39,36 +50,36 @@
         {
             "Metal": {
                 "texture": 0,
-                "fuzz": 0.015625
+                "fuzz": 0.03125
             }
         },
         {
             "Lambertian": {
                 "texture": 1
             }
+        },
+        {
+            "Lambertian": {
+                "texture": 2
+            }
         }
     ],
     "textures": [
         {
             "SolidColor": [
-                0.5,
-                0.5,
-                0.5
+                0.4,
+                0.4,
+                0.4
             ]
         },
         {
-            "Checker": {
-                "even": [
-                    1,
-                    0,
-                    0
-                ],
-                "odd": [
-                    1,
-                    1,
-                    1
-                ],
-                "scale": 9
+            "Image": {
+                "file": "scenes/earth.jpg"
+            }
+        },
+        {
+            "Image": {
+                "file": "scenes/moon.jpg"
             }
         }
     ]

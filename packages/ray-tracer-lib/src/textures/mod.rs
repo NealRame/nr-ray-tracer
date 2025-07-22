@@ -1,3 +1,4 @@
-pub mod texture;
+mod image;
+mod texture;
 
 pub use texture::*;

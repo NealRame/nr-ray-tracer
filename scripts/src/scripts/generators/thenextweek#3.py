@@ -1,34 +1,24 @@
 from scripts.common.camera import Camera
 from scripts.common.materials import Lambertian, Metal, Material
 from scripts.common.shapes import Shape, Sphere
-from scripts.common.texture import Checker, SolidColor, Texture
+from scripts.common.texture import Image, SolidColor, Texture
 from scripts.common.vec import Vec3
 
 def generate():
     textures: list[Texture] = [
-        SolidColor(color = Vec3(
-            x = 0.5,
-            y = 0.5,
-            z = 0.5,
+        SolidColor(color=Vec3(
+            x = 0.4,
+            y = 0.4,
+            z = 0.4,
         )),
-        Checker(
-            even = Vec3(
-                x = 1,
-                y = 0,
-                z = 0,
-            ),
-            odd = Vec3(
-                x = 1,
-                y = 1,
-                z = 1,
-            ),
-            scale = 9,
-        ),
+        Image(file = "scenes/earth.jpg"),
+        Image(file = "scenes/moon.jpg"),
     ]
 
     materials: list[Material] = [
-        Metal(texture = 0, fuzz = 0.015625),
+        Metal(texture = 0, fuzz = 0.03125),
         Lambertian(texture = 1),
+        Lambertian(texture = 2),
     ]
 
     shapes: list[Shape] = [
@@ -42,11 +32,16 @@ def generate():
             radius = 10,
             material = 1,
         ),
+        Sphere(
+            center = Vec3(x=-12, y=+12, z=-20),
+            radius = 3,
+            material = 2,
+        ),
     ]
 
     camera = Camera(
-        look_from = Vec3(x=80.0, y=30.0, z=3.0),
         look_at = Vec3(x=0, y=10, z=0),
+        look_from = Vec3(x=60.0, y=20.0, z=3.0),
     ).serialize()
 
     return {
