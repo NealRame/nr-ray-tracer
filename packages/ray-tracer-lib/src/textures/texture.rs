@@ -15,6 +15,8 @@ use glam::{
 use crate::vector::FromRng;
 
 use super::image::Image;
+use super::marble::Marble;
+use super::noise::PerlinRidgedNoise;
 
 #[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
 pub struct Checker {
@@ -27,6 +29,8 @@ pub struct Checker {
 pub enum Texture {
     Checker(Checker),
     Image(Image),
+    Marble(Marble),
+    Perlin(PerlinRidgedNoise),
     SolidColor(DVec3),
 }
 
@@ -70,7 +74,7 @@ impl Texture {
     pub fn get_color(
         &self,
         uv: DVec2,
-        _: DVec3,
+        point: DVec3,
     ) -> DVec3 {
         match self {
             Self::Checker(Checker { even, odd, scale }) => {
@@ -87,6 +91,12 @@ impl Texture {
                 let y = ((1.0 - uv.y.clamp(0., 1.))*(image.height() as f64)) as u32;
 
                 Vec3::from_array(image.get_pixel(x, y).0).as_dvec3()
+            },
+            Self::Marble(marble) => {
+                DVec3::ONE*marble.at(&point)
+            },
+            Self::Perlin(noise) => {
+                DVec3::ONE*noise.at(&point)
             },
             Self::SolidColor(albedo) => {
                 *albedo

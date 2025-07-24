@@ -1,4 +1,5 @@
 import random
+import time
 
 from dataclasses import dataclass, field
 
@@ -83,5 +84,47 @@ class Image(Texture):
         return {
             "Image": {
                 "file": self.file,
+            },
+        }
+
+@dataclass
+class PerlinRidged(Texture):
+    seed: int = field(default_factory=lambda : int(time.time()))
+    octaves: int|None = None
+    lacunarity: float|None = None
+    persistence: float|None = None
+    frequency: float|None = None
+
+    def serialize(self) -> dict | float | int | list | str | tuple:
+        return {
+            "Perlin": {
+                "seed": self.seed,
+                **({
+                    "octaves": self.octaves
+                } if self.octaves else {}),
+                **({
+                    "lacunarity": self.lacunarity
+                } if self.lacunarity else {}),
+                **({
+                    "persistence": self.persistence
+                } if self.persistence else {}),
+                **({
+                    "frequency": self.frequency
+                } if self.frequency else {}),
+            },
+        }
+
+@dataclass
+class Marble(Texture):
+    seed: int = field(default_factory=lambda : int(time.time()))
+    frequency: float|None = None
+
+    def serialize(self) -> dict | float | int | list | str | tuple:
+        return {
+            "Marble": {
+                "seed": self.seed,
+                **({
+                    "frequency": self.frequency
+                } if self.frequency else {}),
             },
         }

@@ -1,0 +1,137 @@
+{
+    "camera": {
+        "look_at": [
+            0,
+            10,
+            -2
+        ],
+        "look_from": [
+            70.0,
+            30.0,
+            0
+        ]
+    },
+    "objects": [
+        {
+            "Sphere": {
+                "center": [
+                    0,
+                    -1000000,
+                    0
+                ],
+                "radius": 1000000,
+                "material": 0
+            }
+        },
+        {
+            "Sphere": {
+                "center": [
+                    0,
+                    10,
+                    0
+                ],
+                "radius": 10,
+                "material": 1
+            }
+        },
+        {
+            "Sphere": {
+                "center": [
+                    -40,
+                    10,
+                    20
+                ],
+                "radius": 10,
+                "material": 2
+            }
+        },
+        {
+            "Sphere": {
+                "center": [
+                    30,
+                    10,
+                    -20
+                ],
+                "radius": 10,
+                "material": 3
+            }
+        },
+        {
+            "Sphere": {
+                "center": [
+                    10,
+                    10,
+                    25
+                ],
+                "radius": 10,
+                "material": 4
+            }
+        }
+    ],
+    "materials": [
+        {
+            "Lambertian": {
+                "texture": 0
+            }
+        },
+        {
+            "Metal": {
+                "texture": 1,
+                "fuzz": 0.05
+            }
+        },
+        {
+            "Lambertian": {
+                "texture": 2
+            }
+        },
+        {
+            "Metal": {
+                "texture": 3,
+                "fuzz": 0.9
+            }
+        },
+        {
+            "Metal": {
+                "texture": 4,
+                "fuzz": 0.8
+            }
+        }
+    ],
+    "textures": [
+        {
+            "SolidColor": [
+                0.4,
+                0.4,
+                0.4
+            ]
+        },
+        {
+            "Perlin": {
+                "seed": 1753394112,
+                "octaves": 8,
+                "frequency": 0.2
+            }
+        },
+        {
+            "Marble": {
+                "seed": 1753394112,
+                "frequency": 0.2
+            }
+        },
+        {
+            "SolidColor": [
+                1.0,
+                0.5,
+                0.65
+            ]
+        },
+        {
+            "SolidColor": [
+                0.23,
+                0.51,
+                0.88
+            ]
+        }
+    ]
+}
