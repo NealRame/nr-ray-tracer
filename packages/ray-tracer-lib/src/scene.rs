@@ -11,7 +11,7 @@ use crate::objects::*;
 use crate::materials::Material;
 use crate::textures::Texture;
 
-#[derive(Deserialize, Serialize)]
+#[derive(Default, Deserialize, Serialize)]
 pub struct SceneConfig {
     pub camera: CameraConfig,
     pub objects: Vec<Object>,

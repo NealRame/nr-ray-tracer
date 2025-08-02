@@ -32,10 +32,10 @@ use crate::ray::Ray;
 use crate::scene::Scene;
 use crate::vector::*;
 
-#[derive(Clone, Debug, Deserialize)]
-#[serde(from = "CameraConfig")]
-#[serde(into = "CameraConfig")]
-pub struct Camera {
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(default, rename = "Camera")]
+#[skip_serializing_none]
+pub struct CameraConfig {
     image_size: ImageSize,
 
     look_at: DVec3,
@@ -46,41 +46,16 @@ pub struct Camera {
     focus_dist: f64,
     field_of_view: f64,
 
-    ray_max_bounce: usize,
+    ray_max_bounces: usize,
     samples_per_pixel: usize,
-
-    defocus_disk_u: DVec3,
-    defocus_disk_v: DVec3,
-
-    viewport_pixel_delta_u: DVec3,
-    viewport_pixel_delta_v: DVec3,
-    viewport_top_left: DVec3,
-}
-
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[serde(rename = "Camera")]
-#[skip_serializing_none]
-pub struct CameraConfig {
-    image_size: Option<ImageSize>,
-
-    look_at: Option<DVec3>,
-    look_from: Option<DVec3>,
-    view_up: Option<DVec3>,
-
-    defocus_angle: Option<f64>,
-    focus_dist: Option<f64>,
-    field_of_view: Option<f64>,
-
-    ray_max_bounce: Option<usize>,
-    samples_per_pixel: Option<usize>,
 }
 
 impl CameraConfig {
     pub fn with_image_size(
         &mut self,
-        value: ImageSize,
+        image_size: ImageSize,
     ) -> &mut Self {
-        self.image_size.replace(value);
+        self.image_size = image_size;
         self
     }
 
@@ -88,7 +63,7 @@ impl CameraConfig {
         &mut self,
         position: DVec3,
     ) -> &mut Self {
-        self.look_at.replace(position);
+        self.look_at = position;
         self
     }
 
@@ -96,7 +71,7 @@ impl CameraConfig {
         &mut self,
         position: DVec3,
     ) -> &mut Self {
-        self.look_from.replace(position);
+        self.look_from = position;
         self
     }
 
@@ -104,7 +79,7 @@ impl CameraConfig {
         &mut self,
         v: DVec3,
     ) -> &mut Self {
-        self.view_up.replace(v);
+        self.view_up = v;
         self
     }
 
@@ -112,7 +87,7 @@ impl CameraConfig {
         &mut self,
         defocus_angle: f64,
     ) -> &mut Self {
-        self.defocus_angle.replace(defocus_angle);
+        self.defocus_angle = defocus_angle;
         self
     }
 
@@ -120,7 +95,7 @@ impl CameraConfig {
         &mut self,
         focus_dist: f64,
     ) -> &mut Self {
-        self.focus_dist.replace(focus_dist);
+        self.focus_dist = focus_dist;
         self
     }
 
@@ -128,15 +103,15 @@ impl CameraConfig {
         &mut self,
         vertical_field_of_view: f64,
     ) -> &mut Self {
-        self.field_of_view.replace(vertical_field_of_view);
+        self.field_of_view = vertical_field_of_view;
         self
     }
 
-    pub fn with_ray_max_bounce(
+    pub fn with_ray_max_bounces(
         &mut self,
         max_depth: usize,
     ) -> &mut Self {
-        self.ray_max_bounce.replace(max_depth);
+        self.ray_max_bounces = max_depth;
         self
     }
 
@@ -144,26 +119,26 @@ impl CameraConfig {
         &mut self,
         count: usize,
     ) -> &mut Self {
-        self.samples_per_pixel.replace(count);
+        self.samples_per_pixel = count;
         self
     }
 
     pub fn build(
         &self,
     ) -> Camera {
-        let image_size = self.image_size.unwrap_or_default();
+        let image_size = self.image_size;
 
-        let look_at = self.look_at.unwrap_or(DVec3::NEG_Z);
-        let look_from = self.look_from.unwrap_or(DVec3::ZERO);
-        let view_up = self.view_up.unwrap_or(DVec3::Y);
+        let look_at = self.look_at;
+        let look_from = self.look_from;
+        let view_up = self.view_up;
 
-        let ray_max_bounce = self.ray_max_bounce.unwrap_or(10);
-        let samples_per_pixel = self.samples_per_pixel.unwrap_or(1).max(1);
+        let ray_max_bounce = self.ray_max_bounces;
+        let samples_per_pixel = self.samples_per_pixel.max(1);
 
-        let defocus_angle = self.defocus_angle.unwrap_or(0.0).clamp(0., PI);
-        let focus_dist = self.focus_dist.unwrap_or(1.);
+        let defocus_angle = self.defocus_angle.clamp(0., PI);
+        let focus_dist = self.focus_dist;
 
-        let field_of_view = self.field_of_view.unwrap_or(PI/2.0);
+        let field_of_view = self.field_of_view;
         let h = (field_of_view/2.).tan();
 
         let viewport_height = focus_dist*h*2.0;
@@ -173,7 +148,7 @@ impl CameraConfig {
         let u = view_up.cross(w).normalize();
         let v = w.cross(u).normalize();
 
-        let viewport_u =  u*viewport_width;
+        let viewport_u = u*viewport_width;
         let viewport_v = -v*viewport_height;
 
         let viewport_pixel_delta_u = viewport_u/(image_size.width as f64);
@@ -202,7 +177,7 @@ impl CameraConfig {
             field_of_view,
             focus_dist,
 
-            ray_max_bounce,
+            ray_max_bounces: ray_max_bounce,
             samples_per_pixel,
 
             defocus_disk_u,
@@ -215,6 +190,70 @@ impl CameraConfig {
     }
 }
 
+impl CameraConfig {
+    pub const DEFAULT_IMAGE_WIDTH: usize = 1200;
+    pub const DEFAULT_IMAGE_HEIGHT: usize = 800;
+
+    pub const DEFAULT_LOOK_AT: DVec3 = DVec3::ZERO;
+    pub const DEFAULT_LOOK_FROM: DVec3 = DVec3::ONE;
+    pub const DEFAULT_VIEW_UP: DVec3 = DVec3::Y;
+
+    pub const DEFAULT_DEFOCUS_ANGLE: f64 = 0.;
+    pub const DEFAULT_FIELD_OF_VIEW: f64 = PI/2.;
+    pub const DEFAULT_FOCAL_LENGTH: f64 = 1.0;
+    pub const DEFAULT_FOCUS_DISTANCE: f64 = 1.0;
+
+    pub const DEFAULT_RAY_MAX_BOUNCES: usize = 10;
+    pub const DEFAULT_SAMPLES_PER_PIXEL: usize = 10;
+}
+
+impl Default for CameraConfig {
+    fn default() -> Self {
+        Self {
+            image_size: ImageSize {
+                height: Self::DEFAULT_IMAGE_HEIGHT,
+                width: Self::DEFAULT_IMAGE_WIDTH,
+            },
+
+            look_at: Self::DEFAULT_LOOK_AT,
+            look_from: Self::DEFAULT_LOOK_FROM,
+            view_up: Self::DEFAULT_VIEW_UP,
+
+            defocus_angle: Self::DEFAULT_DEFOCUS_ANGLE,
+            focus_dist: Self::DEFAULT_FOCUS_DISTANCE,
+            field_of_view: Self::DEFAULT_FIELD_OF_VIEW,
+
+            ray_max_bounces: Self::DEFAULT_RAY_MAX_BOUNCES,
+            samples_per_pixel: Self::DEFAULT_SAMPLES_PER_PIXEL,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(from = "CameraConfig")]
+#[serde(into = "CameraConfig")]
+pub struct Camera {
+    image_size: ImageSize,
+
+    look_at: DVec3,
+    look_from: DVec3,
+    view_up: DVec3,
+
+    defocus_angle: f64,
+    focus_dist: f64,
+    field_of_view: f64,
+
+    ray_max_bounces: usize,
+    samples_per_pixel: usize,
+
+    defocus_disk_u: DVec3,
+    defocus_disk_v: DVec3,
+
+    viewport_pixel_delta_u: DVec3,
+    viewport_pixel_delta_v: DVec3,
+    viewport_top_left: DVec3,
+}
+
 impl From<CameraConfig> for Camera {
     fn from(value: CameraConfig) -> Self {
         value.build()
@@ -224,15 +263,15 @@ impl From<CameraConfig> for Camera {
 impl Into<CameraConfig> for Camera {
     fn into(self) -> CameraConfig {
         CameraConfig {
-            image_size: Some(self.image_size),
-            look_at: Some(self.look_at),
-            look_from: Some(self.look_from),
-            view_up: Some(self.view_up),
-            defocus_angle: Some(self.defocus_angle),
-            focus_dist: Some(self.focus_dist),
-            field_of_view: Some(self.field_of_view),
-            ray_max_bounce: Some(self.ray_max_bounce),
-            samples_per_pixel: Some(self.samples_per_pixel),
+            image_size: self.image_size,
+            look_at: self.look_at,
+            look_from: self.look_from,
+            view_up: self.view_up,
+            defocus_angle: self.defocus_angle,
+            focus_dist: self.focus_dist,
+            field_of_view: self.field_of_view,
+            ray_max_bounces: self.ray_max_bounces,
+            samples_per_pixel: self.samples_per_pixel,
         }
     }
 }
@@ -285,7 +324,7 @@ impl Camera {
         hitable: &impl Hitable,
         rng: &mut impl Rng,
     ) -> DVec3 {
-        if ray_bounce >= self.ray_max_bounce {
+        if ray_bounce >= self.ray_max_bounces {
             return DVec3::ZERO;
         }
 
