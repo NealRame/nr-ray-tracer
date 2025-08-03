@@ -10,11 +10,15 @@ use crate::hitable::*;
 use crate::interval::Interval;
 use crate::ray::Ray;
 
-use super::Sphere;
+use super::{
+    Quad,
+    Sphere,
+};
 
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 pub enum Object {
-    Sphere(Sphere)
+    Quad(Quad),
+    Sphere(Sphere),
 }
 
 impl From<Sphere> for Object {
@@ -26,6 +30,7 @@ impl From<Sphere> for Object {
 impl Hitable for Object {
     fn bbox(&self) -> AABB {
         match self {
+            Self::Quad(quad) => quad.bbox(),
             Self::Sphere(sphere) => sphere.bbox(),
         }
     }
@@ -36,6 +41,7 @@ impl Hitable for Object {
         hit_range: Interval,
     ) -> Option<HitRecord> {
         match self {
+            Self::Quad(quad) => quad.hit(ray, hit_range),
             Self::Sphere(sphere) => sphere.hit(ray, hit_range),
         }
     }

@@ -18,7 +18,7 @@ impl Interval {
         }
     }
 
-    pub fn ensure(a: f64, b: f64) -> Self {
+    pub const fn ensure(a: f64, b: f64) -> Self {
         if a < b {
             Self::new(a, b)
         } else {
@@ -26,48 +26,48 @@ impl Interval {
         }
     }
 
-    pub fn union(&self, other: &Interval) -> Self {
+    pub const fn union(&self, other: &Interval) -> Self {
         Self {
             min: f64::min(self.min, other.min),
             max: f64::max(self.max, other.max),
         }
     }
 
-    pub fn intersection(&self, other: &Interval) -> Self {
+    pub const fn intersection(&self, other: &Interval) -> Self {
         Self {
             min: f64::max(self.min, other.min),
             max: f64::min(self.max, other.max),
         }
     }
 
-    pub fn is_empty(&self) -> bool {
+    pub const fn is_empty(&self) -> bool {
         return self.min > self.max
     }
 
-    pub fn pad(&self, padding: f64) -> Self {
+    pub const fn pad(&self, padding: f64) -> Self {
         Self {
             min: self.min - padding,
             max: self.max + padding,
         }
     }
 
-    pub fn size(&self) -> f64 {
+    pub const fn size(&self) -> f64 {
         self.max - self.min
     }
 
-    pub fn contains(&self, value: f64) -> bool {
+    pub const fn contains(&self, value: f64) -> bool {
         self.min <= value && value <= self.max
     }
 
-    pub fn surrounds(&self, value: f64) -> bool {
+    pub const fn surrounds(&self, value: f64) -> bool {
         self.min < value && value < self.max
     }
 
-    pub fn with_lower_bound(&self, min: f64) -> Self {
+    pub const fn with_lower_bound(&self, min: f64) -> Self {
         Self { min, max: self.max }
     }
 
-    pub fn with_upper_bound(&self, max: f64) -> Self {
+    pub const fn with_upper_bound(&self, max: f64) -> Self {
         Self { min: self.min, max }
     }
 }

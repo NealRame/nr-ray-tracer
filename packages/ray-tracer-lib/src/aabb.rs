@@ -11,15 +11,35 @@ pub struct AABB {
 }
 
 impl AABB {
+    const EPSILON: f64 = 0.0001;
+
+    const fn pad_to_minimums(self) -> Self {
+        let x = if self.x.size() < Self::EPSILON {
+            self.x.pad((Self::EPSILON - self.x.size())/2.)
+        } else { self.x };
+
+        let y = if self.y.size() < Self::EPSILON {
+            self.y.pad((Self::EPSILON - self.y.size())/2.)
+        } else { self.y };
+
+        let z = if self.z.size() < Self::EPSILON {
+            self.z.pad((Self::EPSILON - self.z.size())/2.)
+        } else { self.z };
+
+        Self { x, y, z }
+    }
+}
+
+impl AABB {
     pub const fn new(
         x: Interval,
         y: Interval,
         z: Interval,
     ) -> Self {
-        Self { x, y, z }
+        Self::pad_to_minimums(Self { x, y, z })
     }
 
-    pub fn union(
+    pub const fn union(
         &self,
         other: &AABB,
     ) -> Self {
@@ -30,7 +50,7 @@ impl AABB {
         )
     }
 
-    pub fn from_points(
+    pub const fn from_points(
         a: DVec3,
         b: DVec3,
     ) -> Self {

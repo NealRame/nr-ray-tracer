@@ -150,10 +150,6 @@ fn load_scene(
 
     cli.camera.try_update(&mut scene_config.camera)?;
 
-    println!("{:?}", cli.camera);
-    println!("---",);
-    println!("{:?}", scene_config.camera);
-
     Ok(Scene::from(scene_config))
 }
 

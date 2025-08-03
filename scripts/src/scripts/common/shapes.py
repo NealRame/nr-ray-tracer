@@ -34,3 +34,36 @@ class Sphere(Shape):
                     "material": self.material,
                 },
             }
+
+@dataclass
+class Quad(Shape):
+    top_left: Vec3 = field(default_factory=Vec3.zero)
+    u: Vec3 = field(default_factory=Vec3.unit_x)
+    v: Vec3 = field(default_factory=Vec3.unit_y)
+    material: int = 0
+    speed: Vec3|None = None
+
+    @classmethod
+    def default(cls):
+        return cls()
+
+    def serialize(self) -> dict | float | int | list | str | tuple:
+        if self.speed is None:
+            return {
+                "Quad": {
+                    "top_left": self.top_left.serialize(),
+                    "u": self.u.serialize(),
+                    "v": self.v.serialize(),
+                    "material": self.material,
+                },
+            }
+        else:
+            return {
+                "Quad": {
+                    "top_left": self.top_left.serialize(),
+                    "u": self.u.serialize(),
+                    "v": self.v.serialize(),
+                    "speed": self.speed.serialize(),
+                    "material": self.material,
+                },
+            }

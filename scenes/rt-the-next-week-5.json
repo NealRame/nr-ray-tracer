@@ -1,0 +1,180 @@
+{
+    "camera": {
+        "look_at": [
+            0,
+            0,
+            0
+        ],
+        "look_from": [
+            0,
+            0,
+            9
+        ]
+    },
+    "objects": [
+        {
+            "Quad": {
+                "top_left": [
+                    -3,
+                    -2,
+                    5
+                ],
+                "u": [
+                    0,
+                    0,
+                    -4
+                ],
+                "v": [
+                    0,
+                    4,
+                    0
+                ],
+                "material": 0
+            }
+        },
+        {
+            "Quad": {
+                "top_left": [
+                    -2,
+                    -2,
+                    0
+                ],
+                "u": [
+                    4,
+                    0,
+                    0
+                ],
+                "v": [
+                    0,
+                    4,
+                    0
+                ],
+                "material": 1
+            }
+        },
+        {
+            "Quad": {
+                "top_left": [
+                    3,
+                    -2,
+                    1
+                ],
+                "u": [
+                    0,
+                    0,
+                    4
+                ],
+                "v": [
+                    0,
+                    4,
+                    0
+                ],
+                "material": 2
+            }
+        },
+        {
+            "Quad": {
+                "top_left": [
+                    -2,
+                    3,
+                    1
+                ],
+                "u": [
+                    4,
+                    0,
+                    0
+                ],
+                "v": [
+                    0,
+                    0,
+                    4
+                ],
+                "material": 3
+            }
+        },
+        {
+            "Quad": {
+                "top_left": [
+                    -2,
+                    -3,
+                    5
+                ],
+                "u": [
+                    4,
+                    0,
+                    0
+                ],
+                "v": [
+                    0,
+                    0,
+                    -4
+                ],
+                "material": 4
+            }
+        }
+    ],
+    "materials": [
+        {
+            "Lambertian": {
+                "texture": 0
+            }
+        },
+        {
+            "Lambertian": {
+                "texture": 1
+            }
+        },
+        {
+            "Lambertian": {
+                "texture": 2
+            }
+        },
+        {
+            "Lambertian": {
+                "texture": 3
+            }
+        },
+        {
+            "Lambertian": {
+                "texture": 4
+            }
+        }
+    ],
+    "textures": [
+        {
+            "SolidColor": [
+                1.0,
+                0.2,
+                0.2
+            ]
+        },
+        {
+            "SolidColor": [
+                0.2,
+                1.0,
+                0.2
+            ]
+        },
+        {
+            "SolidColor": [
+                0.2,
+                0.2,
+                1.0
+            ]
+        },
+        {
+            "SolidColor": [
+                1.0,
+                0.5,
+                0.0
+            ]
+        },
+        {
+            "SolidColor": [
+                0.2,
+                0.8,
+                0.8
+            ]
+        }
+    ]
+}

@@ -26,6 +26,30 @@ class Vec3(Serializable):
             z = 0.0,
         )
 
+    @classmethod
+    def unit_x(cls):
+        return cls(
+            x = 1.0,
+            y = 0.0,
+            z = 0.0,
+        )
+
+    @classmethod
+    def unit_y(cls):
+        return cls(
+            x = 0.0,
+            y = 1.0,
+            z = 0.0,
+        )
+
+    @classmethod
+    def unit_z(cls):
+        return cls(
+            x = 0.0,
+            y = 0.0,
+            z = 1.0,
+        )
+
     def length(self):
         return sqrt(self.x*self.x + self.y*self.y + self.z*self.z)
 
