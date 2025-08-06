@@ -1,19 +1,19 @@
 {
     "camera": {
         "background_color": [
-            0.7,
-            0.8,
-            1.0
+            0.001,
+            0.001,
+            0.001
         ],
         "look_at": [
             0,
-            10,
-            -2
+            2,
+            0
         ],
         "look_from": [
-            70.0,
-            30.0,
-            0
+            26,
+            3,
+            6
         ]
     },
     "objects": [
@@ -32,44 +32,42 @@
             "Sphere": {
                 "center": [
                     0,
-                    10,
+                    2,
                     0
                 ],
-                "radius": 10,
+                "radius": 2,
                 "material": 1
             }
         },
         {
-            "Sphere": {
-                "center": [
-                    -40,
-                    10,
-                    20
+            "Quad": {
+                "top_left": [
+                    3,
+                    1,
+                    -2
                 ],
-                "radius": 10,
+                "u": [
+                    2,
+                    0,
+                    0
+                ],
+                "v": [
+                    0,
+                    2,
+                    0
+                ],
                 "material": 2
             }
         },
         {
             "Sphere": {
                 "center": [
-                    30,
-                    10,
-                    -20
+                    0,
+                    7,
+                    0
                 ],
-                "radius": 10,
+                "radius": 1,
                 "material": 3
-            }
-        },
-        {
-            "Sphere": {
-                "center": [
-                    10,
-                    10,
-                    25
-                ],
-                "radius": 10,
-                "material": 4
             }
         }
     ],
@@ -80,26 +78,18 @@
             }
         },
         {
-            "Metal": {
-                "texture": 1,
-                "fuzz": 0.05
+            "Lambertian": {
+                "texture": 1
             }
         },
         {
-            "Lambertian": {
+            "DiffuseLight": {
                 "texture": 2
             }
         },
         {
-            "Metal": {
-                "texture": 3,
-                "fuzz": 0.9
-            }
-        },
-        {
-            "Metal": {
-                "texture": 4,
-                "fuzz": 0.8
+            "DiffuseLight": {
+                "texture": 3
             }
         }
     ],
@@ -112,30 +102,23 @@
             ]
         },
         {
-            "Perlin": {
-                "seed": 1753394112,
-                "octaves": 8,
-                "frequency": 0.2
-            }
-        },
-        {
             "Marble": {
-                "seed": 1753394112,
+                "seed": 1754516213,
                 "frequency": 0.2
             }
         },
         {
             "SolidColor": [
-                1.0,
-                0.5,
-                0.65
+                4.0,
+                2.0,
+                1.0
             ]
         },
         {
             "SolidColor": [
-                0.23,
-                0.51,
-                0.88
+                1.0,
+                2.0,
+                4.0
             ]
         }
     ]

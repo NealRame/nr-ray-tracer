@@ -5,12 +5,16 @@ from .vec import Vec3
 
 @dataclass
 class Camera(Serializable):
+    background_color: Vec3 | None = field(default=None)
     look_at: Vec3 | None = field(default=None)
     look_from: Vec3 | None = field(default=None)
     view_up: Vec3 | None = field(default=None)
 
     def serialize(self) -> dict | float | int | list | str | tuple:
         return {
+            ** ({} if self.background_color == None else {
+                "background_color": self.background_color.serialize(),
+            }),
             ** ({} if self.look_at == None else {
                 "look_at": self.look_at.serialize()
             }),

@@ -38,6 +38,8 @@ use crate::vector::*;
 pub struct CameraConfig {
     image_size: ImageSize,
 
+    background_color: DVec3,
+
     look_at: DVec3,
     look_from: DVec3,
     view_up: DVec3,
@@ -56,6 +58,14 @@ impl CameraConfig {
         image_size: ImageSize,
     ) -> &mut Self {
         self.image_size = image_size;
+        self
+    }
+
+    pub fn with_background_color(
+        &mut self,
+        background_color: DVec3,
+    ) -> &mut Self {
+        self.background_color = background_color;
         self
     }
 
@@ -128,6 +138,8 @@ impl CameraConfig {
     ) -> Camera {
         let image_size = self.image_size;
 
+        let background_color = self.background_color;
+
         let look_at = self.look_at;
         let look_from = self.look_from;
         let view_up = self.view_up;
@@ -169,6 +181,8 @@ impl CameraConfig {
         Camera {
             image_size,
 
+            background_color,
+
             look_at,
             look_from,
             view_up,
@@ -194,6 +208,8 @@ impl CameraConfig {
     pub const DEFAULT_IMAGE_WIDTH: usize = 1200;
     pub const DEFAULT_IMAGE_HEIGHT: usize = 800;
 
+    pub const DEFAULT_BACKGROUND_COLOR: DVec3 = DVec3::ZERO;
+
     pub const DEFAULT_LOOK_AT: DVec3 = DVec3::ZERO;
     pub const DEFAULT_LOOK_FROM: DVec3 = DVec3::ONE;
     pub const DEFAULT_VIEW_UP: DVec3 = DVec3::Y;
@@ -215,6 +231,8 @@ impl Default for CameraConfig {
                 width: Self::DEFAULT_IMAGE_WIDTH,
             },
 
+            background_color: Self::DEFAULT_BACKGROUND_COLOR,
+
             look_at: Self::DEFAULT_LOOK_AT,
             look_from: Self::DEFAULT_LOOK_FROM,
             view_up: Self::DEFAULT_VIEW_UP,
@@ -234,6 +252,8 @@ impl Default for CameraConfig {
 #[serde(into = "CameraConfig")]
 pub struct Camera {
     image_size: ImageSize,
+
+    background_color: DVec3,
 
     look_at: DVec3,
     look_from: DVec3,
@@ -264,6 +284,7 @@ impl Into<CameraConfig> for Camera {
     fn into(self) -> CameraConfig {
         CameraConfig {
             image_size: self.image_size,
+            background_color: self.background_color,
             look_at: self.look_at,
             look_from: self.look_from,
             view_up: self.view_up,
@@ -332,10 +353,15 @@ impl Camera {
             Some(hit_record) => {
                 let material = scene.materials.get(hit_record.material).expect("material not found");
 
+                let emitted = material.emit(
+                    scene,
+                    hit_record
+                );
+
                 material.scatter(scene, ray, hit_record, rng)
                     .as_ref()
                     .map(|(scattered_ray, color)| {
-                        color*self.get_ray_color(
+                        emitted + color*self.get_ray_color(
                             scene,
                             scattered_ray,
                             ray_bounce + 1,
@@ -343,14 +369,9 @@ impl Camera {
                             rng
                         )
                     })
-                    .unwrap_or(DVec3::ZERO)
+                    .unwrap_or(emitted)
             },
-            _ => {
-                let d = ray.get_direction().normalize();
-                let a = (d.y + 1.)/2.;
-
-                (1. - a)*DVec3::ONE + a*DVec3::new(0.5, 0.7, 1.0)
-            }
+            _ => self.background_color,
         }
     }
 

@@ -59,3 +59,18 @@ class Metal(Material):
                 "fuzz": self.fuzz,
             },
         }
+
+@dataclass
+class DiffuseLight(Material):
+    texture: int = 0
+
+    @classmethod
+    def default(cls):
+        return cls()
+
+    def serialize(self) -> dict | float | int | list | str | tuple:
+        return {
+            "DiffuseLight": {
+                "texture": self.texture,
+            },
+        }

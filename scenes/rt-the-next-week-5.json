@@ -1,5 +1,10 @@
 {
     "camera": {
+        "background_color": [
+            0.7,
+            0.8,
+            1.0
+        ],
         "look_at": [
             0,
             0,
