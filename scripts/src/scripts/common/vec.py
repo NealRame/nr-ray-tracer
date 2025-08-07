@@ -60,6 +60,9 @@ class Vec3(Serializable):
             z = k*self.z,
         )
 
+    def __mul__(self, rhs: float):
+        return self.mul(rhs)
+
     def add(self, v):
         return Vec3(
             x = self.x + v.x,
