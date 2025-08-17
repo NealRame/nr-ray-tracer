@@ -1,26 +1,55 @@
+use std::sync::Arc;
+
 use glam::DVec3;
 
-use rand::Rng;
+use rand::RngCore;
 
 use crate::hitable::HitRecord;
+use crate::prelude::SolidColor;
 use crate::ray::Ray;
 use crate::textures::Texture;
 use crate::vector::*;
 
-pub(super) fn scatter<T: Rng>(
-    ray: &Ray,
-    hit_record: &HitRecord,
-    texture: &Texture,
-    rng: &mut T,
-) -> Option<(Ray, DVec3)> {
-    let mut scatter_direction = hit_record.normal + random_in_unit_sphere(rng);
+use super::material::Material;
 
-    if scatter_direction.almost_zero(1e-8) {
-        scatter_direction = hit_record.normal
+pub struct Lambertian {
+    texture: Arc<dyn Texture + Send + Sync>,
+}
+
+impl Default for Lambertian {
+    fn default() -> Self {
+        Self {
+            texture: Arc::new(SolidColor::default())
+        }
+    }
+}
+
+impl Lambertian {
+    pub fn with_color(color: DVec3) -> Self {
+        Self::with_texture(Arc::new(SolidColor::new(color)))
     }
 
-    Some((
-        Ray::new_at_time(hit_record.point, scatter_direction, ray.get_time()),
-        texture.get_color(hit_record.texture_coordinates, hit_record.point),
-    ))
+    pub fn with_texture(texture: Arc<dyn Texture + Send + Sync>) -> Self {
+        Self { texture }
+    }
+}
+
+impl Material for Lambertian {
+    fn scatter(
+        &self,
+        ray: &Ray,
+        hit: &HitRecord,
+        rng: &mut dyn RngCore
+    ) -> Option<(Ray, DVec3)> {
+        let mut scatter_direction = hit.normal + random_in_unit_sphere(rng);
+
+        if scatter_direction.almost_zero(1e-8) {
+            scatter_direction = hit.normal
+        }
+
+        Some((
+            Ray::new_at_time(hit.point, scatter_direction, ray.get_time()),
+            self.texture.get_color(hit.texture_coordinates, hit.point),
+        ))
+    }
 }

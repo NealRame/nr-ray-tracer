@@ -3,16 +3,20 @@ use glam::{
     DVec3,
 };
 
-use rand::{distr::uniform::SampleRange, Rng};
+use rand::{
+    Rng,
+    RngCore,
+};
+use rand::distr::uniform::SampleRange;
 
 pub trait FromRng {
-    fn from_rng<T: Rng>(rng: &mut T) -> Self;
-    fn from_rng_ranged<T: Rng, R: SampleRange<f64> + Clone>(rng: &mut T, range: R) -> Self;
+    fn from_rng(rng: &mut dyn RngCore) -> Self;
+    fn from_rng_ranged<R: SampleRange<f64> + Clone>(rng: &mut dyn RngCore, range: R) -> Self;
 }
 
 impl FromRng for DVec2 {
-    fn from_rng<T: Rng>(
-        rng: &mut T,
+    fn from_rng(
+        rng: &mut dyn RngCore,
     ) -> Self {
         Self {
             x: rng.random(),
@@ -20,8 +24,8 @@ impl FromRng for DVec2 {
         }
     }
 
-    fn from_rng_ranged<T: Rng, R: SampleRange<f64> + Clone>(
-        rng: &mut T,
+    fn from_rng_ranged<R: SampleRange<f64> + Clone>(
+        rng: &mut dyn RngCore,
         range: R,
     ) -> Self {
         Self {
@@ -32,8 +36,8 @@ impl FromRng for DVec2 {
 }
 
 impl FromRng for DVec3 {
-    fn from_rng<T: Rng>(
-        rng: &mut T,
+    fn from_rng(
+        rng: &mut dyn RngCore,
     ) -> Self {
         Self {
             x: rng.random(),
@@ -42,8 +46,8 @@ impl FromRng for DVec3 {
         }
     }
 
-    fn from_rng_ranged<T: Rng, R: SampleRange<f64> + Clone>(
-        rng: &mut T,
+    fn from_rng_ranged<R: SampleRange<f64> + Clone>(
+        rng: &mut dyn RngCore,
         range: R,
     ) -> Self {
         Self {
@@ -54,7 +58,7 @@ impl FromRng for DVec3 {
     }
 }
 
-pub fn random_in_unit_sphere<T: Rng>(rng: &mut T) -> DVec3 {
+pub fn random_in_unit_sphere(rng: &mut dyn RngCore) -> DVec3 {
     loop {
         let p = DVec3::from_rng_ranged(rng, -1.0..1.0);
         let length_squared = p.length_squared();
@@ -65,7 +69,7 @@ pub fn random_in_unit_sphere<T: Rng>(rng: &mut T) -> DVec3 {
     }
 }
 
-pub fn random_in_unit_disk<T: Rng>(rng: &mut T) -> DVec3 {
+pub fn random_in_unit_disk(rng: &mut dyn RngCore) -> DVec3 {
     loop {
         let p = DVec2::from_rng_ranged(rng, -1.0..1.0).extend(0.0);
         let length_squared = p.length_squared();
@@ -76,8 +80,8 @@ pub fn random_in_unit_disk<T: Rng>(rng: &mut T) -> DVec3 {
     }
 }
 
-pub fn random_on_hemisphere<T: Rng>(
-    rng: &mut T,
+pub fn random_on_hemisphere(
+    rng: &mut dyn RngCore,
     normal: DVec3,
 ) -> DVec3 {
     let on_unit_sphere = random_in_unit_sphere(rng);

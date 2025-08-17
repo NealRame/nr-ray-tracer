@@ -1,68 +1,41 @@
-use std::fmt::Debug;
+use glam::{
+    DVec2,
+    DVec3,
+};
 
-use glam::DVec3;
 use noise::{
     Abs, Fbm, MultiFractal, NoiseFn, Perlin
 };
 
-use serde::{
-    Deserialize,
-    Serialize,
-};
-use serde_with::skip_serializing_none;
+use super::texture::Texture;
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(rename = "Marble")]
-#[skip_serializing_none]
-pub struct MarbleConfig {
-    seed: u32,
-    frequency: Option<f64>,
-}
+type Noise = Fbm<Perlin>;
 
-#[derive(Clone, Serialize, Deserialize)]
-#[serde(from = "MarbleConfig")]
-#[serde(into = "MarbleConfig")]
+#[derive(Clone)]
 pub struct Marble {
     seed: u32,
     frequency: f64,
-
-    #[serde(skip)]
-    pub perlin: Abs<f64, Fbm<Perlin>, 3>,
+    perlin: Abs<f64, Noise, 3>,
 }
 
-impl Debug for Marble {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        Debug::fmt(&MarbleConfig::from(self), f)
+#[derive(Clone, Default)]
+pub struct MarbleBuilder {
+    seed: Option<u32>,
+    frequency: Option<f64>,
+}
+
+impl MarbleBuilder {
+    pub fn with_seed(self, value: u32) -> Self {
+        Self { seed: Some(value), ..self }
     }
-}
 
-impl PartialEq for Marble {
-    fn eq(&self, other: &Self) -> bool {
-        MarbleConfig::from(self) == MarbleConfig::from(other)
+    pub fn with_frequency(self, value: f64) -> Self {
+        Self { frequency: Some(value), ..self }
     }
-}
 
-impl From<&Marble> for MarbleConfig {
-    fn from(value: &Marble) -> Self {
-        MarbleConfig {
-            seed: value.seed,
-            frequency: Some(value.frequency),
-        }
-    }
-}
-
-impl From<Marble> for MarbleConfig {
-    fn from(value: Marble) -> Self {
-        MarbleConfig::from(&value)
-    }
-}
-
-impl From<MarbleConfig> for Marble {
-    fn from(value: MarbleConfig) -> Self {
-        type Noise = Fbm<Perlin>;
-
-        let seed = value.seed;
-        let frequency = value.frequency.unwrap_or(Noise::DEFAULT_FREQUENCY);
+    pub fn build(self) -> Marble {
+        let seed = self.seed.unwrap_or(0);
+        let frequency = self.frequency.unwrap_or(Noise::DEFAULT_FREQUENCY);
 
         let perlin = Abs::new(
             Noise::new(seed)
@@ -70,7 +43,7 @@ impl From<MarbleConfig> for Marble {
                 .set_frequency(frequency)
         );
 
-        Self {
+        Marble {
             seed,
             frequency,
             perlin,
@@ -78,9 +51,27 @@ impl From<MarbleConfig> for Marble {
     }
 }
 
-impl Marble {
-    pub fn at(&self, point: &DVec3) -> f64 {
+impl PartialEq for Marble {
+    fn eq(&self, other: &Self) -> bool {
+        self.seed == other.seed && self.frequency == other.frequency
+    }
+}
+
+impl Default for Marble {
+    fn default() -> Self {
+        MarbleBuilder::default().build()
+    }
+}
+
+impl Texture for Marble {
+    fn get_color(
+        &self,
+        _: DVec2,
+        point: DVec3,
+    ) -> DVec3 {
         let n = self.perlin.get(point.to_array());
-        (1. + f64::sin(self.frequency*point.z + 10.*n))/2.
+        let v = (1. + f64::sin(self.frequency*point.z + 10.*n))/2.;
+
+        v*DVec3::ONE
     }
 }

@@ -252,7 +252,7 @@ impl CameraArgs {
 impl CameraArgs {
     pub fn try_update(
         &self,
-        config: &mut CameraConfig,
+        config: &mut CameraBuilder,
     ) -> Result<(), CliError> {
         if let Some(image_size) = self.get_size()? {
             config.with_image_size(image_size);

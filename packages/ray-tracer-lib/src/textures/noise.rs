@@ -1,81 +1,67 @@
-use std::fmt::Debug;
+use glam::{
+    DVec2,
+    DVec3,
+};
 
-use glam::DVec3;
 use noise::{
-    Abs, Fbm, MultiFractal, NoiseFn, Perlin
+    Abs,
+    Fbm,
+    MultiFractal,
+    NoiseFn,
+    Perlin,
 };
 
-use serde::{
-    Deserialize,
-    Serialize,
-};
-use serde_with::skip_serializing_none;
+use super::texture::Texture;
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(rename = "PerlinRidged")]
-#[skip_serializing_none]
-pub struct PerlinRidgedNoiseConfig {
-    seed: u32,
-    octaves: Option<usize>,
-    lacunarity: Option<f64>,
-    persistence: Option<f64>,
-    frequency: Option<f64>,
-}
+type Noise = Fbm<Perlin>;
 
-#[derive(Clone, Serialize, Deserialize)]
-#[serde(from = "PerlinRidgedNoiseConfig")]
-#[serde(into = "PerlinRidgedNoiseConfig")]
+#[derive(Clone)]
 pub struct PerlinRidgedNoise {
     seed: u32,
     octaves: usize,
     lacunarity: f64,
     persistence: f64,
     frequency: f64,
-
-    #[serde(skip)]
-    pub perlin: Abs<f64, Fbm<Perlin>, 3>,
+    perlin: Abs<f64, Fbm<Perlin>, 3>,
 }
 
-impl Debug for PerlinRidgedNoise {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        Debug::fmt(&PerlinRidgedNoiseConfig::from(self), f)
+#[derive(Default)]
+pub struct PerlinRidgedNoiseBuilder {
+    seed: Option<u32>,
+    octaves: Option<usize>,
+    lacunarity: Option<f64>,
+    persistence: Option<f64>,
+    frequency: Option<f64>,
+}
+
+impl PerlinRidgedNoiseBuilder {
+    pub fn with_seed(self, value: u32) -> Self {
+        Self { seed: Some(value), ..self }
     }
-}
 
-impl PartialEq for PerlinRidgedNoise {
-    fn eq(&self, other: &Self) -> bool {
-        PerlinRidgedNoiseConfig::from(self) == PerlinRidgedNoiseConfig::from(other)
+    pub fn with_octaves(self, value: usize) -> Self {
+        Self { octaves: Some(value), ..self }
     }
-}
 
-impl From<&PerlinRidgedNoise> for PerlinRidgedNoiseConfig {
-    fn from(value: &PerlinRidgedNoise) -> Self {
-        PerlinRidgedNoiseConfig {
-            seed: value.seed,
-            octaves: Some(value.octaves),
-            lacunarity: Some(value.lacunarity),
-            frequency: Some(value.frequency),
-            persistence: Some(value.persistence),
-        }
+    pub fn with_lacunarity(self, value: f64) -> Self {
+        Self { lacunarity: Some(value), ..self }
     }
-}
 
-impl From<PerlinRidgedNoise> for PerlinRidgedNoiseConfig {
-    fn from(value: PerlinRidgedNoise) -> Self {
-        PerlinRidgedNoiseConfig::from(&value)
+    pub fn with_persistence(self, value: f64) -> Self {
+        Self { persistence: Some(value), ..self }
     }
-}
 
-impl From<PerlinRidgedNoiseConfig> for PerlinRidgedNoise {
-    fn from(value: PerlinRidgedNoiseConfig) -> Self {
-        type Noise = Fbm<Perlin>;
+    pub fn with_frequency(self, value: f64) -> Self {
+        Self { frequency: Some(value), ..self }
+    }
 
-        let seed = value.seed;
+    pub fn build(self) -> PerlinRidgedNoise {
+        let seed = self.seed.unwrap_or(0);
 
-        let octaves = value.octaves.unwrap_or(1);
-        let persistence = value.persistence.unwrap_or(Noise::DEFAULT_PERSISTENCE);
-        let lacunarity = value.lacunarity.unwrap_or(Noise::DEFAULT_LACUNARITY);
-        let frequency = value.frequency.unwrap_or(Noise::DEFAULT_FREQUENCY);
+        let octaves = self.octaves.unwrap_or(1);
+        let persistence = self.persistence.unwrap_or(Noise::DEFAULT_PERSISTENCE);
+        let lacunarity = self.lacunarity.unwrap_or(Noise::DEFAULT_LACUNARITY);
+        let frequency = self.frequency.unwrap_or(Noise::DEFAULT_FREQUENCY);
 
         let perlin = Abs::new(
             Noise::new(seed)
@@ -85,7 +71,7 @@ impl From<PerlinRidgedNoiseConfig> for PerlinRidgedNoise {
                 .set_persistence(persistence)
         );
 
-        Self {
+        PerlinRidgedNoise {
             seed,
             octaves,
             lacunarity,
@@ -96,8 +82,30 @@ impl From<PerlinRidgedNoiseConfig> for PerlinRidgedNoise {
     }
 }
 
-impl PerlinRidgedNoise {
-    pub fn at(&self, point: &DVec3) -> f64 {
-        self.perlin.get(point.to_array())
+impl PartialEq for PerlinRidgedNoise {
+    fn eq(&self, other: &Self) -> bool {
+        self.seed == other.seed
+        && self.octaves == other.octaves
+        && self.lacunarity == other.lacunarity
+        && self.persistence == other.persistence
+        && self.frequency == other.frequency
+    }
+}
+
+impl Default for PerlinRidgedNoise {
+    fn default() -> Self {
+        PerlinRidgedNoiseBuilder::default().build()
+    }
+}
+
+impl Texture for PerlinRidgedNoise {
+    fn get_color(
+        &self,
+        _: DVec2,
+        point: DVec3
+    ) -> DVec3 {
+        let v = self.perlin.get(point.to_array());
+
+        v*DVec3::ONE
     }
 }

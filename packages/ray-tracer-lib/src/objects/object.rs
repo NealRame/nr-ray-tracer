@@ -1,55 +1,13 @@
 use std::sync::Arc;
 
-use serde::{
-    Deserialize,
-    Serialize,
-};
-
 use crate::aabb::AABB;
 use crate::hitable::*;
 use crate::interval::Interval;
 use crate::ray::Ray;
 
-use super::{
-    Quad,
-    Sphere,
-};
-
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
-pub enum Object {
-    Quad(Quad),
-    Sphere(Sphere),
-}
-
-impl From<Sphere> for Object {
-    fn from(value: Sphere) -> Self {
-        Self::Sphere(value)
-    }
-}
-
-impl Hitable for Object {
-    fn bbox(&self) -> AABB {
-        match self {
-            Self::Quad(quad) => quad.bbox(),
-            Self::Sphere(sphere) => sphere.bbox(),
-        }
-    }
-
-    fn hit(
-        &self,
-        ray: &Ray,
-        hit_range: Interval,
-    ) -> Option<HitRecord> {
-        match self {
-            Self::Quad(quad) => quad.hit(ray, hit_range),
-            Self::Sphere(sphere) => sphere.hit(ray, hit_range),
-        }
-    }
-}
-
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub enum BVH {
-    Leaf(Option<Object>),
+    Leaf(Option<Arc<dyn Hitable + Send + Sync>>),
     Node {
         bbox: AABB,
         left: Arc<BVH>,
@@ -57,8 +15,8 @@ pub enum BVH {
     },
 }
 
-impl Into<Vec<Object>> for BVH {
-    fn into(self) -> Vec<Object> {
+impl Into<Vec<Arc<dyn Hitable + Send + Sync>>> for BVH {
+    fn into(self) -> Vec<Arc<dyn Hitable + Send + Sync>> {
         let mut objects =  Vec::new();
         let mut node_stack = vec![&self];
 
@@ -80,7 +38,7 @@ impl Into<Vec<Object>> for BVH {
 }
 
 impl BVH {
-    pub fn from(objects: &mut [Object]) -> Self {
+    pub fn from(objects: &mut [Arc<dyn Hitable + Send + Sync>]) -> Self {
         match objects{
             [ ] =>  Self::Leaf(None),
             [o] =>  Self::Leaf(Some(o.clone())),

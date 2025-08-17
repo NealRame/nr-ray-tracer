@@ -1,63 +1,81 @@
-use glam::{DVec2, DVec3};
+use std::fmt::Debug;
+use std::sync::Arc;
 
-use serde::{
-    Deserialize,
-    Serialize,
+use glam::{
+    DVec2,
+    DVec3,
 };
-use serde_with::skip_serializing_none;
 
 use crate::aabb::AABB;
 use crate::hitable::*;
 use crate::interval::Interval;
+use crate::materials::{
+    Lambertian,
+    Material,
+};
 use crate::ray::Ray;
 
-#[derive(Clone, Copy, Deserialize)]
-#[serde(rename = "Quad")]
-struct QuadConfig {
-    top_left: DVec3,
-    u: DVec3,
-    v: DVec3,
-    speed: Option<DVec3>,
-    material: usize,
-}
-
-#[skip_serializing_none]
-#[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
-#[serde(from = "QuadConfig")]
+#[derive(Clone)]
 pub struct Quad {
     top_left: DVec3,
     u: DVec3,
     v: DVec3,
-    speed: Option<DVec3>,
-    material: usize,
-
-    #[serde(skip)]
+    material: Arc<dyn Material + Send + Sync>,
     normal: DVec3,
-
-    #[serde(skip)]
     d: f64,
-
-    #[serde(skip)]
     w: DVec3,
-
-    #[serde(skip)]
     bbox: AABB,
 }
 
-impl From<QuadConfig> for Quad {
-    fn from(data: QuadConfig) -> Self {
-        Self::with_speed(data.top_left, data.speed, data.u, data.v, data.material)
+impl Debug for Quad {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Quad")
+            .field("top_left", &format!("{:?}", self.top_left))
+            .field("u", &self.u)
+            .field("v", &self.v)
+            .field("normal", &self.normal)
+            .field("d", &self.d)
+            .field("w", &self.w)
+            .field("bbox", &self.bbox)
+            .finish()
     }
 }
 
-impl Quad {
-    pub fn with_speed(
-        top_left: DVec3,
-        speed: Option<DVec3>,
-        u: DVec3,
-        v: DVec3,
-        material: usize,
-    ) -> Self {
+#[derive(Clone, Default)]
+pub struct QuadBuilder {
+    top_left: Option<DVec3>,
+    u: Option<DVec3>,
+    v: Option<DVec3>,
+    material: Option<Arc<dyn Material + Send + Sync>>,
+}
+
+impl QuadBuilder {
+    pub fn with_top_left(mut self, value: DVec3) -> Self {
+        self.top_left.replace(value);
+        self
+    }
+
+    pub fn with_u(mut self, value: DVec3) -> Self {
+        self.u.replace(value);
+        self
+    }
+
+    pub fn with_v(mut self, value: DVec3) -> Self {
+        self.v.replace(value);
+        self
+    }
+
+    pub fn with_material(mut self, value: Arc<dyn Material + Send + Sync>) -> Self {
+        self.material.replace(value);
+        self
+    }
+
+    pub fn build(self) -> Quad {
+        let top_left = self.top_left.unwrap_or(DVec3::ZERO);
+        let u = self.u.unwrap_or(DVec3::X);
+        let v = self.v.unwrap_or(DVec3::Y);
+        let material = self.material.unwrap_or(Arc::new(Lambertian::default()));
+
         let bbox_t0 = AABB::from_points(top_left, top_left + u + v);
         let bbox_t1 = AABB::from_points(top_left + u, top_left + v);
 
@@ -70,9 +88,8 @@ impl Quad {
         let d = normal.dot(top_left);
         let w = n/(n.dot(n));
 
-        Self {
+        Quad {
             top_left,
-            speed,
             u,
             v,
             normal,
@@ -82,14 +99,11 @@ impl Quad {
             bbox,
         }
     }
+}
 
-    pub fn new(
-        top_left: DVec3,
-        u: DVec3,
-        v: DVec3,
-        material: usize,
-    ) -> Self {
-        Self::with_speed(top_left, None, u, v, material)
+impl Default for Quad {
+    fn default() -> Self {
+        QuadBuilder::default().build()
     }
 }
 
@@ -124,7 +138,7 @@ impl Hitable for Quad {
         }
 
         let uv = DVec2::new(alpha, beta);
-        let material = self.material;
+        let material = self.material.clone();
 
         Some(HitRecord::new_with_uv(ray, material, point, self.normal, uv, t))
     }

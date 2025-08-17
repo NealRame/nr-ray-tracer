@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use std::f64::consts::PI;
 use std::ops::Neg;
 
@@ -6,53 +7,58 @@ use glam::{
     DVec3,
 };
 
-use serde::{
-    Deserialize,
-    Serialize,
-};
-use serde_with::skip_serializing_none;
-
 use crate::aabb::AABB;
 use crate::hitable::*;
 use crate::interval::Interval;
+use crate::materials::{
+    Lambertian,
+    Material,
+};
 use crate::ray::Ray;
 
-#[derive(Clone, Copy, Deserialize)]
-#[serde(rename = "Sphere")]
-struct SphereConfig {
-    center: DVec3,
-    speed: Option<DVec3>,
-    radius: f64,
-    material: usize,
-}
-
-#[skip_serializing_none]
-#[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
-#[serde(from = "SphereConfig")]
+#[derive(Clone)]
 pub struct Sphere {
     center: DVec3,
     speed: Option<DVec3>,
     radius: f64,
-    material: usize,
-
-    #[serde(skip)]
+    material: Arc<dyn Material + Send + Sync>,
     bbox: AABB,
 }
 
-impl From<SphereConfig> for Sphere {
-    fn from(data: SphereConfig) -> Self {
-        Self::with_speed(data.center, data.speed, data.radius, data.material)
-    }
+#[derive(Default)]
+pub struct SphereBuilder {
+    center: Option<DVec3>,
+    speed: Option<DVec3>,
+    radius: Option<f64>,
+    material: Option<Arc<dyn Material + Send + Sync>>,
 }
 
-impl Sphere {
-    pub fn with_speed(
-        center: DVec3,
-        speed: Option<DVec3>,
-        radius: f64,
-        material: usize,
-    ) -> Self {
+impl SphereBuilder {
+    pub fn with_center(mut self, value: DVec3) -> Self {
+        self.center.replace(value);
+        self
+    }
+
+    pub fn with_speed(mut self, value: DVec3) -> Self {
+        self.speed.replace(value);
+        self
+    }
+
+    pub fn with_radius(mut self, value: f64) -> Self {
+        self.radius.replace(value);
+        self
+    }
+
+    pub fn with_material(mut self, value: Arc<dyn Material + Send + Sync>) -> Self {
+        self.material.replace(value);
+        self
+    }
+
+    pub fn build(self) -> Sphere {
+        let center = self.center.unwrap_or(DVec3::ZERO);
+        let radius = self.radius.unwrap_or(0.);
         let rvec = DVec3::new(radius, radius, radius);
+        let speed = self.speed;
 
         let center_t0 = center;
         let center_t1 = center + speed.unwrap_or(DVec3::ZERO);
@@ -61,7 +67,9 @@ impl Sphere {
         let bbox_t1 = AABB::from_points(center_t1 - rvec, center_t1 + rvec);
         let bbox = bbox_t0.union(&bbox_t1);
 
-        Self {
+        let material = self.material.unwrap_or(Arc::new(Lambertian::default()));
+
+        Sphere {
             center,
             speed,
             radius,
@@ -69,13 +77,11 @@ impl Sphere {
             bbox,
         }
     }
+}
 
-    pub fn new(
-        center: DVec3,
-        radius: f64,
-        material: usize,
-    ) -> Self {
-        Self::with_speed(center, None, radius, material)
+impl Default for Sphere {
+    fn default() -> Self {
+        SphereBuilder::default().build()
     }
 }
 
@@ -129,7 +135,7 @@ impl Hitable for Sphere {
             })
             .map(|t| {
                 let point = ray.at(t);
-                let material = self.material;
+                let material = self.material.clone();
                 let normal = (point - center).normalize();
 
                 let theta = f64::acos(normal.y.neg());
@@ -142,45 +148,5 @@ impl Hitable for Sphere {
 
                 HitRecord::new_with_uv(ray, material, point, normal, uv, t)
             })
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use glam::DVec3;
-
-    use serde_test::{
-        Token,
-        assert_tokens,
-    };
-
-    use super::Sphere;
-
-    #[test]
-    fn test_sphere_serde() {
-        let center = DVec3::new(1.0, 2.0, 3.0);
-        let radius = 4.0;
-        let material = 4;
-
-        let sphere = Sphere::new(center, radius, material);
-        assert_tokens(&sphere, &[
-            Token::Struct { name: "Sphere", len: 3, },
-            Token::Str("center"),
-            Token::TupleStruct { name: "DVec3", len: 3, },
-            Token::F64(1.0),
-            Token::F64(2.0),
-            Token::F64(3.0),
-            Token::TupleStructEnd,
-            Token::Str("radius"),
-            Token::F64(4.0),
-            Token::Str("material"),
-            Token::Enum { name: "Material", },
-            Token::Str("Dielectric"),
-            Token::Map { len: Some(1), },
-            Token::Str("refraction_index"),
-            Token::F64(1.42),
-            Token::MapEnd,
-            Token::StructEnd,
-        ]);
     }
 }
