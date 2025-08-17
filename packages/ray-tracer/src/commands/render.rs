@@ -1,13 +1,9 @@
 use std::borrow::Cow;
-use std::ffi::OsStr;
 use std::fs;
 use std::path::PathBuf;
 use std::time::Duration;
 
-use anyhow::{
-    anyhow,
-    Result,
-};
+use anyhow::Result;
 
 use chrono::Utc;
 
@@ -30,8 +26,6 @@ use crate::constants::*;
 #[derive(clap::Args)]
 #[command(version, about, long_about = None)]
 pub struct Args {
-    pub scene: PathBuf,
-
     #[command(flatten)]
     pub image: ImageArgs,
 
@@ -43,8 +37,8 @@ pub struct Args {
     force_overwrite: bool,
 
     /// Output file path.
-    #[arg(short = 'o', long, value_name = "FILE")]
-    output: Option<PathBuf>,
+    #[arg(short = 'o', long, value_name = "FILE", default_value = "out.png")]
+    output: PathBuf,
 
     /// Show progress.
     #[arg(short, long)]
@@ -53,32 +47,14 @@ pub struct Args {
 
 impl Args {
     pub fn get_file(&self) -> Result<(fs::File, ImageFormat)> {
-        let overwrite = self.force_overwrite;
-        let filepath =
-            self.output
-                .clone()
-                .or_else(|| {
-                    match (
-                        self.scene.parent(),
-                        self.scene.file_stem().and_then(OsStr::to_str),
-                    ) {
-                        (Some(parent), Some(name)) => {
-                            Some(parent.join(format!("{name}.png")))
-                        },
-                        _ => None
-                    }
-                })
-                .unwrap_or("out.bmp".try_into().unwrap());
-
-        let format = ImageFormat::from_path(filepath.as_path())?;
-
+        let format = ImageFormat::from_path(self.output.as_path())?;
         let file =
             fs::File::options()
-                .create_new(!overwrite)
+                .create_new(!self.force_overwrite)
                 .create(true)
                 .truncate(true)
                 .write(true)
-                .open(filepath.as_path())?
+                .open(self.output.as_path())?
             ;
 
         Ok((file, format))
@@ -126,34 +102,7 @@ impl Args {
     }
 }
 
-fn load_scene(
-    cli: &Args,
-) -> Result<Scene> {
-    let content = fs::read_to_string(&cli.scene)?;
-
-    let scene_config_ext =
-        cli.scene.extension()
-            .and_then(|os_str| os_str.to_str())
-            .map(|s| s.to_lowercase());
-
-    let mut scene_config: SceneConfig =
-        match scene_config_ext.as_ref().map(|s| s.as_str()) {
-            Some("json") => serde_json::from_str(&content)?,
-            Some("toml") => toml::from_str(&content)?,
-            _ => {
-                return Err(anyhow!(
-                    "Unsupported scene file format '{}'.",
-                    cli.scene.to_string_lossy())
-                );
-            },
-        };
-
-    cli.camera.try_update(&mut scene_config.camera)?;
-
-    Ok(Scene::from(scene_config))
-}
-
-fn render_scene(
+pub fn render_scene(
     cli: &Args,
     scene: &Scene,
 ) -> Rgb32FImage {
@@ -180,7 +129,7 @@ fn render_scene(
     image
 }
 
-fn dump_image(
+pub fn dump_image(
     cli: &Args,
     file: &mut fs::File,
     mut image: Rgb32FImage,
@@ -208,13 +157,4 @@ fn dump_image(
     }
 
     Ok(())
-}
-
-pub fn run(args: &Args) -> Result<()> {
-    let (mut file, format) = args.get_file()?;
-
-    let scene = load_scene(&args)?;
-    let image = render_scene(&args, &scene);
-
-    dump_image(&args, &mut file, image, format)
 }

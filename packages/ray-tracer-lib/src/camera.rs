@@ -19,123 +19,77 @@ use rayon::iter::{
     ParallelIterator,
 };
 
-use serde::{
-    Deserialize,
-    Serialize,
-};
-use serde_with::skip_serializing_none;
-
 use crate::hitable::Hitable;
 use crate::image::ImageSize;
 use crate::interval::Interval;
 use crate::ray::Ray;
-use crate::scene::Scene;
 use crate::vector::*;
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(default, rename = "Camera")]
-#[skip_serializing_none]
-pub struct CameraConfig {
+pub struct CameraBuilder {
     image_size: ImageSize,
-
     background_color: DVec3,
-
-    look_at: DVec3,
     look_from: DVec3,
+    look_at: DVec3,
     view_up: DVec3,
-
     defocus_angle: f64,
     focus_dist: f64,
     field_of_view: f64,
-
     ray_max_bounces: usize,
     samples_per_pixel: usize,
 }
 
-impl CameraConfig {
-    pub fn with_image_size(
-        &mut self,
-        image_size: ImageSize,
-    ) -> &mut Self {
-        self.image_size = image_size;
+impl CameraBuilder {
+    pub fn with_image_size(&mut self, value: ImageSize) -> &mut Self {
+        self.image_size = value;
         self
     }
 
-    pub fn with_background_color(
-        &mut self,
-        background_color: DVec3,
-    ) -> &mut Self {
-        self.background_color = background_color;
+    pub fn with_background_color(&mut self, value: DVec3) -> &mut Self {
+        self.background_color = value;
         self
     }
 
-    pub fn with_look_at(
-        &mut self,
-        position: DVec3,
-    ) -> &mut Self {
-        self.look_at = position;
+    pub fn with_look_at(&mut self, value: DVec3) -> &mut Self {
+        self.look_at = value;
         self
     }
 
-    pub fn with_look_from(
-        &mut self,
-        position: DVec3,
-    ) -> &mut Self {
-        self.look_from = position;
+    pub fn with_look_from(&mut self, value: DVec3) -> &mut Self {
+        self.look_from = value;
         self
     }
 
-    pub fn with_view_up(
-        &mut self,
-        v: DVec3,
-    ) -> &mut Self {
-        self.view_up = v;
+    pub fn with_view_up(&mut self, value: DVec3) -> &mut Self {
+        self.view_up = value;
         self
     }
 
-    pub fn with_defocus_angle(
-        &mut self,
-        defocus_angle: f64,
-    ) -> &mut Self {
-        self.defocus_angle = defocus_angle;
+    pub fn with_defocus_angle(&mut self, value: f64) -> &mut Self {
+        self.defocus_angle = value;
         self
     }
 
-    pub fn with_focus_dist(
-        &mut self,
-        focus_dist: f64,
-    ) -> &mut Self {
-        self.focus_dist = focus_dist;
+    pub fn with_focus_dist(&mut self, value: f64) -> &mut Self {
+        self.focus_dist = value;
         self
     }
 
-    pub fn with_field_of_view(
-        &mut self,
-        vertical_field_of_view: f64,
-    ) -> &mut Self {
-        self.field_of_view = vertical_field_of_view;
+    pub fn with_field_of_view(&mut self, value: f64) -> &mut Self {
+        self.field_of_view = value;
         self
     }
 
-    pub fn with_ray_max_bounces(
-        &mut self,
-        max_depth: usize,
-    ) -> &mut Self {
-        self.ray_max_bounces = max_depth;
+    pub fn with_ray_max_bounces(&mut self, value: usize) -> &mut Self {
+        self.ray_max_bounces = value;
         self
     }
 
-    pub fn with_samples_per_pixel(
-        &mut self,
-        count: usize,
-    ) -> &mut Self {
-        self.samples_per_pixel = count;
+    pub fn with_samples_per_pixel(&mut self, value: usize) -> &mut Self {
+        self.samples_per_pixel = value;
         self
     }
 
-    pub fn build(
-        &self,
-    ) -> Camera {
+    pub fn build(self) -> Camera {
         let image_size = self.image_size;
 
         let background_color = self.background_color;
@@ -144,7 +98,7 @@ impl CameraConfig {
         let look_from = self.look_from;
         let view_up = self.view_up;
 
-        let ray_max_bounce = self.ray_max_bounces;
+        let ray_max_bounces = self.ray_max_bounces;
         let samples_per_pixel = self.samples_per_pixel.max(1);
 
         let defocus_angle = self.defocus_angle.clamp(0., PI);
@@ -183,15 +137,14 @@ impl CameraConfig {
 
             background_color,
 
-            look_at,
             look_from,
-            view_up,
+            // look_at,
+            // view_up,
+            // defocus_angle,
+            // field_of_view,
+            // focus_dist,
 
-            defocus_angle,
-            field_of_view,
-            focus_dist,
-
-            ray_max_bounces: ray_max_bounce,
+            ray_max_bounces,
             samples_per_pixel,
 
             defocus_disk_u,
@@ -204,7 +157,7 @@ impl CameraConfig {
     }
 }
 
-impl CameraConfig {
+impl CameraBuilder {
     pub const DEFAULT_IMAGE_WIDTH: usize = 1200;
     pub const DEFAULT_IMAGE_HEIGHT: usize = 800;
 
@@ -223,7 +176,7 @@ impl CameraConfig {
     pub const DEFAULT_SAMPLES_PER_PIXEL: usize = 10;
 }
 
-impl Default for CameraConfig {
+impl Default for CameraBuilder {
     fn default() -> Self {
         Self {
             image_size: ImageSize {
@@ -247,21 +200,18 @@ impl Default for CameraConfig {
     }
 }
 
-#[derive(Clone, Debug, Deserialize)]
-#[serde(from = "CameraConfig")]
-#[serde(into = "CameraConfig")]
+#[derive(Clone, Copy)]
 pub struct Camera {
     image_size: ImageSize,
 
     background_color: DVec3,
 
-    look_at: DVec3,
     look_from: DVec3,
-    view_up: DVec3,
-
-    defocus_angle: f64,
-    focus_dist: f64,
-    field_of_view: f64,
+    // look_at: DVec3,
+    // view_up: DVec3,
+    // defocus_angle: f64,
+    // focus_dist: f64,
+    // field_of_view: f64,
 
     ray_max_bounces: usize,
     samples_per_pixel: usize,
@@ -272,29 +222,6 @@ pub struct Camera {
     viewport_pixel_delta_u: DVec3,
     viewport_pixel_delta_v: DVec3,
     viewport_top_left: DVec3,
-}
-
-impl From<CameraConfig> for Camera {
-    fn from(value: CameraConfig) -> Self {
-        value.build()
-    }
-}
-
-impl Into<CameraConfig> for Camera {
-    fn into(self) -> CameraConfig {
-        CameraConfig {
-            image_size: self.image_size,
-            background_color: self.background_color,
-            look_at: self.look_at,
-            look_from: self.look_from,
-            view_up: self.view_up,
-            defocus_angle: self.defocus_angle,
-            focus_dist: self.focus_dist,
-            field_of_view: self.field_of_view,
-            ray_max_bounces: self.ray_max_bounces,
-            samples_per_pixel: self.samples_per_pixel,
-        }
-    }
 }
 
 impl Camera {
@@ -339,7 +266,6 @@ impl Camera {
 
     fn get_ray_color(
         &self,
-        scene: &Scene,
         ray: &Ray,
         ray_bounce: usize,
         hitable: &impl Hitable,
@@ -351,18 +277,14 @@ impl Camera {
 
         match hitable.hit(ray, Interval::new(0.001, INFINITY)).as_ref() {
             Some(hit_record) => {
-                let material = scene.materials.get(hit_record.material).expect("material not found");
+                let material = hit_record.material.clone();
 
-                let emitted = material.emit(
-                    scene,
-                    hit_record
-                );
+                let emitted = material.emit(hit_record);
 
-                material.scatter(scene, ray, hit_record, rng)
+                material.scatter(ray, hit_record, rng)
                     .as_ref()
                     .map(|(scattered_ray, color)| {
                         emitted + color*self.get_ray_color(
-                            scene,
                             scattered_ray,
                             ray_bounce + 1,
                             hitable,
@@ -377,7 +299,6 @@ impl Camera {
 
     pub fn render<T, P>(
         &self,
-        scene: &Scene,
         hitable: &T,
         progress: Option<P>,
     ) -> Rgb32FImage
@@ -402,7 +323,7 @@ impl Camera {
                 let s = (0..sample_per_pixel).map(|_| {
                     let ray = self.get_ray(x, y, &mut rng);
 
-                    self.get_ray_color(scene, &ray, 0, hitable, &mut rng)
+                    self.get_ray_color(&ray, 0, hitable, &mut rng)
                 }).sum::<DVec3>();
 
                 let color = s/(sample_per_pixel as f64);

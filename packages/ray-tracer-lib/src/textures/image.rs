@@ -1,4 +1,10 @@
-use std::path::PathBuf;
+use std::path::Path;
+
+use glam::{
+    DVec2,
+    DVec3,
+    Vec3,
+};
 
 use image::{
     ImageError,
@@ -6,34 +12,30 @@ use image::{
     Rgb32FImage
 };
 
-use serde::{
-    Deserialize,
-    Serialize,
-};
+use super::texture::Texture;
 
-#[derive(Clone, Serialize, Deserialize)]
-#[serde(rename = "Image")]
-pub struct ImageConfig {
-    file: PathBuf,
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(try_from = "ImageConfig" )]
+#[derive(Clone, Debug)]
 pub struct Image {
-    file: PathBuf,
-
-    #[serde(skip)]
-    pub(super) image: Rgb32FImage,
+    image: Rgb32FImage,
 }
 
-impl TryFrom<ImageConfig> for Image {
-    type Error = ImageError;
-    fn try_from(value: ImageConfig) -> Result<Self, Self::Error> {
-        let image = ImageReader::open(&value.file)?.decode()?.into_rgb32f();
+impl Image {
+    pub fn try_from_path<P: AsRef<Path>>(path: P) -> Result<Self, ImageError> {
+        let image = ImageReader::open(path.as_ref())?.decode()?.into_rgb32f();
 
-        return Ok(Self {
-            file: value.file,
-            image,
-        })
+        Ok(Self { image })
+    }
+}
+
+impl Texture for Image {
+    fn get_color(
+        &self,
+        uv_coord: DVec2,
+        _: DVec3,
+    ) -> DVec3 {
+        let x = (uv_coord.x.clamp(0., 1.)*(self.image.width() as f64)) as u32;
+        let y = ((1.0 - uv_coord.y.clamp(0., 1.))*(self.image.height() as f64)) as u32;
+
+        Vec3::from_array(self.image.get_pixel(x, y).0).as_dvec3()
     }
 }
