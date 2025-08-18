@@ -95,21 +95,21 @@ fn generate_cornel_box(objects: &mut Vec::<Arc<dyn Hitable + Send + Sync>>) {
         .with_material(white.clone())
         .build()
     ));
-    objects.push(Arc::new(QuadBuilder::default() // back pane
+    objects.push(Arc::new(QuadBuilder::default()
         .with_top_left(555.0*DVec3::ONE)
         .with_u(555.0*DVec3::NEG_X)
         .with_v(555.0*DVec3::NEG_Z)
         .with_material(white.clone())
         .build()
     ));
-    objects.push(Arc::new(QuadBuilder::default() // back pane
+    objects.push(Arc::new(QuadBuilder::default()
         .with_top_left(555.0*DVec3::Z)
         .with_u(555.0*DVec3::X)
         .with_v(555.0*DVec3::Y)
         .with_material(white.clone())
         .build()
     ));
-    objects.push(Arc::new(QuadBuilder::default() // back pane
+    objects.push(Arc::new(QuadBuilder::default()
         .with_top_left(DVec3::new(343.0, 554.0, 332.0))
         .with_u(130.0*DVec3::NEG_X)
         .with_v(105.0*DVec3::NEG_Z)
