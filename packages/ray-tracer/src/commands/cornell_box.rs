@@ -12,8 +12,9 @@ use super::render;
 fn generate_box(
     a: DVec3, b: DVec3,
     material: Arc<dyn Material + Send + Sync>,
-    objects: &mut Vec::<Arc<dyn Hitable + Send + Sync>>,
-) {
+) -> BVH {
+    let mut objects = Vec::<Arc<dyn Hitable + Send + Sync>>::new();
+
     let [min_x, min_y, min_z] = a.min(b).to_array();
     let [max_x, max_y, max_z] = a.max(b).to_array();
 
@@ -63,6 +64,8 @@ fn generate_box(
         .with_v(dz)
         .build()
     ));
+
+    BVH::from(objects.as_mut_slice())
 }
 
 fn generate_cornel_box(objects: &mut Vec::<Arc<dyn Hitable + Send + Sync>>) {
@@ -120,18 +123,36 @@ fn generate_objects() -> Result<BVH> {
 
     generate_cornel_box(&mut objects);
 
-    let white = Arc::new(Lambertian::with_color(DVec3::new(0.73, 0.73, 0.73)));
+    objects.push(
+        Arc::new(Translate::new(
+            Arc::new(RotateY::new(
+                Arc::new(generate_box(
+                    DVec3::ZERO,
+                    DVec3::new(165.0, 165.0, 165.0),
+                    Arc::new(Lambertian::with_color(DVec3::new(0.93,1.00,0.60))),
+                )),
+                -18.0*PI/180.0,
+            )),
+            DVec3::new(130.0, 0.0, 65.0),
+        ))
+    );
 
-    generate_box(
-        DVec3::new(130.0, 0.0, 65.0), DVec3::new(295.0, 165.0, 230.0),
-        white.clone(),
-        &mut objects
-    );
-    generate_box(
-        DVec3::new(265.0, 0.0, 295.0), DVec3::new(430.0, 330.0, 460.0),
-        white.clone(),
-        &mut objects
-    );
+    objects.push(Arc::new(Translate::new(
+        Arc::new(RotateY::new(
+            Arc::new(generate_box(
+                DVec3::ZERO,
+                DVec3::new(165.0, 330.0, 165.0),
+                Arc::new(
+                    MetalBuilder::default()
+                        .with_color(DVec3::new(0.00, 0.82, 1.00))
+                        .with_fuzz(0.025)
+                        .build()
+                ),
+            )),
+            15.0*PI/180.0
+        )),
+        DVec3::new(265.0, 0.0, 295.0),
+    )));
 
     Ok(BVH::from(objects.as_mut_slice()))
 }
@@ -141,7 +162,7 @@ pub fn run(args: &render::Args) -> Result<()> {
 
     let mut camera_builder = CameraBuilder::default();
 
-    // camera_builder.with_background_color(0.001*DVec3::ONE);
+    camera_builder.with_background_color(0.01*DVec3::ONE);
     camera_builder.with_look_from(DVec3::new(278.0, 278.0, -800.0));
     camera_builder.with_look_at(DVec3::new(278.0, 278.0, 0.0));
     camera_builder.with_image_size(ImageSize::from_width_and_aspect_ratio(600, 1.0));

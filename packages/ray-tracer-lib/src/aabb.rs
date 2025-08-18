@@ -131,3 +131,25 @@ impl AABB {
         true
     }
 }
+
+impl AABB {
+    pub fn translate(
+        &mut self,
+        offset: DVec3,
+    ) -> &mut Self {
+        self.x += offset.x;
+        self.y += offset.y;
+        self.z += offset.z;
+        self
+    }
+
+    pub fn translated(
+        &mut self,
+        offset: DVec3,
+    ) -> Self {
+        let mut t = *self;
+
+        t.translate(offset);
+        t
+    }
+}
