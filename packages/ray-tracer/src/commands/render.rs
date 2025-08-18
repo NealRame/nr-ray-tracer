@@ -1,6 +1,5 @@
 use std::borrow::Cow;
 use std::fs;
-use std::path::PathBuf;
 use std::time::Duration;
 
 use anyhow::Result;
@@ -32,14 +31,6 @@ pub struct Args {
     #[command(flatten)]
     pub camera: CameraArgs,
 
-    /// Force output overwrite.
-    #[arg(short = 'f', long)]
-    force_overwrite: bool,
-
-    /// Output file path.
-    #[arg(short = 'o', long, value_name = "FILE", default_value = "out.png")]
-    output: PathBuf,
-
     /// Show progress.
     #[arg(short, long)]
     pub verbose: bool
@@ -47,14 +38,16 @@ pub struct Args {
 
 impl Args {
     pub fn get_file(&self) -> Result<(fs::File, ImageFormat)> {
-        let format = ImageFormat::from_path(self.output.as_path())?;
+        let output = self.image.output.as_path();
+
+        let format = ImageFormat::from_path(output)?;
         let file =
             fs::File::options()
-                .create_new(!self.force_overwrite)
+                .create_new(!self.image.force_overwrite)
                 .create(true)
                 .truncate(true)
                 .write(true)
-                .open(self.output.as_path())?
+                .open(output)?
             ;
 
         Ok((file, format))

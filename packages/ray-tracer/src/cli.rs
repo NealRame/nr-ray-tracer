@@ -1,4 +1,5 @@
 use std::f64::consts::PI;
+use std::path::PathBuf;
 
 use color_print::{
     cformat,
@@ -92,6 +93,22 @@ fn parse_aspect_ratio(mut s: &str) -> Result<f64, CliError> {
 #[derive(clap::Args, Debug)]
 #[group(id = "Image")]
 pub struct ImageArgs {
+    /// Force output overwrite.
+    #[arg(
+        long,
+        short = 'f',
+    )]
+    pub force_overwrite: bool,
+
+    /// Output file path.
+    #[arg(
+        long,
+        short = 'o',
+        value_name = "FILE",
+        default_value = "out.png",
+    )]
+    pub output: PathBuf,
+
     /// Specify the gamma value.
     #[arg(
         long,
