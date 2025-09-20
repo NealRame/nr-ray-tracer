@@ -19,6 +19,7 @@ pub trait Material: Debug {
 
     fn emit(
         &self,
+        _ray: &Ray,
         _hit: &HitRecord,
     ) -> DVec3 {
         DVec3::ZERO

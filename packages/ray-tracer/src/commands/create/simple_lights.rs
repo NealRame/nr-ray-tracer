@@ -43,16 +43,22 @@ fn generate_objects(
         v: 2.0*DVec3::Y,
         material: materials.len(),
     });
-    materials.push_back(MaterialConfig::DiffuseLight { texture: textures.len() });
-    textures.push_back(TextureConfig::SolidColor { color: DVec3::new(4.0, 2.0, 1.0) });
+    materials.push_back(MaterialConfig::DiffuseLight {
+        intensity: 4.0,
+        texture: textures.len(),
+    });
+    textures.push_back(TextureConfig::SolidColor { color: DVec3::new(1.00, 0.50, 0.25) });
 
     objects.push_back(ObjectConfig::Sphere {
         center: 7.0*DVec3::Y,
         radius: 1.0,
         material: materials.len(),
     });
-    materials.push_back(MaterialConfig::DiffuseLight { texture: textures.len() });
-    textures.push_back(TextureConfig::SolidColor { color: DVec3::new(1.0, 2.0, 4.0) });
+    materials.push_back(MaterialConfig::DiffuseLight {
+        intensity: 4.0,
+        texture: textures.len(),
+    });
+    textures.push_back(TextureConfig::SolidColor { color: DVec3::new(0.25, 0.50, 1.00) });
 }
 
 pub fn run(args: &CreateArgs) -> Result<()> {

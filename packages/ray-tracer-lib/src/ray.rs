@@ -4,6 +4,7 @@ use glam::DVec3;
 pub struct Ray {
     origin: DVec3,
     direction: DVec3,
+    bounce: usize,
     time: f64,
 }
 
@@ -12,6 +13,7 @@ impl Ray {
         Self {
             origin,
             direction,
+            bounce: 0,
             time,
         }
     }
@@ -24,6 +26,15 @@ impl Ray {
 impl Ray {
     pub fn at(&self, t: f64) -> DVec3 {
         self.origin + t*self.direction
+    }
+
+    pub fn bounce(&mut self) -> &mut Self {
+        self.bounce += 1;
+        self
+    }
+
+    pub fn get_bounce(&self) -> usize {
+        self.bounce
     }
 
     pub fn get_direction(&self) -> DVec3 {

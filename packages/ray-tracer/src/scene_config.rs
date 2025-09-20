@@ -123,6 +123,7 @@ pub enum MaterialConfig {
         refraction_index: f64,
     },
     DiffuseLight {
+        intensity: f64,
         texture: usize,
     },
     Lambertian {
@@ -143,12 +144,17 @@ impl MaterialConfig {
             Self::Dielectric { refraction_index } => {
                 Ok(Arc::new(Dielectric::new(*refraction_index)))
             },
-            Self::DiffuseLight { texture } => {
-                Ok(Arc::new(DiffuseLight::with_texture(textures
+            Self::DiffuseLight { intensity, texture } => {
+                let mut diffuse_light_builder = DiffuseLightBuilder::default();
+
+                diffuse_light_builder.with_intensity(*intensity);
+                diffuse_light_builder.with_texture(textures
                     .get(*texture)
                     .ok_or(anyhow!("invalid texture index"))?
                     .clone()
-                )))
+                );
+
+                Ok(Arc::new(diffuse_light_builder.build()))
             },
             Self::Lambertian { texture } => {
                 Ok(Arc::new(Lambertian::with_texture(textures
