@@ -14,7 +14,7 @@ use crate::vector::*;
 
 use super::material::Material;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Metal {
     fuzz: f64,
     texture: Arc<dyn Texture + Send + Sync>,
@@ -27,21 +27,31 @@ pub struct MetalBuilder {
 }
 
 impl MetalBuilder {
-    pub fn with_fuzz(mut self, fuzz: f64) -> Self {
-        self.fuzz.replace(fuzz);
+    pub fn with_fuzz(
+        &mut self,
+        value: Option<f64>,
+    ) -> &mut Self {
+        self.fuzz = value;
         self
     }
 
-    pub fn with_color(mut self, color: DVec3) -> Self {
-        self.texture.replace(Arc::new(SolidColor::new(color)));
+    pub fn with_color(
+        &mut self,
+        color: Option<DVec3>,
+    ) -> &mut Self {
+        self.texture = if let Some(color) = color {
+             Some(Arc::new(SolidColor::new(color)))
+        } else {
+            None
+        };
         self
     }
 
     pub fn with_texture(
-        mut self,
-        texture: Arc<dyn Texture + Send + Sync>,
-    ) -> Self {
-        self.texture.replace(texture);
+        &mut self,
+        texture: Option<Arc<dyn Texture + Send + Sync>>,
+    ) -> &mut Self {
+        self.texture = texture;
         self
     }
 

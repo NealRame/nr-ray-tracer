@@ -10,7 +10,7 @@ use crate::hitable::*;
 use crate::interval::Interval;
 use crate::ray::Ray;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct RotateY {
     object: Arc<dyn Hitable + Send + Sync>,
     rotation_mat: DMat3,

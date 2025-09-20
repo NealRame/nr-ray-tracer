@@ -1,0 +1,86 @@
+[camera]
+background_color = [
+    0.7,
+    0.8,
+    1.0,
+]
+look_at = [
+    0.0,
+    10.0,
+    0.0,
+]
+look_from = [
+    60.0,
+    20.0,
+    3.0,
+]
+field_of_view = 20.0
+samples_per_pixel = 10
+ray_max_bounces = 10
+
+[[textures]]
+
+[textures.SolidColor]
+color = [
+    0.5,
+    0.5,
+    0.5,
+]
+
+[[textures]]
+
+[textures.Image]
+path = "scenes/textures/earth.jpg"
+
+[[textures]]
+
+[textures.Image]
+path = "scenes/textures/moon.jpg"
+
+[[materials]]
+
+[materials.Lambertian]
+texture = 0
+
+[[materials]]
+
+[materials.Lambertian]
+texture = 1
+
+[[materials]]
+
+[materials.Lambertian]
+texture = 2
+
+[[objects]]
+
+[objects.Sphere]
+center = [
+    0.0,
+    -1000.0,
+    0.0,
+]
+radius = 1000.0
+material = 0
+
+[[objects]]
+
+[objects.Sphere]
+center = [
+    0.0,
+    10.0,
+    0.0,
+]
+radius = 10.0
+material = 1
+
+[[objects]]
+
+[objects.Sphere]
+center = [
+    -12.0,
+    12.0,
+    -20.0,
+]
+radius = 3.0
+material = 2

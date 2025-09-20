@@ -7,7 +7,7 @@ use crate::hitable::*;
 use crate::interval::Interval;
 use crate::ray::Ray;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Translate {
     object: Arc<dyn Hitable + Send + Sync>,
     offset: DVec3,

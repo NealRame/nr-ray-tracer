@@ -1,10 +1,16 @@
-use std::borrow::Cow;
 use std::fs;
-use std::time::Duration;
+use std::ffi::OsStr;
+use std::path::PathBuf;
+use std::sync::Arc;
 
-use anyhow::Result;
+use anyhow::{
+    anyhow,
+    Result,
+};
 
 use chrono::Utc;
+
+use clap::Args;
 
 use image::{
     DynamicImage,
@@ -13,7 +19,6 @@ use image::{
 };
 
 use indicatif::{
-    ProgressBar,
     ProgressStyle,
 };
 
@@ -21,85 +26,34 @@ use nr_ray_tracer_lib::prelude::*;
 
 use crate::cli::*;
 use crate::constants::*;
+use crate::scene_config::*;
 
-#[derive(clap::Args)]
-#[command(version, about, long_about = None)]
-pub struct Args {
-    #[command(flatten)]
-    pub image: ImageArgs,
+#[derive(Args)]
+pub struct RenderArgs {
+    pub scene: PathBuf,
 
     #[command(flatten)]
-    pub camera: CameraArgs,
+    image: ImageConfig,
+
+    #[command(flatten)]
+    camera: CameraConfig,
 
     /// Show progress.
     #[arg(short, long)]
-    pub verbose: bool
+    verbose: bool
 }
 
-impl Args {
-    pub fn get_file(&self) -> Result<(fs::File, ImageFormat)> {
-        let output = self.image.output.as_path();
-
-        let format = ImageFormat::from_path(output)?;
-        let file =
-            fs::File::options()
-                .create_new(!self.image.force_overwrite)
-                .create(true)
-                .truncate(true)
-                .write(true)
-                .open(output)?
-            ;
-
-        Ok((file, format))
-    }
-
-    pub fn get_progress(
-        &self,
-        prefix: impl Into<Cow<'static, str>>,
-    ) -> Option<ProgressBar> {
-        if self.verbose {
-            ProgressStyle::with_template(PROGRESS_TEMPLATE)
-                .map(|style| style.progress_chars("#>-"))
-                .map(|style| {
-                    let bar =
-                        ProgressBar::no_length()
-                            .with_style(style)
-                            .with_prefix(prefix);
-                    bar
-                })
-                .ok()
-        } else {
-            None
-        }
-    }
-
-    pub fn get_spinner(
-        &self,
-        prefix: impl Into<Cow<'static, str>>,
-    ) -> Option<ProgressBar> {
-        if self.verbose {
-            ProgressStyle::with_template(SPINNER_TEMPLATE)
-                .map(|style| {
-                    let bar =
-                        ProgressBar::new_spinner()
-                            .with_style(style)
-                            .with_prefix(prefix);
-
-                    bar.enable_steady_tick(Duration::from_millis(100));
-                    bar
-                })
-                .ok()
-        } else {
-            None
-        }
+impl Verbosity for RenderArgs {
+    fn is_verbose(&self) -> bool {
+        self.verbose
     }
 }
 
-pub fn render_scene(
-    cli: &Args,
+fn render_scene(
+    cli: &RenderArgs,
     scene: &Scene,
 ) -> Rgb32FImage {
-    let bar = cli.get_progress("Rendering").map(|bar| {
+    let bar = get_progress(cli, "Rendering").map(|bar| {
         bar.set_position(0);
         bar.set_length(scene.camera.get_image_size().get_pixel_count() as u64);
         bar
@@ -122,14 +76,14 @@ pub fn render_scene(
     image
 }
 
-pub fn dump_image(
-    cli: &Args,
+fn dump_image(
+    cli: &RenderArgs,
     file: &mut fs::File,
     mut image: Rgb32FImage,
     image_format: ImageFormat,
 ) -> Result<()> {
     let start = Utc::now();
-    let progress = cli.get_spinner("Exporting");
+    let progress = get_spinner(cli, "Exporting");
 
     gamma_correction(&mut image, cli.image.gamma_value);
 
@@ -150,4 +104,67 @@ pub fn dump_image(
     }
 
     Ok(())
+}
+
+impl SceneConfig {
+    pub fn try_make_scene(
+        self,
+        args: &RenderArgs,
+    ) -> Result<Scene> {
+        let mut textures = Vec::<Arc::<dyn Texture + Send + Sync>>::new();
+        for texture_config in self.textures {
+            textures.push(
+                texture_config.try_make_texture(textures.as_slice())?
+            );
+        }
+
+        let mut materials = Vec::<Arc::<dyn Material + Send + Sync>>::new();
+        for material_config in self.materials {
+            materials.push(
+                material_config.try_make_material(textures.as_slice())?
+            );
+        }
+
+        let mut object_configs = self.objects;
+        let mut objects = Vec::<Arc::<dyn Hitable + Send + Sync>>::new();
+        while let Some(object) = ObjectConfig::try_make_object(
+            &mut object_configs,
+            &materials,
+        )? {
+            objects.push(object);
+        }
+
+        let mut camera_builder = CameraBuilder::default();
+
+        self.camera.try_update(&mut camera_builder)?;
+        args.camera.try_update(&mut camera_builder)?;
+
+        Ok(Scene {
+            camera: camera_builder.build(),
+            objects: BVH::from(objects.as_mut_slice()),
+        })
+    }
+
+    pub fn try_load_scene(args: &RenderArgs) -> Result<Scene> {
+        let s = fs::read_to_string(&args.scene)?;
+
+        let config = match args.scene.extension().and_then(OsStr::to_str) {
+            Some("json") => serde_json::from_str::<SceneConfig>(&s)?,
+            Some("toml") => toml::from_str::<SceneConfig>(&s)?,
+            _ => {
+                return Err(anyhow!("invalid scene file format!"));
+            }
+        };
+
+        config.try_make_scene(args)
+    }
+}
+
+pub fn run(args: &RenderArgs) -> Result<()> {
+    let (mut file, format) = args.image.get_file()?;
+
+    let scene = SceneConfig::try_load_scene(&args)?;
+    let image = render_scene(args, &scene);
+
+    dump_image(args, &mut file, image, format)
 }

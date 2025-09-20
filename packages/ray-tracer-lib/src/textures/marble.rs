@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use glam::{
     DVec2,
     DVec3,
@@ -25,12 +27,20 @@ pub struct MarbleBuilder {
 }
 
 impl MarbleBuilder {
-    pub fn with_seed(self, value: u32) -> Self {
-        Self { seed: Some(value), ..self }
+    pub fn with_seed(
+        &mut self,
+        value: Option<u32>,
+    ) -> &mut Self {
+        self.seed = value;
+        self
     }
 
-    pub fn with_frequency(self, value: f64) -> Self {
-        Self { frequency: Some(value), ..self }
+    pub fn with_frequency(
+        &mut self,
+        value: Option<f64>,
+    ) -> &mut Self {
+        self.frequency = value;
+        self
     }
 
     pub fn build(self) -> Marble {
@@ -51,15 +61,25 @@ impl MarbleBuilder {
     }
 }
 
-impl PartialEq for Marble {
-    fn eq(&self, other: &Self) -> bool {
-        self.seed == other.seed && self.frequency == other.frequency
+impl Debug for Marble {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f
+            .debug_struct("Marble")
+            .field("seed", &self.seed)
+            .field("frequency", &self.frequency)
+            .finish()
     }
 }
 
 impl Default for Marble {
     fn default() -> Self {
         MarbleBuilder::default().build()
+    }
+}
+
+impl PartialEq for Marble {
+    fn eq(&self, other: &Self) -> bool {
+        self.seed == other.seed && self.frequency == other.frequency
     }
 }
 

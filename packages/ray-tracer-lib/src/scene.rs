@@ -3,7 +3,7 @@ use image::Rgb32FImage;
 use crate::camera::*;
 use crate::objects::*;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Scene {
     pub camera: Camera,
     pub objects: BVH,

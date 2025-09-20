@@ -1,3 +1,4 @@
+use std::fmt::Debug;
 use std::sync::Arc;
 
 use glam::{
@@ -18,6 +19,19 @@ pub struct HitRecord {
     pub point: DVec3,
     pub t: f64,
     pub texture_coordinates: DVec2,
+}
+
+impl Debug for HitRecord {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f
+            .debug_struct("HitRecord")
+            .field("front_face", &self.front_face)
+            .field("normal", &self.normal)
+            .field("point", &self.point)
+            .field("t", &self.t)
+            .field("texture_coordinates", &self.texture_coordinates)
+            .finish()
+    }
 }
 
 impl HitRecord {
@@ -62,7 +76,7 @@ impl HitRecord {
     }
 }
 
-pub trait Hitable {
+pub trait Hitable: Debug {
     fn bbox(&self) -> AABB;
     fn hit(&self, ray: &Ray, hit_range: Interval) -> Option<HitRecord>;
 }

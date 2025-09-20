@@ -1,5 +1,10 @@
+use std::borrow::Cow;
 use std::f64::consts::PI;
+use std::fs::File;
 use std::path::PathBuf;
+use std::time::Duration;
+
+use anyhow::Result;
 
 use color_print::{
     cformat,
@@ -8,11 +13,24 @@ use color_print::{
 
 use glam::DVec3;
 
+use image::ImageFormat;
+
+use indicatif::{
+    ProgressBar,
+    ProgressStyle,
+};
+
 use nr_ray_tracer_lib::prelude::*;
 
 use once_cell::sync::Lazy;
 
 use regex::Regex;
+
+use serde::{
+    Deserialize,
+    Serialize,
+};
+use serde_with::skip_serializing_none;
 
 use thiserror::Error;
 
@@ -92,7 +110,7 @@ fn parse_aspect_ratio(mut s: &str) -> Result<f64, CliError> {
 
 #[derive(clap::Args, Debug)]
 #[group(id = "Image")]
-pub struct ImageArgs {
+pub struct ImageConfig {
     /// Force output overwrite.
     #[arg(
         long,
@@ -118,13 +136,32 @@ pub struct ImageArgs {
     pub gamma_value: f32,
 }
 
-#[derive(clap::Args, Clone, Copy, Debug)]
+impl ImageConfig {
+    pub fn get_file(&self) -> Result<(File, ImageFormat)> {
+        let output = self.output.as_path();
+
+        let format = ImageFormat::from_path(output)?;
+        let file =
+            File::options()
+                .create_new(!self.force_overwrite)
+                .create(true)
+                .truncate(true)
+                .write(true)
+                .open(output)?
+            ;
+
+        Ok((file, format))
+    }
+}
+
+#[derive(clap::Args, Clone, Copy, Debug, Default, Deserialize, Serialize)]
 #[group(id = "camera")]
-pub struct CameraArgs {
+#[skip_serializing_none]
+pub struct CameraConfig {
     /// The image width.
     #[arg(
         env = "NR_RT_CAMERA_WIDTH",
-        short = 'w',
+        short = 'W',
         long,
         value_name = "WIDTH",
     )]
@@ -133,7 +170,7 @@ pub struct CameraArgs {
     /// The image height.
     #[arg(
         env = "NR_RT_CAMERA_HEIGHT",
-        short = 'h',
+        short = 'H',
         long,
         value_name = "HEIGHT",
     )]
@@ -147,6 +184,15 @@ pub struct CameraArgs {
         value_parser = parse_aspect_ratio,
     )]
     pub aspect_ratio: Option<f64>,
+
+    /// Background color
+    #[arg(
+        env = "NR_RT_CAMERA_BACKGROUND_COLOR",
+        long,
+        value_name = "COLOR",
+        value_parser = parse_vector,
+    )]
+    pub background_color: Option<DVec3>,
 
     /// Specify the position where the camera is looking at.
     #[arg(
@@ -223,7 +269,7 @@ pub struct CameraArgs {
     pub ray_max_bounces: Option<usize>,
 }
 
-impl CameraArgs {
+impl CameraConfig {
     pub fn get_size(&self) -> Result<Option<ImageSize>, CliError> {
         match (self.width, self.height, self.aspect_ratio) {
             (None, None, None) => {
@@ -266,13 +312,50 @@ impl CameraArgs {
     }
 }
 
-impl CameraArgs {
+impl CameraConfig {
+    pub fn merge_with(&mut self, other: &Self) {
+        if let Some(width) = other.width {
+            self.width.replace(width);
+        }
+        if let Some(height) = other.height {
+            self.height.replace(height);
+        }
+        if let Some(field_of_view) = other.field_of_view {
+            self.field_of_view.replace(field_of_view);
+        }
+        if let Some(focus_distance) = other.focus_distance {
+            self.focus_distance.replace(focus_distance);
+        }
+        if let Some(defocus_angle) = other.defocus_angle {
+            self.defocus_angle.replace(defocus_angle);
+        }
+        if let Some(samples_per_pixel) = other.samples_per_pixel {
+            self.samples_per_pixel.replace(samples_per_pixel);
+        }
+        if let Some(ray_max_bounces) = other.ray_max_bounces {
+            self.ray_max_bounces.replace(ray_max_bounces);
+        }
+        if let Some(view_up) = other.view_up {
+            self.view_up.replace(view_up);
+        }
+        if let Some(look_at) = other.look_at {
+            self.look_at.replace(look_at);
+        }
+        if let Some(look_from) = other.look_from {
+            self.look_from.replace(look_from);
+        }
+    }
+
     pub fn try_update(
         &self,
         config: &mut CameraBuilder,
     ) -> Result<(), CliError> {
         if let Some(image_size) = self.get_size()? {
             config.with_image_size(image_size);
+        }
+
+        if let Some(background_color) = self.background_color {
+            config.with_background_color(background_color);
         }
 
         if let Some(field_of_view) = self.field_of_view {
@@ -284,7 +367,7 @@ impl CameraArgs {
         }
 
         if let Some(defocus_angle) = self.defocus_angle {
-            config.with_defocus_angle(defocus_angle);
+            config.with_defocus_angle((defocus_angle*PI)/180.0);
         }
 
         if let Some(samples_per_pixel) = self.samples_per_pixel {
@@ -308,5 +391,51 @@ impl CameraArgs {
         }
 
         Ok(())
+    }
+}
+
+pub trait Verbosity {
+    fn is_verbose(&self) -> bool;
+}
+
+
+pub fn get_progress(
+    cli: &impl Verbosity,
+    prefix: impl Into<Cow<'static, str>>,
+) -> Option<ProgressBar> {
+    if cli.is_verbose() {
+        ProgressStyle::with_template(PROGRESS_TEMPLATE)
+            .map(|style| style.progress_chars("#>-"))
+            .map(|style| {
+                let bar =
+                    ProgressBar::no_length()
+                        .with_style(style)
+                        .with_prefix(prefix);
+                bar
+            })
+            .ok()
+    } else {
+        None
+    }
+}
+
+pub fn get_spinner(
+    cli: &impl Verbosity,
+    prefix: impl Into<Cow<'static, str>>,
+) -> Option<ProgressBar> {
+    if cli.is_verbose() {
+        ProgressStyle::with_template(SPINNER_TEMPLATE)
+            .map(|style| {
+                let bar =
+                    ProgressBar::new_spinner()
+                        .with_style(style)
+                        .with_prefix(prefix);
+
+                bar.enable_steady_tick(Duration::from_millis(100));
+                bar
+            })
+            .ok()
+    } else {
+        None
     }
 }

@@ -5,7 +5,7 @@ use crate::hitable::*;
 use crate::interval::Interval;
 use crate::ray::Ray;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum BVH {
     Leaf(Option<Arc<dyn Hitable + Send + Sync>>),
     Node {

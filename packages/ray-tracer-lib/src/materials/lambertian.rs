@@ -12,6 +12,7 @@ use crate::vector::*;
 
 use super::material::Material;
 
+#[derive(Clone, Debug)]
 pub struct Lambertian {
     texture: Arc<dyn Texture + Send + Sync>,
 }

@@ -25,6 +25,8 @@ use crate::interval::Interval;
 use crate::ray::Ray;
 use crate::vector::*;
 
+
+#[derive(Clone, Copy, Debug)]
 pub struct CameraBuilder {
     image_size: ImageSize,
     background_color: DVec3,
@@ -200,7 +202,7 @@ impl Default for CameraBuilder {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Camera {
     image_size: ImageSize,
 
@@ -278,7 +280,6 @@ impl Camera {
         match hitable.hit(ray, Interval::new(0.001, INFINITY)).as_ref() {
             Some(hit_record) => {
                 let material = hit_record.material.clone();
-
                 let emitted = material.emit(hit_record);
 
                 material.scatter(ray, hit_record, rng)

@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use glam::DVec3;
 
 use rand::RngCore;
@@ -5,7 +7,7 @@ use rand::RngCore;
 use crate::hitable::HitRecord;
 use crate::ray::Ray;
 
-pub trait Material {
+pub trait Material: Debug {
     fn scatter(
         &self,
         _ray: &Ray,

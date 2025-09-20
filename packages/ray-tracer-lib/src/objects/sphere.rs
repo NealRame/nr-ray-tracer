@@ -16,7 +16,7 @@ use crate::materials::{
 };
 use crate::ray::Ray;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Sphere {
     center: DVec3,
     speed: Option<DVec3>,
@@ -34,22 +34,34 @@ pub struct SphereBuilder {
 }
 
 impl SphereBuilder {
-    pub fn with_center(mut self, value: DVec3) -> Self {
+    pub fn with_center(
+        &mut self,
+        value: DVec3,
+    ) -> &mut Self {
         self.center.replace(value);
         self
     }
 
-    pub fn with_speed(mut self, value: DVec3) -> Self {
+    pub fn with_speed(
+        &mut self,
+        value: DVec3,
+    ) -> &mut Self {
         self.speed.replace(value);
         self
     }
 
-    pub fn with_radius(mut self, value: f64) -> Self {
+    pub fn with_radius(
+        &mut self,
+        value: f64,
+    ) -> &mut Self {
         self.radius.replace(value);
         self
     }
 
-    pub fn with_material(mut self, value: Arc<dyn Material + Send + Sync>) -> Self {
+    pub fn with_material(
+        &mut self,
+        value: Arc<dyn Material + Send + Sync>,
+    ) -> &mut Self {
         self.material.replace(value);
         self
     }

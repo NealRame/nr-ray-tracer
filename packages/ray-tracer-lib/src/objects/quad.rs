@@ -1,4 +1,3 @@
-use std::fmt::Debug;
 use std::sync::Arc;
 
 use glam::{
@@ -15,7 +14,7 @@ use crate::materials::{
 };
 use crate::ray::Ray;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Quad {
     top_left: DVec3,
     u: DVec3,
@@ -27,20 +26,6 @@ pub struct Quad {
     bbox: AABB,
 }
 
-impl Debug for Quad {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Quad")
-            .field("top_left", &format!("{:?}", self.top_left))
-            .field("u", &self.u)
-            .field("v", &self.v)
-            .field("normal", &self.normal)
-            .field("d", &self.d)
-            .field("w", &self.w)
-            .field("bbox", &self.bbox)
-            .finish()
-    }
-}
-
 #[derive(Clone, Default)]
 pub struct QuadBuilder {
     top_left: Option<DVec3>,
@@ -50,22 +35,34 @@ pub struct QuadBuilder {
 }
 
 impl QuadBuilder {
-    pub fn with_top_left(mut self, value: DVec3) -> Self {
+    pub fn with_top_left(
+        &mut self,
+        value: DVec3,
+    ) -> &mut Self {
         self.top_left.replace(value);
         self
     }
 
-    pub fn with_u(mut self, value: DVec3) -> Self {
+    pub fn with_u(
+        &mut self,
+        value: DVec3,
+    ) -> &mut Self {
         self.u.replace(value);
         self
     }
 
-    pub fn with_v(mut self, value: DVec3) -> Self {
+    pub fn with_v(
+        &mut self,
+        value: DVec3,
+    ) -> &mut Self {
         self.v.replace(value);
         self
     }
 
-    pub fn with_material(mut self, value: Arc<dyn Material + Send + Sync>) -> Self {
+    pub fn with_material(
+        &mut self,
+        value: Arc<dyn Material + Send + Sync>,
+    ) -> &mut Self {
         self.material.replace(value);
         self
     }

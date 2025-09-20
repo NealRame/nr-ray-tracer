@@ -18,8 +18,15 @@ fn reflectance(cosine: f64, refraction_index: f64) -> f64 {
     r0 + (1.0 - r0)*(1.0 - cosine).powi(5)
 }
 
+#[derive(Clone, Copy, Debug)]
 pub struct Dielectric {
     refraction_index: f64,
+}
+
+impl Dielectric {
+    pub fn new(refraction_index: f64) -> Self {
+        Self { refraction_index }
+    }
 }
 
 impl Default for Dielectric {

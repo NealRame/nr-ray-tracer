@@ -12,7 +12,7 @@ use crate::{prelude::SolidColor, vector::FromRng};
 
 use super::texture::Texture;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Checker {
     even_texture: Arc<dyn Texture + Send + Sync>,
     odd_texture: Arc<dyn Texture + Send + Sync>,

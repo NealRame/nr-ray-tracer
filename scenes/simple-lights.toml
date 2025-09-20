@@ -1,0 +1,124 @@
+[camera]
+background_color = [
+    0.001,
+    0.001,
+    0.001,
+]
+look_at = [
+    0.0,
+    2.0,
+    0.0,
+]
+look_from = [
+    26.0,
+    3.0,
+    6.0,
+]
+field_of_view = 20.0
+samples_per_pixel = 10
+ray_max_bounces = 10
+
+[[textures]]
+
+[textures.SolidColor]
+color = [
+    0.4,
+    0.4,
+    0.4,
+]
+
+[[textures]]
+
+[textures.Marble]
+frequency = 0.2
+
+[[textures]]
+
+[textures.SolidColor]
+color = [
+    4.0,
+    2.0,
+    1.0,
+]
+
+[[textures]]
+
+[textures.SolidColor]
+color = [
+    1.0,
+    2.0,
+    4.0,
+]
+
+[[materials]]
+
+[materials.Lambertian]
+texture = 0
+
+[[materials]]
+
+[materials.Lambertian]
+texture = 1
+
+[[materials]]
+
+[materials.DiffuseLight]
+texture = 2
+
+[[materials]]
+
+[materials.DiffuseLight]
+texture = 3
+
+[[objects]]
+
+[objects.Sphere]
+center = [
+    0.0,
+    -1000000.0,
+    0.0,
+]
+radius = 1000000.0
+material = 0
+
+[[objects]]
+
+[objects.Sphere]
+center = [
+    0.0,
+    2.0,
+    0.0,
+]
+radius = 2.0
+material = 1
+
+[[objects]]
+
+[objects.Quad]
+top_left = [
+    3.0,
+    1.0,
+    -2.0,
+]
+u = [
+    2.0,
+    0.0,
+    0.0,
+]
+v = [
+    0.0,
+    2.0,
+    0.0,
+]
+material = 2
+
+[[objects]]
+
+[objects.Sphere]
+center = [
+    0.0,
+    7.0,
+    0.0,
+]
+radius = 1.0
+material = 3

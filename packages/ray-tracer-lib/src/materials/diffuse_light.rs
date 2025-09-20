@@ -8,6 +8,7 @@ use crate::textures::Texture;
 
 use super::material::Material;
 
+#[derive(Clone, Debug)]
 pub struct DiffuseLight {
     texture: Arc<dyn Texture + Send + Sync>,
 }

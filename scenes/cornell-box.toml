@@ -1,0 +1,502 @@
+[camera]
+background_color = [
+    0.0,
+    0.0,
+    0.0,
+]
+look_at = [
+    278.0,
+    278.0,
+    0.0,
+]
+look_from = [
+    278.0,
+    278.0,
+    -800.0,
+]
+field_of_view = 40.0
+samples_per_pixel = 200
+ray_max_bounces = 50
+
+[[textures]]
+
+[textures.SolidColor]
+color = [
+    0.73,
+    0.73,
+    0.73,
+]
+
+[[textures]]
+
+[textures.SolidColor]
+color = [
+    0.12,
+    0.45,
+    0.15,
+]
+
+[[textures]]
+
+[textures.SolidColor]
+color = [
+    0.65,
+    0.05,
+    0.05,
+]
+
+[[textures]]
+
+[textures.SolidColor]
+color = [
+    15.0,
+    15.0,
+    15.0,
+]
+
+[[textures]]
+
+[textures.SolidColor]
+color = [
+    0.93,
+    1.0,
+    0.6,
+]
+
+[[textures]]
+
+[textures.SolidColor]
+color = [
+    0.0,
+    0.82,
+    1.0,
+]
+
+[[materials]]
+
+[materials.Lambertian]
+texture = 0
+
+[[materials]]
+
+[materials.Lambertian]
+texture = 1
+
+[[materials]]
+
+[materials.Lambertian]
+texture = 2
+
+[[materials]]
+
+[materials.DiffuseLight]
+texture = 3
+
+[[materials]]
+
+[materials.Lambertian]
+texture = 4
+
+[[materials]]
+
+[materials.Metal]
+fuzz = 0.0
+texture = 5
+
+[[objects]]
+
+[objects.Quad]
+top_left = [
+    0.0,
+    0.0,
+    0.0,
+]
+u = [
+    555.0,
+    0.0,
+    0.0,
+]
+v = [
+    0.0,
+    0.0,
+    555.0,
+]
+material = 0
+
+[[objects]]
+
+[objects.Quad]
+top_left = [
+    555.0,
+    555.0,
+    555.0,
+]
+u = [
+    -555.0,
+    0.0,
+    0.0,
+]
+v = [
+    0.0,
+    0.0,
+    -555.0,
+]
+material = 0
+
+[[objects]]
+
+[objects.Quad]
+top_left = [
+    0.0,
+    0.0,
+    555.0,
+]
+u = [
+    555.0,
+    0.0,
+    0.0,
+]
+v = [
+    0.0,
+    555.0,
+    0.0,
+]
+material = 0
+
+[[objects]]
+
+[objects.Quad]
+top_left = [
+    555.0,
+    0.0,
+    0.0,
+]
+u = [
+    0.0,
+    555.0,
+    0.0,
+]
+v = [
+    0.0,
+    0.0,
+    555.0,
+]
+material = 1
+
+[[objects]]
+
+[objects.Quad]
+top_left = [
+    0.0,
+    0.0,
+    0.0,
+]
+u = [
+    0.0,
+    555.0,
+    0.0,
+]
+v = [
+    0.0,
+    0.0,
+    555.0,
+]
+material = 2
+
+[[objects]]
+
+[objects.Quad]
+top_left = [
+    343.0,
+    554.0,
+    332.0,
+]
+u = [
+    -130.0,
+    0.0,
+    0.0,
+]
+v = [
+    0.0,
+    0.0,
+    -105.0,
+]
+material = 3
+
+[[objects]]
+
+[objects.Translate]
+offset = [
+    130.0,
+    0.0,
+    65.0,
+]
+
+[[objects]]
+
+[objects.RotateY]
+angle = -0.3141592653589793
+
+[[objects]]
+
+[objects.Group]
+count = 6
+
+[[objects]]
+
+[objects.Quad]
+top_left = [
+    0.0,
+    0.0,
+    165.0,
+]
+u = [
+    165.0,
+    0.0,
+    0.0,
+]
+v = [
+    0.0,
+    165.0,
+    0.0,
+]
+material = 4
+
+[[objects]]
+
+[objects.Quad]
+top_left = [
+    165.0,
+    0.0,
+    165.0,
+]
+u = [
+    -0.0,
+    -0.0,
+    -165.0,
+]
+v = [
+    0.0,
+    165.0,
+    0.0,
+]
+material = 4
+
+[[objects]]
+
+[objects.Quad]
+top_left = [
+    165.0,
+    0.0,
+    0.0,
+]
+u = [
+    -165.0,
+    -0.0,
+    -0.0,
+]
+v = [
+    0.0,
+    165.0,
+    0.0,
+]
+material = 4
+
+[[objects]]
+
+[objects.Quad]
+top_left = [
+    0.0,
+    0.0,
+    0.0,
+]
+u = [
+    0.0,
+    0.0,
+    165.0,
+]
+v = [
+    0.0,
+    165.0,
+    0.0,
+]
+material = 4
+
+[[objects]]
+
+[objects.Quad]
+top_left = [
+    0.0,
+    165.0,
+    165.0,
+]
+u = [
+    165.0,
+    0.0,
+    0.0,
+]
+v = [
+    -0.0,
+    -0.0,
+    -165.0,
+]
+material = 4
+
+[[objects]]
+
+[objects.Quad]
+top_left = [
+    0.0,
+    0.0,
+    0.0,
+]
+u = [
+    165.0,
+    0.0,
+    0.0,
+]
+v = [
+    0.0,
+    0.0,
+    165.0,
+]
+material = 4
+
+[[objects]]
+
+[objects.Translate]
+offset = [
+    265.0,
+    0.0,
+    295.0,
+]
+
+[[objects]]
+
+[objects.RotateY]
+angle = 0.2617993877991494
+
+[[objects]]
+
+[objects.Group]
+count = 6
+
+[[objects]]
+
+[objects.Quad]
+top_left = [
+    0.0,
+    0.0,
+    165.0,
+]
+u = [
+    165.0,
+    0.0,
+    0.0,
+]
+v = [
+    0.0,
+    330.0,
+    0.0,
+]
+material = 5
+
+[[objects]]
+
+[objects.Quad]
+top_left = [
+    165.0,
+    0.0,
+    165.0,
+]
+u = [
+    -0.0,
+    -0.0,
+    -165.0,
+]
+v = [
+    0.0,
+    330.0,
+    0.0,
+]
+material = 5
+
+[[objects]]
+
+[objects.Quad]
+top_left = [
+    165.0,
+    0.0,
+    0.0,
+]
+u = [
+    -165.0,
+    -0.0,
+    -0.0,
+]
+v = [
+    0.0,
+    330.0,
+    0.0,
+]
+material = 5
+
+[[objects]]
+
+[objects.Quad]
+top_left = [
+    0.0,
+    0.0,
+    0.0,
+]
+u = [
+    0.0,
+    0.0,
+    165.0,
+]
+v = [
+    0.0,
+    330.0,
+    0.0,
+]
+material = 5
+
+[[objects]]
+
+[objects.Quad]
+top_left = [
+    0.0,
+    330.0,
+    165.0,
+]
+u = [
+    165.0,
+    0.0,
+    0.0,
+]
+v = [
+    -0.0,
+    -0.0,
+    -165.0,
+]
+material = 5
+
+[[objects]]
+
+[objects.Quad]
+top_left = [
+    0.0,
+    0.0,
+    0.0,
+]
+u = [
+    165.0,
+    0.0,
+    0.0,
+]
+v = [
+    0.0,
+    0.0,
+    165.0,
+]
+material = 5

@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use glam::{
     DVec2,
     DVec3,
@@ -15,7 +17,6 @@ use super::texture::Texture;
 
 type Noise = Fbm<Perlin>;
 
-#[derive(Clone)]
 pub struct PerlinRidgedNoise {
     seed: u32,
     octaves: usize,
@@ -35,24 +36,44 @@ pub struct PerlinRidgedNoiseBuilder {
 }
 
 impl PerlinRidgedNoiseBuilder {
-    pub fn with_seed(self, value: u32) -> Self {
-        Self { seed: Some(value), ..self }
+    pub fn with_seed(
+        &mut self,
+        value: Option<u32>,
+    ) -> &mut Self {
+        self.seed = value;
+        self
     }
 
-    pub fn with_octaves(self, value: usize) -> Self {
-        Self { octaves: Some(value), ..self }
+    pub fn with_octaves(
+        &mut self,
+        value: Option<usize>,
+    ) -> &mut Self {
+        self.octaves = value;
+        self
     }
 
-    pub fn with_lacunarity(self, value: f64) -> Self {
-        Self { lacunarity: Some(value), ..self }
+    pub fn with_lacunarity(
+        &mut self,
+        value: Option<f64>,
+    ) -> &mut Self {
+        self.lacunarity = value;
+        self
     }
 
-    pub fn with_persistence(self, value: f64) -> Self {
-        Self { persistence: Some(value), ..self }
+    pub fn with_persistence(
+        &mut self,
+        value: Option<f64>,
+    ) -> &mut Self {
+        self.persistence = value;
+        self
     }
 
-    pub fn with_frequency(self, value: f64) -> Self {
-        Self { frequency: Some(value), ..self }
+    pub fn with_frequency(
+        &mut self,
+        value: Option<f64>
+    ) -> &mut Self {
+        self.frequency = value;
+        self
     }
 
     pub fn build(self) -> PerlinRidgedNoise {
@@ -82,6 +103,25 @@ impl PerlinRidgedNoiseBuilder {
     }
 }
 
+impl Debug for PerlinRidgedNoise {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f
+            .debug_struct("PerlinRidgedNoise")
+            .field("seed", &self.seed)
+            .field("octaves", &self.octaves)
+            .field("lacunarity", &self.lacunarity)
+            .field("frequency", &self.frequency)
+            .field("persistence", &self.persistence)
+            .finish()
+    }
+}
+
+impl Default for PerlinRidgedNoise {
+    fn default() -> Self {
+        PerlinRidgedNoiseBuilder::default().build()
+    }
+}
+
 impl PartialEq for PerlinRidgedNoise {
     fn eq(&self, other: &Self) -> bool {
         self.seed == other.seed
@@ -89,12 +129,6 @@ impl PartialEq for PerlinRidgedNoise {
         && self.lacunarity == other.lacunarity
         && self.persistence == other.persistence
         && self.frequency == other.frequency
-    }
-}
-
-impl Default for PerlinRidgedNoise {
-    fn default() -> Self {
-        PerlinRidgedNoiseBuilder::default().build()
     }
 }
 
