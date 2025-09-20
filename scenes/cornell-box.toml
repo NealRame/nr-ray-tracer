@@ -49,9 +49,9 @@ color = [
 
 [textures.SolidColor]
 color = [
-    15.0,
-    15.0,
-    15.0,
+    1.0,
+    1.0,
+    1.0,
 ]
 
 [[textures]]
@@ -90,6 +90,7 @@ texture = 2
 [[materials]]
 
 [materials.DiffuseLight]
+intensity = 15.0
 texture = 3
 
 [[materials]]
