@@ -41,11 +41,12 @@ fn generate_metal_material(
 
 fn generate_light(
     color: DVec3,
+    intensity: f64,
     textures: &mut VecDeque<TextureConfig>,
     materials: &mut VecDeque<MaterialConfig>,
 ) -> usize {
     let texture = generate_solid_color_texture(color, textures);
-    materials.push_back(MaterialConfig::DiffuseLight { texture });
+    materials.push_back(MaterialConfig::DiffuseLight { intensity, texture });
     materials.len() - 1
 }
 
@@ -118,7 +119,7 @@ fn generate_objects(
         textures,
     ), materials);
 
-    let mat_ligth = generate_light(15.0*DVec3::ONE, textures, materials);
+    let mat_ligth = generate_light(DVec3::ONE, 15.0, textures, materials);
 
     let mat_box1 = generate_lambertian_material(generate_solid_color_texture(
         DVec3::new(0.93, 1.00, 0.60),

@@ -269,25 +269,24 @@ impl Camera {
     fn get_ray_color(
         &self,
         ray: &Ray,
-        ray_bounce: usize,
         hitable: &impl Hitable,
         rng: &mut impl Rng,
     ) -> DVec3 {
-        if ray_bounce >= self.ray_max_bounces {
+        if ray.get_bounce() >= self.ray_max_bounces {
             return DVec3::ZERO;
         }
 
         match hitable.hit(ray, Interval::new(0.001, INFINITY)).as_ref() {
             Some(hit_record) => {
                 let material = hit_record.material.clone();
-                let emitted = material.emit(hit_record);
+                let emitted = material.emit(ray, hit_record);
 
                 material.scatter(ray, hit_record, rng)
-                    .as_ref()
-                    .map(|(scattered_ray, color)| {
+                    .map(|(mut scattered_ray, color)| {
+                        scattered_ray.bounce();
+
                         emitted + color*self.get_ray_color(
-                            scattered_ray,
-                            ray_bounce + 1,
+                            &scattered_ray,
                             hitable,
                             rng
                         )
@@ -324,7 +323,7 @@ impl Camera {
                 let s = (0..sample_per_pixel).map(|_| {
                     let ray = self.get_ray(x, y, &mut rng);
 
-                    self.get_ray_color(&ray, 0, hitable, &mut rng)
+                    self.get_ray_color(&ray, hitable, &mut rng)
                 }).sum::<DVec3>();
 
                 let color = s/(sample_per_pixel as f64);
