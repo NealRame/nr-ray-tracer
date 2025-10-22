@@ -181,8 +181,8 @@ impl MaterialConfig {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub enum ObjectConfig {
-    Quad {
-        top_left: DVec3,
+    Plane {
+        point: DVec3,
         u: DVec3,
         v: DVec3,
         material: usize,
@@ -209,14 +209,14 @@ impl ObjectConfig {
         materials: &[Arc<dyn Material + Send + Sync>],
     ) -> Result<Option<Arc<dyn Hitable + Send + Sync>>> {
         match objects.pop_front() {
-            Some(Self::Quad { top_left, u, v, material }) => {
-                let mut quad_builder = QuadBuilder::default();
+            Some(Self::Plane { point: top_left, u, v, material }) => {
+                let mut quad_builder = PlaneBuilder::default();
                 let material = materials
                     .get(material)
                     .ok_or(anyhow!("invalid material index"))?
                     .clone();
 
-                quad_builder.with_top_left(top_left);
+                quad_builder.with_point(top_left);
                 quad_builder.with_u(u);
                 quad_builder.with_v(v);
                 quad_builder.with_material(material);
