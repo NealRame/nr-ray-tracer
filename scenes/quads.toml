@@ -90,8 +90,8 @@ texture = 4
 
 [[objects]]
 
-[objects.Quad]
-top_left = [
+[objects.Plane]
+point = [
     -3.0,
     -2.0,
     5.0,
@@ -110,8 +110,8 @@ material = 0
 
 [[objects]]
 
-[objects.Quad]
-top_left = [
+[objects.Plane]
+point = [
     -2.0,
     -2.0,
     0.0,
@@ -130,8 +130,8 @@ material = 1
 
 [[objects]]
 
-[objects.Quad]
-top_left = [
+[objects.Plane]
+point = [
     3.0,
     -2.0,
     1.0,
@@ -150,8 +150,8 @@ material = 2
 
 [[objects]]
 
-[objects.Quad]
-top_left = [
+[objects.Plane]
+point = [
     -2.0,
     3.0,
     1.0,
@@ -170,8 +170,8 @@ material = 3
 
 [[objects]]
 
-[objects.Quad]
-top_left = [
+[objects.Plane]
+point = [
     -2.0,
     -3.0,
     5.0,

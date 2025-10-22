@@ -37,8 +37,8 @@ fn generate_objects(
     materials.push_back(MaterialConfig::Lambertian { texture: textures.len() });
     textures.push_back(TextureConfig::Marble { seed: None, frequency: Some(0.2) });
 
-    objects.push_back(ObjectConfig::Quad {
-        top_left: DVec3::new(3.0, 1.0, -2.0),
+    objects.push_back(ObjectConfig::Plane {
+        point: DVec3::new(3.0, 1.0, -2.0),
         u: 2.0*DVec3::X,
         v: 2.0*DVec3::Y,
         material: materials.len(),

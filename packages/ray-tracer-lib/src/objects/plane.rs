@@ -15,8 +15,8 @@ use crate::materials::{
 use crate::ray::Ray;
 
 #[derive(Clone, Debug)]
-pub struct Quad {
-    top_left: DVec3,
+pub struct Plane {
+    p: DVec3,
     u: DVec3,
     v: DVec3,
     material: Arc<dyn Material + Send + Sync>,
@@ -27,15 +27,15 @@ pub struct Quad {
 }
 
 #[derive(Clone, Default)]
-pub struct QuadBuilder {
+pub struct PlaneBuilder {
     top_left: Option<DVec3>,
     u: Option<DVec3>,
     v: Option<DVec3>,
     material: Option<Arc<dyn Material + Send + Sync>>,
 }
 
-impl QuadBuilder {
-    pub fn with_top_left(
+impl PlaneBuilder {
+    pub fn with_point(
         &mut self,
         value: DVec3,
     ) -> &mut Self {
@@ -67,7 +67,7 @@ impl QuadBuilder {
         self
     }
 
-    pub fn build(self) -> Quad {
+    pub fn build(self) -> Plane {
         let top_left = self.top_left.unwrap_or(DVec3::ZERO);
         let u = self.u.unwrap_or(DVec3::X);
         let v = self.v.unwrap_or(DVec3::Y);
@@ -85,8 +85,8 @@ impl QuadBuilder {
         let d = normal.dot(top_left);
         let w = n/(n.dot(n));
 
-        Quad {
-            top_left,
+        Plane {
+            p: top_left,
             u,
             v,
             normal,
@@ -98,13 +98,13 @@ impl QuadBuilder {
     }
 }
 
-impl Default for Quad {
+impl Default for Plane {
     fn default() -> Self {
-        QuadBuilder::default().build()
+        PlaneBuilder::default().build()
     }
 }
 
-impl Hitable for Quad {
+impl Hitable for Plane {
     fn bbox(&self) -> AABB {
         self.bbox
     }
@@ -123,7 +123,7 @@ impl Hitable for Quad {
         }
 
         let point = ray.at(t);
-        let planar_hit_vector = point - self.top_left;
+        let planar_hit_vector = point - self.p;
 
         let alpha = self.w.dot(planar_hit_vector.cross(self.v));
         let beta = self.w.dot(self.u.cross(planar_hit_vector));

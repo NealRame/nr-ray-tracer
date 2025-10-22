@@ -60,38 +60,38 @@ fn generate_box(a: DVec3, b: DVec3, material: usize) -> Vec<ObjectConfig> {
 
     vec![
         ObjectConfig::Group { count: 6 },
-        ObjectConfig::Quad {
-            top_left: DVec3::new(min_x, min_y, max_z),
+        ObjectConfig::Plane {
+            point: DVec3::new(min_x, min_y, max_z),
             u: dx,
             v: dy,
             material
         },
-        ObjectConfig::Quad {
-            top_left: DVec3::new(max_x, min_y, max_z),
+        ObjectConfig::Plane {
+            point: DVec3::new(max_x, min_y, max_z),
             u: -dz,
             v: dy,
             material
         },
-        ObjectConfig::Quad {
-            top_left: DVec3::new(max_x, min_y, min_z),
+        ObjectConfig::Plane {
+            point: DVec3::new(max_x, min_y, min_z),
             u: -dx,
             v: dy,
             material
         },
-        ObjectConfig::Quad {
-            top_left: DVec3::new(min_x, min_y, min_z),
+        ObjectConfig::Plane {
+            point: DVec3::new(min_x, min_y, min_z),
             u: dz,
             v: dy,
             material
         },
-        ObjectConfig::Quad {
-            top_left: DVec3::new(min_x, max_y, max_z),
+        ObjectConfig::Plane {
+            point: DVec3::new(min_x, max_y, max_z),
             u: dx,
             v: -dz,
             material
         },
-        ObjectConfig::Quad {
-            top_left: DVec3::new(min_x, min_y, min_z),
+        ObjectConfig::Plane {
+            point: DVec3::new(min_x, min_y, min_z),
             u: dx,
             v: dz,
             material
@@ -131,38 +131,38 @@ fn generate_objects(
         textures,
     ), 0.0, materials,);
 
-    objects.push_back(ObjectConfig::Quad {
-        top_left: DVec3::ZERO,
+    objects.push_back(ObjectConfig::Plane {
+        point: DVec3::ZERO,
         u: 555.*DVec3::X,
         v: 555.*DVec3::Z,
         material: mat_white,
     });
-    objects.push_back(ObjectConfig::Quad {
-        top_left: 555.*DVec3::ONE,
+    objects.push_back(ObjectConfig::Plane {
+        point: 555.*DVec3::ONE,
         u: 555.*DVec3::NEG_X,
         v: 555.*DVec3::NEG_Z,
         material: mat_white,
     });
-    objects.push_back(ObjectConfig::Quad {
-        top_left: 555.*DVec3::Z,
+    objects.push_back(ObjectConfig::Plane {
+        point: 555.*DVec3::Z,
         u: 555.*DVec3::X,
         v: 555.*DVec3::Y,
         material: mat_white,
     });
-    objects.push_back(ObjectConfig::Quad {
-        top_left: 555.*DVec3::X,
+    objects.push_back(ObjectConfig::Plane {
+        point: 555.*DVec3::X,
         u: 555.*DVec3::Y,
         v: 555.*DVec3::Z,
         material: mat_green,
     });
-    objects.push_back(ObjectConfig::Quad {
-        top_left: DVec3::ZERO,
+    objects.push_back(ObjectConfig::Plane {
+        point: DVec3::ZERO,
         u: 555.*DVec3::Y,
         v: 555.*DVec3::Z,
         material: mat_red,
     });
-    objects.push_back(ObjectConfig::Quad {
-        top_left: DVec3::new(343., 554., 332.),
+    objects.push_back(ObjectConfig::Plane {
+        point: DVec3::new(343., 554., 332.),
         u: 130.*DVec3::NEG_X,
         v: 105.*DVec3::NEG_Z,
         material: mat_ligth,
