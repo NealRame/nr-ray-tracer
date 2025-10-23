@@ -90,7 +90,7 @@ texture = 4
 
 [[objects]]
 
-[objects.Quad]
+[objects.Triangle]
 point = [
     -3.0,
     -2.0,
@@ -110,7 +110,7 @@ material = 0
 
 [[objects]]
 
-[objects.Quad]
+[objects.Triangle]
 point = [
     -2.0,
     -2.0,
@@ -130,7 +130,7 @@ material = 1
 
 [[objects]]
 
-[objects.Quad]
+[objects.Triangle]
 point = [
     3.0,
     -2.0,
@@ -150,7 +150,7 @@ material = 2
 
 [[objects]]
 
-[objects.Quad]
+[objects.Triangle]
 point = [
     -2.0,
     3.0,
@@ -170,7 +170,7 @@ material = 3
 
 [[objects]]
 
-[objects.Quad]
+[objects.Triangle]
 point = [
     -2.0,
     -3.0,

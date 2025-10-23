@@ -181,7 +181,13 @@ impl MaterialConfig {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub enum ObjectConfig {
-    Plane {
+    Quad {
+        point: DVec3,
+        u: DVec3,
+        v: DVec3,
+        material: usize,
+    },
+    Triangle {
         point: DVec3,
         u: DVec3,
         v: DVec3,
@@ -209,19 +215,35 @@ impl ObjectConfig {
         materials: &[Arc<dyn Material + Send + Sync>],
     ) -> Result<Option<Arc<dyn Hitable + Send + Sync>>> {
         match objects.pop_front() {
-            Some(Self::Plane { point: top_left, u, v, material }) => {
-                let mut quad_builder = PlaneBuilder::default();
+            Some(Self::Quad { point, u, v, material }) => {
+                let mut plane_builder = PlaneBuilder::default();
                 let material = materials
                     .get(material)
                     .ok_or(anyhow!("invalid material index"))?
                     .clone();
 
-                quad_builder.with_point(top_left);
-                quad_builder.with_u(u);
-                quad_builder.with_v(v);
-                quad_builder.with_material(material);
+                plane_builder.with_point(point);
+                plane_builder.with_u(u);
+                plane_builder.with_v(v);
+                plane_builder.with_shape(Shape::Quad);
+                plane_builder.with_material(material);
 
-                Ok(Some(Arc::new(quad_builder.build())))
+                Ok(Some(Arc::new(plane_builder.build())))
+            },
+            Some(Self::Triangle { point, u, v, material }) => {
+                let mut plane_builder = PlaneBuilder::default();
+                let material = materials
+                    .get(material)
+                    .ok_or(anyhow!("invalid material index"))?
+                    .clone();
+
+                plane_builder.with_point(point);
+                plane_builder.with_u(u);
+                plane_builder.with_v(v);
+                plane_builder.with_shape(Shape::Triangle);
+                plane_builder.with_material(material);
+
+                Ok(Some(Arc::new(plane_builder.build())))
             },
             Some(Self::Sphere { center, radius, material }) => {
                 let mut sphere_builder = SphereBuilder::default();

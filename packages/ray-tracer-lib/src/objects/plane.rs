@@ -15,22 +15,39 @@ use crate::materials::{
 use crate::ray::Ray;
 
 #[derive(Clone, Debug)]
+pub enum Shape {
+    Quad,
+    Triangle,
+}
+
+fn is_interior_quad(alpha: f64, beta: f64) -> bool {
+    let unit_interval = 0.0..=1.0;
+    unit_interval.contains(&alpha) && unit_interval.contains(&beta)
+}
+
+fn is_interior_triangle(alpha: f64, beta: f64) -> bool {
+    alpha > 0.0 && beta > 0.0 && (alpha + beta) < 1.0
+}
+
+#[derive(Clone, Debug)]
 pub struct Plane {
     p: DVec3,
     u: DVec3,
     v: DVec3,
+    shape: Shape,
+    bbox: AABB,
     material: Arc<dyn Material + Send + Sync>,
     normal: DVec3,
     d: f64,
     w: DVec3,
-    bbox: AABB,
 }
 
 #[derive(Clone, Default)]
 pub struct PlaneBuilder {
-    top_left: Option<DVec3>,
+    p: Option<DVec3>,
     u: Option<DVec3>,
     v: Option<DVec3>,
+    shape: Option<Shape>,
     material: Option<Arc<dyn Material + Send + Sync>>,
 }
 
@@ -39,7 +56,7 @@ impl PlaneBuilder {
         &mut self,
         value: DVec3,
     ) -> &mut Self {
-        self.top_left.replace(value);
+        self.p.replace(value);
         self
     }
 
@@ -59,6 +76,14 @@ impl PlaneBuilder {
         self
     }
 
+    pub fn with_shape(
+        &mut self,
+        value: Shape,
+    ) -> &mut Self {
+        self.shape.replace(value);
+        self
+    }
+
     pub fn with_material(
         &mut self,
         value: Arc<dyn Material + Send + Sync>,
@@ -68,13 +93,16 @@ impl PlaneBuilder {
     }
 
     pub fn build(self) -> Plane {
-        let top_left = self.top_left.unwrap_or(DVec3::ZERO);
+        let p = self.p.unwrap_or(DVec3::ZERO);
         let u = self.u.unwrap_or(DVec3::X);
         let v = self.v.unwrap_or(DVec3::Y);
+
+        let shape = self.shape.unwrap_or(Shape::Quad);
+
         let material = self.material.unwrap_or(Arc::new(Lambertian::default()));
 
-        let bbox_t0 = AABB::from_points(top_left, top_left + u + v);
-        let bbox_t1 = AABB::from_points(top_left + u, top_left + v);
+        let bbox_t0 = AABB::from_points(p, p + u + v);
+        let bbox_t1 = AABB::from_points(p + u, p + v);
 
         let bbox = bbox_t0.union(&bbox_t1);
 
@@ -82,13 +110,14 @@ impl PlaneBuilder {
 
         let normal = n.normalize();
 
-        let d = normal.dot(top_left);
+        let d = normal.dot(p);
         let w = n/(n.dot(n));
 
         Plane {
-            p: top_left,
+            p,
             u,
             v,
+            shape,
             normal,
             d,
             w,
@@ -128,9 +157,13 @@ impl Hitable for Plane {
         let alpha = self.w.dot(planar_hit_vector.cross(self.v));
         let beta = self.w.dot(self.u.cross(planar_hit_vector));
 
-        let unit_interval = 0.0..=1.0;
+        let is_interior =
+            match self.shape {
+                Shape::Quad => is_interior_quad,
+                Shape::Triangle => is_interior_triangle,
+            };
 
-        if !unit_interval.contains(&alpha) || !unit_interval.contains(&beta) {
+        if !is_interior(alpha, beta) {
             return None;
         }
 

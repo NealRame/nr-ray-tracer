@@ -47,8 +47,11 @@ enum Commands {
     /// Render noise scene
     Noise(CreateArgs),
 
-    /// Render noise scene
+    /// Render five quads scene
     Quads(CreateArgs),
+
+    /// Render five triangles scene
+    Triangles(CreateArgs),
 
     /// Render sphere1 scene
     Sphere(CreateArgs),
@@ -70,6 +73,7 @@ pub fn run(create: &Create) -> Result<()> {
         Commands::Earth(args) => super::earth::run(args)?,
         Commands::Noise(args) => super::noise::run(args)?,
         Commands::Quads(args) => super::quads::run(args)?,
+        Commands::Triangles(args) => super::triangles::run(args)?,
         Commands::Sphere(args) => super::spheres::run(args)?,
         Commands::SimpleLights(args) => super::simple_lights::run(args)?,
     }

@@ -7,7 +7,6 @@ use anyhow::Result;
 
 use glam::DVec3;
 
-
 use crate::cli::CameraConfig;
 use crate::scene_config::*;
 
@@ -18,47 +17,50 @@ fn generate_objects(
     materials: &mut VecDeque<MaterialConfig>,
     objects: &mut VecDeque<ObjectConfig>,
 ) {
-    const GROUND_SPHERE_RADIUS: f64 = 1_000_000.0;
-    const SMALL_SPHERE_RADIUS: f64 = 2.0;
-
-    objects.push_back(ObjectConfig::Sphere {
-        center: GROUND_SPHERE_RADIUS*DVec3::NEG_Y,
-        radius: GROUND_SPHERE_RADIUS,
+    objects.push_back(ObjectConfig::Triangle {
+        point: DVec3::new(-3.0, -2.0, 5.0),
+        u: 4.0*DVec3::NEG_Z,
+        v: 4.0*DVec3::Y,
         material: materials.len(),
     });
     materials.push_back(MaterialConfig::Lambertian { texture: textures.len() });
-    textures.push_back(TextureConfig::SolidColor { color: 0.4*DVec3::ONE });
+    textures.push_back(TextureConfig::SolidColor { color: DVec3::new(1.0, 0.2, 0.2) });
 
-    objects.push_back(ObjectConfig::Sphere {
-        center: SMALL_SPHERE_RADIUS*DVec3::Y,
-        radius: SMALL_SPHERE_RADIUS,
+    objects.push_back(ObjectConfig::Triangle {
+        point: DVec3::new(-2.0, -2.0, 0.),
+        u: 4.0*DVec3::X,
+        v: 4.0*DVec3::Y,
         material: materials.len(),
     });
     materials.push_back(MaterialConfig::Lambertian { texture: textures.len() });
-    textures.push_back(TextureConfig::Marble { seed: None, frequency: Some(0.2) });
+    textures.push_back(TextureConfig::SolidColor { color: DVec3::new(0.2, 1.0, 0.2) });
 
-    objects.push_back(ObjectConfig::Quad {
-        point: DVec3::new(3.0, 1.0, -2.0),
-        u: 2.0*DVec3::X,
-        v: 2.0*DVec3::Y,
+    objects.push_back(ObjectConfig::Triangle {
+        point: DVec3::new(3.0, -2.0, 1.),
+        u: 4.0*DVec3::Z,
+        v: 4.0*DVec3::Y,
         material: materials.len(),
     });
-    materials.push_back(MaterialConfig::DiffuseLight {
-        intensity: 4.0,
-        texture: textures.len(),
-    });
-    textures.push_back(TextureConfig::SolidColor { color: DVec3::new(1.00, 0.50, 0.25) });
+    materials.push_back(MaterialConfig::Lambertian { texture: textures.len() });
+    textures.push_back(TextureConfig::SolidColor { color: DVec3::new(0.2, 0.2, 1.0) });
 
-    objects.push_back(ObjectConfig::Sphere {
-        center: 7.0*DVec3::Y,
-        radius: 1.0,
+    objects.push_back(ObjectConfig::Triangle {
+        point: DVec3::new(-2.0, 3.0, 1.),
+        u: 4.0*DVec3::X,
+        v: 4.0*DVec3::Z,
         material: materials.len(),
     });
-    materials.push_back(MaterialConfig::DiffuseLight {
-        intensity: 4.0,
-        texture: textures.len(),
+    materials.push_back(MaterialConfig::Lambertian { texture: textures.len() });
+    textures.push_back(TextureConfig::SolidColor { color: DVec3::new(1.0, 0.5, 0.0) });
+
+    objects.push_back(ObjectConfig::Triangle {
+        point: DVec3::new(-2.0, -3.0, 5.0),
+        u: 4.0*DVec3::X,
+        v: 4.0*DVec3::NEG_Z,
+        material: materials.len(),
     });
-    textures.push_back(TextureConfig::SolidColor { color: DVec3::new(0.25, 0.50, 1.00) });
+    materials.push_back(MaterialConfig::Lambertian { texture: textures.len() });
+    textures.push_back(TextureConfig::SolidColor { color: DVec3::new(0.2, 0.8, 0.8) });
 }
 
 pub fn run(args: &CreateArgs) -> Result<()> {
@@ -69,10 +71,10 @@ pub fn run(args: &CreateArgs) -> Result<()> {
     generate_objects(&mut textures, &mut materials, &mut objects);
 
     let mut camera = CameraConfig {
-        background_color: Some(0.001*DVec3::ONE),
-        look_from: Some(DVec3::new(26.0, 3.0, 6.0)),
-        look_at: Some(2.0*DVec3::Y),
-        field_of_view: Some(20.),
+        background_color: Some(DVec3::new(0.7, 0.8, 1.0)),
+        look_from: Some(9.*DVec3::Z),
+        look_at: Some(DVec3::ZERO),
+        field_of_view: Some(80.),
         ray_max_bounces: Some(10),
         samples_per_pixel: Some(10),
         ..CameraConfig::default()

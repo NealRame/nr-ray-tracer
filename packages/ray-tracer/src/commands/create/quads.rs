@@ -17,7 +17,7 @@ fn generate_objects(
     materials: &mut VecDeque<MaterialConfig>,
     objects: &mut VecDeque<ObjectConfig>,
 ) {
-    objects.push_back(ObjectConfig::Plane {
+    objects.push_back(ObjectConfig::Quad {
         point: DVec3::new(-3.0, -2.0, 5.0),
         u: 4.0*DVec3::NEG_Z,
         v: 4.0*DVec3::Y,
@@ -26,7 +26,7 @@ fn generate_objects(
     materials.push_back(MaterialConfig::Lambertian { texture: textures.len() });
     textures.push_back(TextureConfig::SolidColor { color: DVec3::new(1.0, 0.2, 0.2) });
 
-    objects.push_back(ObjectConfig::Plane {
+    objects.push_back(ObjectConfig::Quad {
         point: DVec3::new(-2.0, -2.0, 0.),
         u: 4.0*DVec3::X,
         v: 4.0*DVec3::Y,
@@ -35,7 +35,7 @@ fn generate_objects(
     materials.push_back(MaterialConfig::Lambertian { texture: textures.len() });
     textures.push_back(TextureConfig::SolidColor { color: DVec3::new(0.2, 1.0, 0.2) });
 
-    objects.push_back(ObjectConfig::Plane {
+    objects.push_back(ObjectConfig::Quad {
         point: DVec3::new(3.0, -2.0, 1.),
         u: 4.0*DVec3::Z,
         v: 4.0*DVec3::Y,
@@ -44,7 +44,7 @@ fn generate_objects(
     materials.push_back(MaterialConfig::Lambertian { texture: textures.len() });
     textures.push_back(TextureConfig::SolidColor { color: DVec3::new(0.2, 0.2, 1.0) });
 
-    objects.push_back(ObjectConfig::Plane {
+    objects.push_back(ObjectConfig::Quad {
         point: DVec3::new(-2.0, 3.0, 1.),
         u: 4.0*DVec3::X,
         v: 4.0*DVec3::Z,
@@ -53,7 +53,7 @@ fn generate_objects(
     materials.push_back(MaterialConfig::Lambertian { texture: textures.len() });
     textures.push_back(TextureConfig::SolidColor { color: DVec3::new(1.0, 0.5, 0.0) });
 
-    objects.push_back(ObjectConfig::Plane {
+    objects.push_back(ObjectConfig::Quad {
         point: DVec3::new(-2.0, -3.0, 5.0),
         u: 4.0*DVec3::X,
         v: 4.0*DVec3::NEG_Z,
