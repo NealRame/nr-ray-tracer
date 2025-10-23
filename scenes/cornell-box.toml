@@ -106,7 +106,7 @@ texture = 5
 
 [[objects]]
 
-[objects.Plane]
+[objects.Quad]
 point = [
     0.0,
     0.0,
@@ -126,7 +126,7 @@ material = 0
 
 [[objects]]
 
-[objects.Plane]
+[objects.Quad]
 point = [
     555.0,
     555.0,
@@ -146,7 +146,7 @@ material = 0
 
 [[objects]]
 
-[objects.Plane]
+[objects.Quad]
 point = [
     0.0,
     0.0,
@@ -166,7 +166,7 @@ material = 0
 
 [[objects]]
 
-[objects.Plane]
+[objects.Quad]
 point = [
     555.0,
     0.0,
@@ -186,7 +186,7 @@ material = 1
 
 [[objects]]
 
-[objects.Plane]
+[objects.Quad]
 point = [
     0.0,
     0.0,
@@ -206,7 +206,7 @@ material = 2
 
 [[objects]]
 
-[objects.Plane]
+[objects.Quad]
 point = [
     343.0,
     554.0,
@@ -245,7 +245,7 @@ count = 6
 
 [[objects]]
 
-[objects.Plane]
+[objects.Quad]
 point = [
     0.0,
     0.0,
@@ -265,7 +265,7 @@ material = 4
 
 [[objects]]
 
-[objects.Plane]
+[objects.Quad]
 point = [
     165.0,
     0.0,
@@ -285,7 +285,7 @@ material = 4
 
 [[objects]]
 
-[objects.Plane]
+[objects.Quad]
 point = [
     165.0,
     0.0,
@@ -305,7 +305,7 @@ material = 4
 
 [[objects]]
 
-[objects.Plane]
+[objects.Quad]
 point = [
     0.0,
     0.0,
@@ -325,7 +325,7 @@ material = 4
 
 [[objects]]
 
-[objects.Plane]
+[objects.Quad]
 point = [
     0.0,
     165.0,
@@ -345,7 +345,7 @@ material = 4
 
 [[objects]]
 
-[objects.Plane]
+[objects.Quad]
 point = [
     0.0,
     0.0,
@@ -384,7 +384,7 @@ count = 6
 
 [[objects]]
 
-[objects.Plane]
+[objects.Quad]
 point = [
     0.0,
     0.0,
@@ -404,7 +404,7 @@ material = 5
 
 [[objects]]
 
-[objects.Plane]
+[objects.Quad]
 point = [
     165.0,
     0.0,
@@ -424,7 +424,7 @@ material = 5
 
 [[objects]]
 
-[objects.Plane]
+[objects.Quad]
 point = [
     165.0,
     0.0,
@@ -444,7 +444,7 @@ material = 5
 
 [[objects]]
 
-[objects.Plane]
+[objects.Quad]
 point = [
     0.0,
     0.0,
@@ -464,7 +464,7 @@ material = 5
 
 [[objects]]
 
-[objects.Plane]
+[objects.Quad]
 point = [
     0.0,
     330.0,
@@ -484,7 +484,7 @@ material = 5
 
 [[objects]]
 
-[objects.Plane]
+[objects.Quad]
 point = [
     0.0,
     0.0,
