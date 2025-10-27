@@ -29,7 +29,7 @@ use crate::constants::*;
 use crate::scene_config::*;
 
 #[derive(Args)]
-pub struct RenderArgs {
+pub struct Render {
     pub scene: PathBuf,
 
     #[command(flatten)]
@@ -43,14 +43,14 @@ pub struct RenderArgs {
     verbose: bool
 }
 
-impl Verbosity for RenderArgs {
+impl Verbosity for Render {
     fn is_verbose(&self) -> bool {
         self.verbose
     }
 }
 
 fn render_scene(
-    cli: &RenderArgs,
+    cli: &Render,
     scene: &Scene,
 ) -> Rgb32FImage {
     let bar = get_progress(cli, "Rendering").map(|bar| {
@@ -77,7 +77,7 @@ fn render_scene(
 }
 
 fn dump_image(
-    cli: &RenderArgs,
+    cli: &Render,
     file: &mut fs::File,
     mut image: Rgb32FImage,
     image_format: ImageFormat,
@@ -109,7 +109,7 @@ fn dump_image(
 impl SceneConfig {
     pub fn try_make_scene(
         self,
-        args: &RenderArgs,
+        args: &Render,
     ) -> Result<Scene> {
         let mut textures = Vec::<Arc::<dyn Texture + Send + Sync>>::new();
         for texture_config in self.textures {
@@ -145,7 +145,7 @@ impl SceneConfig {
         })
     }
 
-    pub fn try_load_scene(args: &RenderArgs) -> Result<Scene> {
+    pub fn try_load_scene(args: &Render) -> Result<Scene> {
         let s = fs::read_to_string(&args.scene)?;
 
         let config = match args.scene.extension().and_then(OsStr::to_str) {
@@ -160,7 +160,7 @@ impl SceneConfig {
     }
 }
 
-pub fn run(args: &RenderArgs) -> Result<()> {
+pub fn run(args: &Render) -> Result<()> {
     let (mut file, format) = args.image.get_file()?;
 
     let scene = SceneConfig::try_load_scene(&args)?;

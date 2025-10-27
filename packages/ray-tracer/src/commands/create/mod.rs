@@ -1,5 +1,7 @@
 mod create;
 
+mod convert_stl;
+
 mod cornell_box;
 mod earth;
 mod noise;
