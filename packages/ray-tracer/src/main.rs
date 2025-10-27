@@ -15,8 +15,8 @@ enum Commands {
     /// Create a new scene
     Create(commands::create::Create),
 
-    /// Render scene
-    Render(commands::render::RenderArgs),
+    /// Render a given scene
+    Render(commands::render::Render),
 }
 
 #[derive(Parser)]

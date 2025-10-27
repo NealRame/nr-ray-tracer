@@ -36,6 +36,32 @@ pub(super) struct CreateArgs {
     pub output: Option<PathBuf>,
 }
 
+#[derive(Args, Debug)]
+#[command(version, about, long_about = None)]
+pub(super) struct ConvertSTLArgs {
+    #[command(flatten)]
+    pub camera: CameraConfig,
+
+    /// Force output overwrite.
+    #[arg(short = 'f', long)]
+    pub force_overwrite: bool,
+
+    /// Specify the output format of the scene configuration
+    #[arg(short = 'F', long, default_value = "toml")]
+    pub format: SceneConfigFormat,
+
+    /// Output file path.
+    #[arg(short = 'o', long, value_name = "FILE")]
+    pub output: Option<PathBuf>,
+
+    /// Output file path.
+    #[arg(short = 's', long, value_name = "SCALE", default_value = "1.0")]
+    pub scale: f64,
+
+    /// STL input file
+    pub stl_file: PathBuf,
+}
+
 #[derive(Subcommand)]
 enum Commands {
     /// Render cornell box scene
@@ -58,6 +84,9 @@ enum Commands {
 
     /// Render simple-lights scene
     SimpleLights(CreateArgs),
+
+    /// Convert STL file
+    ConvertSTL(ConvertSTLArgs),
 }
 
 #[derive(Parser)]
@@ -76,6 +105,7 @@ pub fn run(create: &Create) -> Result<()> {
         Commands::Triangles(args) => super::triangles::run(args)?,
         Commands::Sphere(args) => super::spheres::run(args)?,
         Commands::SimpleLights(args) => super::simple_lights::run(args)?,
+        Commands::ConvertSTL(args) => super::convert_stl::run(args)?,
     }
     Ok(())
 }
