@@ -1,5 +1,5 @@
 use std::f64;
-use std::ops::AddAssign;
+use std::ops::{AddAssign, MulAssign};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Interval{
@@ -83,5 +83,12 @@ impl AddAssign<f64> for Interval {
     fn add_assign(&mut self, rhs: f64) {
         self.min += rhs;
         self.max += rhs;
+    }
+}
+
+impl MulAssign<f64> for Interval {
+    fn mul_assign(&mut self, rhs: f64) {
+        self.min *= rhs;
+        self.max *= rhs;
     }
 }
