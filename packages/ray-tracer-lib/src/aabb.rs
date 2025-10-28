@@ -152,4 +152,24 @@ impl AABB {
         t.translate(offset);
         t
     }
+
+    pub fn scale(
+        &mut self,
+        factor: f64,
+    ) -> &mut Self {
+        self.x *= factor;
+        self.y *= factor;
+        self.z *= factor;
+        self
+    }
+
+    pub fn scaled(
+        &mut self,
+        factor: f64,
+    ) -> Self {
+        let mut t = *self;
+
+        t.scale(factor);
+        t
+    }
 }

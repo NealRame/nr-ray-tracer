@@ -204,6 +204,9 @@ pub enum ObjectConfig {
     RotateY {
         angle: f64,
     },
+    Scale {
+        factor: f64,
+    },
     Translate {
         offset: DVec3,
     },
@@ -274,6 +277,13 @@ impl ObjectConfig {
             Some(Self::RotateY { angle }) => {
                 if let Some(object) = Self::try_make_object(objects, materials)? {
                     Ok(Some(Arc::new(RotateY::new(object, angle))))
+                } else {
+                    Err(anyhow!("Object creation failed"))
+                }
+            },
+            Some(Self::Scale { factor }) => {
+                if let Some(object) = Self::try_make_object(objects, materials)? {
+                    Ok(Some(Arc::new(Scale::new(object, factor))))
                 } else {
                     Err(anyhow!("Object creation failed"))
                 }
