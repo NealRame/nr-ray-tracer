@@ -314,6 +314,9 @@ impl CameraConfig {
 
 impl CameraConfig {
     pub fn merge_with(&mut self, other: &Self) {
+        if let Some(color) = other.background_color {
+            self.background_color.replace(color);
+        }
         if let Some(width) = other.width {
             self.width.replace(width);
         }
