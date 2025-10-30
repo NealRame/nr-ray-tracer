@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 use std::fs::{
-    self,
     File,
+    OpenOptions,
 };
 use std::io::{
     self,
@@ -47,7 +47,7 @@ fn read_binary_stl_vec3(input: &mut File) -> Result<DVec3> {
     let y = read_binary_stl_f32(input)? as f64;
     let z = read_binary_stl_f32(input)? as f64;
 
-    Ok(DVec3::new(x, z, y))
+    Ok(DVec3::new(x, z, -y))
 }
 
 fn read_binary_stl_triangle(input: &mut File) -> Result<(DVec3, DVec3, DVec3, DVec3)> {
@@ -87,9 +87,9 @@ pub fn run(args: &ConvertSTLArgs) -> Result<()> {
     let h = p_max.y - p_min.y;
     let w = p_max.z - p_min.z;
 
-    let k = args.scale/l.max(w).max(h);
+    let k = 1.0/l.max(w).max(h);
 
-    let objects =
+    let mut objects =
         stl_triangles
             .iter().copied()
             .map(|(_, a, b, c)| {
@@ -106,8 +106,10 @@ pub fn run(args: &ConvertSTLArgs) -> Result<()> {
             })
             .collect::<VecDeque<_>>();
 
+    objects.push_front(ObjectConfig::Group { count: objects.len() });
+
     let look_at = DVec3::new(k*l/2.0, k*h/2.0, 0.0);
-    let look_from = look_at - args.scale*DVec3::Z;
+    let look_from = look_at + DVec3::Z;
 
     let mut camera = CameraConfig {
         background_color: Some(DVec3::ONE),
@@ -132,16 +134,25 @@ pub fn run(args: &ConvertSTLArgs) -> Result<()> {
         objects,
     };
 
-    let contents = match args.format {
+    let header = format!("# model bbox: l={:.4} h={:.4} w={:.4}\n", k*l, k*h, k*w);
+    let body = match args.format {
         SceneConfigFormat::Json => serde_json::to_string_pretty(&scene_config)?,
         SceneConfigFormat::Toml => toml::to_string_pretty(&scene_config)?,
     };
 
-    if let Some(output) = args.output.as_ref() {
-        fs::write(output, &contents)?
+    let mut output: Box<dyn Write> = if let Some(path) = args.output.as_ref() {
+        Box::new(
+            OpenOptions::new()
+                .create_new(true)
+                .write(true)
+                .open(path)?
+        )
     } else {
-        io::stdout().write_all(contents.as_bytes())?;
-    }
+        Box::new(io::stdout())
+    };
+
+    output.write_all(header.as_bytes())?;
+    output.write_all(body.as_bytes())?;
 
     Ok(())
 }
