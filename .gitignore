@@ -9,7 +9,6 @@
 
 /.zed/debug.json
 
-/scenes/stls
 /scenes/.gitignore
 
 /target
