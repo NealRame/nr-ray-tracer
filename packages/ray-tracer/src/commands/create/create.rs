@@ -54,10 +54,6 @@ pub(super) struct ConvertSTLArgs {
     #[arg(short = 'o', long, value_name = "FILE")]
     pub output: Option<PathBuf>,
 
-    /// Output file path.
-    #[arg(short = 's', long, value_name = "SCALE", default_value = "1.0")]
-    pub scale: f64,
-
     /// STL input file
     pub stl_file: PathBuf,
 }
