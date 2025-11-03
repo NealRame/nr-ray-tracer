@@ -18,69 +18,59 @@ field_of_view = 20.0
 samples_per_pixel = 10
 ray_max_bounces = 10
 
-[[textures]]
-
-[textures.SolidColor]
+[textures.ground.SolidColor]
 color = [
     0.5,
     0.5,
     0.5,
 ]
 
-[[textures]]
-
-[textures.Image]
+[textures.earth.Image]
 path = "scenes/textures/earth.jpg"
 
-[[textures]]
-
-[textures.Image]
+[textures.moon.Image]
 path = "scenes/textures/moon.jpg"
 
-[[materials]]
+[materials.ground.Lambertian]
+texture = "ground"
 
-[materials.Lambertian]
-texture = 0
+[materials.moon.Lambertian]
+texture = "moon"
 
-[[materials]]
+[materials.earth.Lambertian]
+texture = "earth"
 
-[materials.Lambertian]
-texture = 1
+[instances]
 
-[[materials]]
+[[scene]]
 
-[materials.Lambertian]
-texture = 2
-
-[[objects]]
-
-[objects.Sphere]
+[scene.Sphere]
 center = [
     0.0,
     -1000.0,
     0.0,
 ]
 radius = 1000.0
-material = 0
+material = "ground"
 
-[[objects]]
+[[scene]]
 
-[objects.Sphere]
+[scene.Sphere]
 center = [
     0.0,
     10.0,
     0.0,
 ]
 radius = 10.0
-material = 1
+material = "earth"
 
-[[objects]]
+[[scene]]
 
-[objects.Sphere]
+[scene.Sphere]
 center = [
     -12.0,
     12.0,
     -20.0,
 ]
 radius = 3.0
-material = 2
+material = "moon"

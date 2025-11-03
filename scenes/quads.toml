@@ -18,79 +18,61 @@ field_of_view = 80.0
 samples_per_pixel = 10
 ray_max_bounces = 10
 
-[[textures]]
-
-[textures.SolidColor]
-color = [
-    1.0,
-    0.2,
-    0.2,
-]
-
-[[textures]]
-
-[textures.SolidColor]
-color = [
-    0.2,
-    1.0,
-    0.2,
-]
-
-[[textures]]
-
-[textures.SolidColor]
+[textures.solid_blue.SolidColor]
 color = [
     0.2,
     0.2,
     1.0,
 ]
 
-[[textures]]
+[textures.solid_red.SolidColor]
+color = [
+    1.0,
+    0.2,
+    0.2,
+]
 
-[textures.SolidColor]
+[textures.solid_orange.SolidColor]
 color = [
     1.0,
     0.5,
     0.0,
 ]
 
-[[textures]]
-
-[textures.SolidColor]
+[textures.solid_cyan.SolidColor]
 color = [
     0.2,
     0.8,
     0.8,
 ]
 
-[[materials]]
+[textures.solid_green.SolidColor]
+color = [
+    0.2,
+    1.0,
+    0.2,
+]
 
-[materials.Lambertian]
-texture = 0
+[materials.lambertian_orange.Lambertian]
+texture = "solid_orange"
 
-[[materials]]
+[materials.lambertian_cyan.Lambertian]
+texture = "solid_cyan"
 
-[materials.Lambertian]
-texture = 1
+[materials.lambertian_green.Lambertian]
+texture = "solid_green"
 
-[[materials]]
+[materials.lambertian_red.Lambertian]
+texture = "solid_red"
 
-[materials.Lambertian]
-texture = 2
+[materials.lambertian_blue.Lambertian]
+texture = "solid_blue"
 
-[[materials]]
+[instances]
 
-[materials.Lambertian]
-texture = 3
+[[scene]]
 
-[[materials]]
-
-[materials.Lambertian]
-texture = 4
-
-[[objects]]
-
-[objects.Quad]
+[scene.Quad]
 point = [
     -3.0,
     -2.0,
@@ -106,11 +88,11 @@ v = [
     4.0,
     0.0,
 ]
-material = 0
+material = "lambertian_red"
 
-[[objects]]
+[[scene]]
 
-[objects.Quad]
+[scene.Quad]
 point = [
     -2.0,
     -2.0,
@@ -126,11 +108,11 @@ v = [
     4.0,
     0.0,
 ]
-material = 1
+material = "lambertian_green"
 
-[[objects]]
+[[scene]]
 
-[objects.Quad]
+[scene.Quad]
 point = [
     3.0,
     -2.0,
@@ -146,11 +128,11 @@ v = [
     4.0,
     0.0,
 ]
-material = 2
+material = "lambertian_blue"
 
-[[objects]]
+[[scene]]
 
-[objects.Quad]
+[scene.Quad]
 point = [
     -2.0,
     3.0,
@@ -166,11 +148,11 @@ v = [
     0.0,
     4.0,
 ]
-material = 3
+material = "lambertian_orange"
 
-[[objects]]
+[[scene]]
 
-[objects.Quad]
+[scene.Quad]
 point = [
     -2.0,
     -3.0,
@@ -186,4 +168,4 @@ v = [
     0.0,
     -4.0,
 ]
-material = 4
+material = "lambertian_cyan"

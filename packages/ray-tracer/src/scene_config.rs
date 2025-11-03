@@ -1,4 +1,4 @@
-use std::collections::VecDeque;
+use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -21,8 +21,8 @@ use crate::cli::*;
 #[derive(Debug, Deserialize, Serialize)]
 pub enum TextureConfig {
     Checker {
-        even: Option<usize>,
-        odd: Option<usize>,
+        even: Option<Box<str>>,
+        odd: Option<Box<str>>,
         scale: Option<f64>,
     },
     Image {
@@ -47,7 +47,7 @@ pub enum TextureConfig {
 impl TextureConfig {
     pub fn try_make_texture(
         &self,
-        textures: &[Arc<dyn Texture + Send + Sync>],
+        textures: &HashMap<Box<str>, Arc<dyn Texture + Send + Sync>>,
     ) -> Result<Arc<dyn Texture + Send + Sync>> {
         match self {
             Self::Checker {
@@ -57,7 +57,7 @@ impl TextureConfig {
             } => {
                 let mut checker_builder = CheckerBuilder::default();
 
-                if let Some(even) = *even {
+                if let Some(even) = even {
                     checker_builder.with_even_texture(Some(
                         textures
                             .get(even)
@@ -66,7 +66,7 @@ impl TextureConfig {
                     ));
                 }
 
-                if let Some(odd) = *odd {
+                if let Some(odd) = odd {
                     checker_builder.with_odd_texture(Some(
                         textures
                             .get(odd)
@@ -124,24 +124,24 @@ pub enum MaterialConfig {
     },
     DiffuseLight {
         intensity: f64,
-        texture: usize,
+        texture: Box<str>,
     },
     Lambertian {
-        texture: usize,
+        texture: Box<str>,
     },
     Metal {
         fuzz: f64,
-        texture: usize,
+        texture: Box<str>,
     },
 }
 
 impl MaterialConfig {
     pub fn try_make_material(
         &self,
-        textures: &[Arc<dyn Texture + Send + Sync>],
+        textures: &HashMap<Box<str>, Arc<dyn Texture + Send + Sync>>,
     ) -> Result<Arc<dyn Material + Send + Sync>> {
         match self {
-            Self::Dielectric { refraction_index } => {
+            Self::Dielectric {refraction_index } => {
                 Ok(Arc::new(Dielectric::new(*refraction_index)))
             },
             Self::DiffuseLight { intensity, texture } => {
@@ -149,7 +149,7 @@ impl MaterialConfig {
 
                 diffuse_light_builder.with_intensity(*intensity);
                 diffuse_light_builder.with_texture(textures
-                    .get(*texture)
+                    .get(texture)
                     .ok_or(anyhow!("invalid texture index"))?
                     .clone()
                 );
@@ -157,22 +157,25 @@ impl MaterialConfig {
                 Ok(Arc::new(diffuse_light_builder.build()))
             },
             Self::Lambertian { texture } => {
-                Ok(Arc::new(Lambertian::with_texture(textures
-                    .get(*texture)
+                let lambertian = Lambertian::with_texture(textures
+                    .get(texture)
                     .ok_or(anyhow!("invalid texture index"))?
                     .clone()
-                )))
+                );
+
+                Ok(Arc::new(lambertian))
             },
             Self::Metal { texture, fuzz } => {
                 let mut metal_builder = MetalBuilder::default();
 
                 metal_builder.with_texture(Some(
                     textures
-                        .get(*texture)
+                        .get(texture)
                         .ok_or(anyhow!("invalid texture index"))?
                         .clone()
                 ));
                 metal_builder.with_fuzz(Some(*fuzz));
+
                 Ok(Arc::new(metal_builder.build()))
             },
         }
@@ -185,125 +188,135 @@ pub enum ObjectConfig {
         point: DVec3,
         u: DVec3,
         v: DVec3,
-        material: usize,
+        material: Box<str>,
     },
     Triangle {
         point: DVec3,
         u: DVec3,
         v: DVec3,
-        material: usize,
+        material: Box<str>,
     },
     Sphere {
         center: DVec3,
         radius: f64,
-        material: usize,
+        material: Box<str>,
     },
     Group {
-        count: usize,
+        objects: Vec<ObjectConfig>,
     },
     RotateY {
         angle: f64,
+        object: Box<ObjectConfig>,
     },
     Scale {
         factor: f64,
+        object: Box<ObjectConfig>,
     },
     Translate {
         offset: DVec3,
+        object: Box<ObjectConfig>,
+    },
+    Ref {
+        id: Box<str>,
     },
 }
 
 impl ObjectConfig {
     pub fn try_make_object(
-        objects: &mut VecDeque<ObjectConfig>,
-        materials: &[Arc<dyn Material + Send + Sync>],
-    ) -> Result<Option<Arc<dyn Hitable + Send + Sync>>> {
-        match objects.pop_front() {
-            Some(Self::Quad { point, u, v, material }) => {
-                let mut plane_builder = PlaneBuilder::default();
+        &self,
+        instances: &HashMap<Box<str>, Arc<dyn Hitable + Send + Sync>>,
+        materials: &HashMap<Box<str>, Arc<dyn Material + Send + Sync>>,
+    ) -> Result<Arc<dyn Hitable + Send + Sync>> {
+        match self {
+            Self::Quad { point, u, v, material } => {
                 let material = materials
                     .get(material)
                     .ok_or(anyhow!("invalid material index"))?
                     .clone();
 
-                plane_builder.with_point(point);
-                plane_builder.with_u(u);
-                plane_builder.with_v(v);
+                let mut plane_builder = PlaneBuilder::default();
+
+                plane_builder.with_point(*point);
+                plane_builder.with_u(*u);
+                plane_builder.with_v(*v);
                 plane_builder.with_shape(Shape::Quad);
                 plane_builder.with_material(material);
 
-                Ok(Some(Arc::new(plane_builder.build())))
+                Ok(Arc::new(plane_builder.build()))
             },
-            Some(Self::Triangle { point, u, v, material }) => {
-                let mut plane_builder = PlaneBuilder::default();
+            Self::Triangle { point, u, v, material } => {
                 let material = materials
                     .get(material)
                     .ok_or(anyhow!("invalid material index"))?
                     .clone();
 
-                plane_builder.with_point(point);
-                plane_builder.with_u(u);
-                plane_builder.with_v(v);
+                let mut plane_builder = PlaneBuilder::default();
+
+                plane_builder.with_point(*point);
+                plane_builder.with_u(*u);
+                plane_builder.with_v(*v);
                 plane_builder.with_shape(Shape::Triangle);
                 plane_builder.with_material(material);
 
-                Ok(Some(Arc::new(plane_builder.build())))
+                Ok(Arc::new(plane_builder.build()))
             },
-            Some(Self::Sphere { center, radius, material }) => {
-                let mut sphere_builder = SphereBuilder::default();
+            Self::Sphere { center, radius, material } => {
                 let material = materials
                     .get(material)
                     .ok_or(anyhow!("invalid material index"))?
                     .clone();
 
-                sphere_builder.with_center(center);
-                sphere_builder.with_radius(radius);
+                let mut sphere_builder = SphereBuilder::default();
+
+                sphere_builder.with_center(*center);
+                sphere_builder.with_radius(*radius);
                 sphere_builder.with_material(material);
 
-                Ok(Some(Arc::new(sphere_builder.build())))
+                Ok(Arc::new(sphere_builder.build()))
             },
-            Some(Self::Group { count }) => {
+            Self::Group { objects } => {
                 let mut group = Vec::new();
 
-                for _ in 0..count {
-                    if let Some(object) = Self::try_make_object(objects, materials)? {
-                        group.push(object);
-                    } else {
-                        return Err(anyhow!("Object creation failed"));
-                    }
+                for object_config in objects {
+                    let object = object_config.try_make_object(instances, materials)?;
+
+                    group.push(object);
                 }
 
-                Ok(Some(Arc::new(BVH::from(group.as_mut_slice()))))
+                Ok(Arc::new(BVH::from(group.as_mut_slice())))
             },
-            Some(Self::RotateY { angle }) => {
-                if let Some(object) = Self::try_make_object(objects, materials)? {
-                    Ok(Some(Arc::new(RotateY::new(object, angle))))
-                } else {
-                    Err(anyhow!("Object creation failed"))
-                }
+            Self::RotateY { object, angle } => {
+                let object = object.try_make_object(instances, materials)?;
+
+                Ok(Arc::new(RotateY::new(object, *angle)))
             },
-            Some(Self::Scale { factor }) => {
-                if let Some(object) = Self::try_make_object(objects, materials)? {
-                    Ok(Some(Arc::new(Scale::new(object, factor))))
-                } else {
-                    Err(anyhow!("Object creation failed"))
-                }
+            Self::Scale { object, factor } => {
+                let object = object.try_make_object(instances, materials)?;
+
+                Ok(Arc::new(Scale::new(object, *factor)))
             },
-            Some(Self::Translate { offset }) => {
-                if let Some(object) = Self::try_make_object(objects, materials)? {
-                    Ok(Some(Arc::new(Translate::new(object, offset))))
-                } else {
-                    Err(anyhow!("Object creation failed"))
-                }
+            Self::Translate { object, offset } => {
+                let object = object.try_make_object(instances, materials)?;
+
+                Ok(Arc::new(Translate::new(object, *offset)))
             },
-            None => Ok(None)
+            Self::Ref { id } => {
+                let object = instances
+                    .get(id)
+                    .ok_or(anyhow!("invalid object id"))?
+                    .clone();
+
+                Ok(object)
+            },
         }
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize)]
 pub struct SceneConfig {
     pub camera: CameraConfig,
-    pub textures: VecDeque<TextureConfig>,
-    pub materials: VecDeque<MaterialConfig>,
-    pub objects: VecDeque<ObjectConfig>,
+    pub textures: HashMap<Box<str>, TextureConfig>,
+    pub materials: HashMap<Box<str>, MaterialConfig>,
+    pub instances: HashMap<Box<str>, ObjectConfig>,
+    pub scene: Vec<ObjectConfig>,
 }

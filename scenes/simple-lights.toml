@@ -18,86 +18,72 @@ field_of_view = 20.0
 samples_per_pixel = 10
 ray_max_bounces = 10
 
-[[textures]]
-
-[textures.SolidColor]
+[textures.tex_0000002.SolidColor]
 color = [
-    0.4,
-    0.4,
-    0.4,
+    1.0,
+    0.5,
+    0.25,
 ]
 
-[[textures]]
+[textures.tex_0000003.SolidColor]
+color = [
+    0.25,
+    0.5,
+    1.0,
+]
 
-[textures.Marble]
+[textures.tex_0000001.Marble]
 frequency = 0.2
 
-[[textures]]
-
-[textures.SolidColor]
+[textures.tex_0000000.SolidColor]
 color = [
-    1.0,
-    0.5,
-    0.25,
+    0.4,
+    0.4,
+    0.4,
 ]
 
-[[textures]]
+[materials.mat_0000000.Lambertian]
+texture = "tex_0000000"
 
-[textures.SolidColor]
-color = [
-    0.25,
-    0.5,
-    1.0,
-]
+[materials.mat_0000001.Lambertian]
+texture = "tex_0000001"
 
-[[materials]]
-
-[materials.Lambertian]
-texture = 0
-
-[[materials]]
-
-[materials.Lambertian]
-texture = 1
-
-[[materials]]
-
-[materials.DiffuseLight]
+[materials.mat_0000003.DiffuseLight]
 intensity = 4.0
-texture = 2
+texture = "tex_0000003"
 
-[[materials]]
-
-[materials.DiffuseLight]
+[materials.mat_0000002.DiffuseLight]
 intensity = 4.0
-texture = 3
+texture = "tex_0000002"
 
-[[objects]]
+[instances]
 
-[objects.Sphere]
+[[scene]]
+
+[scene.Sphere]
 center = [
     0.0,
     -1000000.0,
     0.0,
 ]
 radius = 1000000.0
-material = 0
+material = "mat_0000000"
 
-[[objects]]
+[[scene]]
 
-[objects.Sphere]
+[scene.Sphere]
 center = [
     0.0,
     2.0,
     0.0,
 ]
 radius = 2.0
-material = 1
+material = "mat_0000001"
 
-[[objects]]
+[[scene]]
 
-[objects.Quad]
-top_left = [
+[scene.Quad]
+point = [
     3.0,
     1.0,
     -2.0,
@@ -112,15 +98,15 @@ v = [
     2.0,
     0.0,
 ]
-material = 2
+material = "mat_0000002"
 
-[[objects]]
+[[scene]]
 
-[objects.Sphere]
+[scene.Sphere]
 center = [
     0.0,
     7.0,
     0.0,
 ]
 radius = 1.0
-material = 3
+material = "mat_0000003"

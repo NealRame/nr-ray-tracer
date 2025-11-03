@@ -313,7 +313,7 @@ impl CameraConfig {
 }
 
 impl CameraConfig {
-    pub fn merge_with(&mut self, other: &Self) {
+    pub fn merge_with(&mut self, other: &Self) -> &mut Self {
         if let Some(color) = other.background_color {
             self.background_color.replace(color);
         }
@@ -347,6 +347,8 @@ impl CameraConfig {
         if let Some(look_from) = other.look_from {
             self.look_from.replace(look_from);
         }
+
+        self
     }
 
     pub fn try_update(

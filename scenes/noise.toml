@@ -18,112 +18,84 @@ field_of_view = 30.0
 samples_per_pixel = 10
 ray_max_bounces = 10
 
-[[textures]]
-
-[textures.SolidColor]
-color = [
-    0.5,
-    0.5,
-    0.5,
-]
-
-[[textures]]
-
-[textures.Noise]
-frequency = 0.2
-octaves = 8
-
-[[textures]]
-
-[textures.Marble]
+[textures.sphere2.Marble]
 frequency = 0.2
 
-[[textures]]
-
-[textures.SolidColor]
+[textures.sphere3.SolidColor]
 color = [
     1.0,
     0.5,
     0.65,
 ]
 
-[[textures]]
+[textures.sphere1.Noise]
+frequency = 0.2
+octaves = 8
 
-[textures.SolidColor]
+[textures.ground.SolidColor]
 color = [
-    0.23,
-    0.51,
-    0.88,
+    0.5,
+    0.5,
+    0.5,
 ]
 
-[[materials]]
+[materials.ground.Lambertian]
+texture = "ground"
 
-[materials.Lambertian]
-texture = 0
-
-[[materials]]
-
-[materials.Metal]
-fuzz = 0.05
-texture = 1
-
-[[materials]]
-
-[materials.Lambertian]
-texture = 2
-
-[[materials]]
-
-[materials.Metal]
+[materials.sphere2.Metal]
 fuzz = 0.9
-texture = 3
+texture = "sphere2"
 
-[[materials]]
+[materials.sphere1.Metal]
+fuzz = 0.05
+texture = "sphere1"
 
-[materials.Metal]
+[materials.sphere3.Metal]
 fuzz = 0.8
-texture = 4
+texture = "sphere3"
 
-[[objects]]
+[instances]
 
-[objects.Sphere]
+[[scene]]
+
+[scene.Sphere]
 center = [
     0.0,
     -1000000.0,
     0.0,
 ]
 radius = 1000000.0
-material = 0
+material = "ground"
 
-[[objects]]
+[[scene]]
 
-[objects.Sphere]
+[scene.Sphere]
 center = [
     -40.0,
     10.0,
     20.0,
 ]
 radius = 10.0
-material = 2
+material = "sphere1"
 
-[[objects]]
+[[scene]]
 
-[objects.Sphere]
+[scene.Sphere]
 center = [
     30.0,
     10.0,
     -20.0,
 ]
 radius = 10.0
-material = 3
+material = "sphere2"
 
-[[objects]]
+[[scene]]
 
-[objects.Sphere]
+[scene.Sphere]
 center = [
     10.0,
     10.0,
     25.0,
 ]
 radius = 10.0
-material = 4
+material = "sphere3"

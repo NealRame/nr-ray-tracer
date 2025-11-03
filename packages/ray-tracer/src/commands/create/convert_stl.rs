@@ -1,10 +1,5 @@
-use std::collections::VecDeque;
-use std::fs::{
-    File,
-    OpenOptions,
-};
+use std::fs::File;
 use std::io::{
-    self,
     Read,
     Seek,
     SeekFrom,
@@ -89,7 +84,22 @@ pub fn run(args: &ConvertSTLArgs) -> Result<()> {
 
     let k = 1.0/l.max(w).max(h);
 
-    let mut objects =
+    let mut scene_config = SceneConfig::default();
+
+    let tex_id = Box::<str>::from("#tex_0001");
+    let mat_id = Box::<str>::from("#mat_0001");
+    let obj_id = Box::<str>::from("#obj_0001");
+
+    scene_config.textures.insert(
+        tex_id.clone(),
+        TextureConfig::SolidColor { color: DVec3::X + DVec3::Y },
+    );
+    scene_config.materials.insert(
+        mat_id.clone(),
+        MaterialConfig::Lambertian { texture: tex_id.clone() },
+    );
+
+    let objects =
         stl_triangles
             .iter().copied()
             .map(|(_, a, b, c)| {
@@ -101,38 +111,30 @@ pub fn run(args: &ConvertSTLArgs) -> Result<()> {
                     point,
                     u,
                     v,
-                    material: 0,
+                    material: mat_id.clone(),
                 }
             })
-            .collect::<VecDeque<_>>();
+            .collect::<Vec<_>>();
 
-    objects.push_front(ObjectConfig::Group { count: objects.len() });
+    scene_config.instances.insert(
+        obj_id.clone(),
+        ObjectConfig::Group { objects },
+    );
 
     let look_at = DVec3::new(k*l/2.0, k*h/2.0, 0.0);
     let look_from = look_at + DVec3::Z;
 
-    let mut camera = CameraConfig {
-        background_color: Some(DVec3::ONE),
-        look_at: Some(look_at),
-        look_from: Some(look_from),
-        field_of_view: Some(50.),
-        ray_max_bounces: Some(50),
-        samples_per_pixel: Some(200),
-        ..CameraConfig::default()
-    };
-
-    camera.merge_with(&args.camera);
-
-    let scene_config = SceneConfig {
-        camera,
-        textures: VecDeque::from(vec![
-            TextureConfig::SolidColor { color: DVec3::X + DVec3::Y },
-        ]),
-        materials: VecDeque::from(vec![
-            MaterialConfig::Lambertian { texture: 0 },
-        ]),
-        objects,
-    };
+    scene_config.camera
+        .merge_with(&CameraConfig {
+            background_color: Some(DVec3::ONE),
+            look_at: Some(look_at),
+            look_from: Some(look_from),
+            field_of_view: Some(50.),
+            ray_max_bounces: Some(50),
+            samples_per_pixel: Some(200),
+            ..CameraConfig::default()
+        })
+        .merge_with(&args.camera);
 
     let header = format!("# model bbox: l={:.4} h={:.4} w={:.4}\n", k*l, k*h, k*w);
     let body = match args.format {
@@ -140,16 +142,7 @@ pub fn run(args: &ConvertSTLArgs) -> Result<()> {
         SceneConfigFormat::Toml => toml::to_string_pretty(&scene_config)?,
     };
 
-    let mut output: Box<dyn Write> = if let Some(path) = args.output.as_ref() {
-        Box::new(
-            OpenOptions::new()
-                .create_new(true)
-                .write(true)
-                .open(path)?
-        )
-    } else {
-        Box::new(io::stdout())
-    };
+    let mut output = get_output(args.output.as_ref(), args.force_overwrite)?;
 
     output.write_all(header.as_bytes())?;
     output.write_all(body.as_bytes())?;

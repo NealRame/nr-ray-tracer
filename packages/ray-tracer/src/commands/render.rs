@@ -1,6 +1,10 @@
+use std::collections::HashMap;
 use std::fs;
 use std::ffi::OsStr;
-use std::path::PathBuf;
+use std::path::{
+    Path,
+    PathBuf,
+};
 use std::sync::Arc;
 
 use anyhow::{
@@ -106,64 +110,83 @@ fn dump_image(
     Ok(())
 }
 
+type TextureMap = HashMap<Box<str>, Arc<dyn Texture + Send + Sync>>;
+type MaterialMap = HashMap<Box<str>, Arc<dyn Material + Send + Sync>>;
+type InstanceMap = HashMap<Box<str>, Arc<dyn Hitable + Send + Sync>>;
+
 impl SceneConfig {
-    pub fn try_make_scene(
-        self,
-        args: &Render,
-    ) -> Result<Scene> {
-        let mut textures = Vec::<Arc::<dyn Texture + Send + Sync>>::new();
-        for texture_config in self.textures {
-            textures.push(
-                texture_config.try_make_texture(textures.as_slice())?
-            );
+    pub fn try_build(self) -> Result<Scene> {
+        let mut textures = TextureMap::new();
+        for (texture_id, texture_config) in self.textures {
+            let texture = texture_config.try_make_texture(&textures)?;
+            textures.insert(texture_id.clone(), texture);
         }
 
-        let mut materials = Vec::<Arc::<dyn Material + Send + Sync>>::new();
-        for material_config in self.materials {
-            materials.push(
-                material_config.try_make_material(textures.as_slice())?
-            );
+        let mut materials = MaterialMap::new();
+        for (material_id, material_config) in self.materials {
+            let material = material_config.try_make_material(&textures)?;
+            materials.insert(material_id.clone(), material);
         }
 
-        let mut object_configs = self.objects;
-        let mut objects = Vec::<Arc::<dyn Hitable + Send + Sync>>::new();
-        while let Some(object) = ObjectConfig::try_make_object(
-            &mut object_configs,
-            &materials,
-        )? {
+        let mut instances = InstanceMap::new();
+        for (instance_id, instance_config) in self.instances {
+            let object = instance_config.try_make_object(
+                &instances,
+                &materials,
+            )?;
+            instances.insert(instance_id.clone(), object);
+        }
+
+        let mut objects = Vec::new();
+        for object_config in self.scene {
+            let object = object_config.try_make_object(
+                &instances,
+                &materials,
+            )?;
             objects.push(object);
         }
 
         let mut camera_builder = CameraBuilder::default();
 
         self.camera.try_update(&mut camera_builder)?;
-        args.camera.try_update(&mut camera_builder)?;
+
+        let camera = camera_builder.build();
 
         Ok(Scene {
-            camera: camera_builder.build(),
+            camera,
             objects: BVH::from(objects.as_mut_slice()),
         })
     }
 
-    pub fn try_load_scene(args: &Render) -> Result<Scene> {
-        let s = fs::read_to_string(&args.scene)?;
+    pub fn try_load_scene<P: AsRef<Path>>(path: P) -> Result<Self> {
+        let ext = path.as_ref().extension().and_then(OsStr::to_str);
 
-        let config = match args.scene.extension().and_then(OsStr::to_str) {
-            Some("json") => serde_json::from_str::<SceneConfig>(&s)?,
-            Some("toml") => toml::from_str::<SceneConfig>(&s)?,
+        let scene_config = match ext {
+            Some("json") => {
+                let s = fs::read_to_string(path.as_ref())?;
+                serde_json::from_str::<SceneConfig>(&s)?
+            },
+            Some("toml") => {
+                let s = fs::read_to_string(path.as_ref())?;
+                toml::from_str::<SceneConfig>(&s)?
+            },
             _ => {
                 return Err(anyhow!("invalid scene file format!"));
             }
         };
 
-        config.try_make_scene(args)
+        Ok(scene_config)
     }
 }
 
 pub fn run(args: &Render) -> Result<()> {
     let (mut file, format) = args.image.get_file()?;
 
-    let scene = SceneConfig::try_load_scene(&args)?;
+    let mut scene_config = SceneConfig::try_load_scene(args.scene.as_path())?;
+
+    scene_config.camera.merge_with(&args.camera);
+
+    let scene = scene_config.try_build()?;
     let image = render_scene(args, &scene);
 
     dump_image(args, &mut file, image, format)
