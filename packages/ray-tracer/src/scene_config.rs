@@ -221,6 +221,9 @@ pub enum ObjectConfig {
         offset: DVec3,
         object: Box<ObjectConfig>,
     },
+    Scene {
+        path: PathBuf,
+    },
     Ref {
         id: Box<str>,
     },
@@ -304,6 +307,11 @@ impl ObjectConfig {
                 let object = object.try_make_object(instances, materials)?;
 
                 Ok(Arc::new(Translate::new(object, *offset)))
+            },
+            Self::Scene { path } => {
+                let scene = SceneConfig::try_load_scene(path)?.try_build()?;
+
+                Ok(Arc::new(scene.objects))
             },
             Self::Ref { id } => {
                 let object = instances
