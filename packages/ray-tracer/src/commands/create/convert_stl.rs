@@ -86,9 +86,9 @@ pub fn run(args: &ConvertSTLArgs) -> Result<()> {
 
     let mut scene_config = SceneConfig::default();
 
-    let tex_id = Box::<str>::from("#tex_0001");
-    let mat_id = Box::<str>::from("#mat_0001");
-    let obj_id = Box::<str>::from("#obj_0001");
+    let tex_id = Box::<str>::from("tex_0001");
+    let mat_id = Box::<str>::from("mat_0001");
+    let obj_id = Box::<str>::from("obj_0001");
 
     scene_config.textures.insert(
         tex_id.clone(),
@@ -120,6 +120,8 @@ pub fn run(args: &ConvertSTLArgs) -> Result<()> {
         obj_id.clone(),
         ObjectConfig::Group { objects },
     );
+
+    scene_config.scene.push(ObjectConfig::Ref { id: obj_id.clone() });
 
     let look_at = DVec3::new(k*l/2.0, k*h/2.0, 0.0);
     let look_from = look_at + DVec3::Z;
