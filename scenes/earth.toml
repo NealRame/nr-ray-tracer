@@ -14,9 +14,12 @@ look_from = [
     20.0,
     3.0,
 ]
-field_of_view = 20.0
+field_of_view = 35.0
 samples_per_pixel = 10
 ray_max_bounces = 10
+
+[textures.earth.Image]
+path = "scenes/textures/earth.jpg"
 
 [textures.ground.SolidColor]
 color = [
@@ -25,22 +28,17 @@ color = [
     0.5,
 ]
 
-[textures.earth.Image]
-path = "scenes/textures/earth.jpg"
-
 [textures.moon.Image]
 path = "scenes/textures/moon.jpg"
 
 [materials.ground.Lambertian]
 texture = "ground"
 
-[materials.moon.Lambertian]
-texture = "moon"
-
 [materials.earth.Lambertian]
 texture = "earth"
 
-[instances]
+[materials.moon.Lambertian]
+texture = "moon"
 
 [[scene]]
 

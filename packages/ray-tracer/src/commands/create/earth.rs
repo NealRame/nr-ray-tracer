@@ -43,31 +43,31 @@ pub fn run(args: &CreateArgs) -> Result<()> {
 
     scene_config.materials.insert(
         ground_id.clone(),
-        MaterialConfig::Lambertian { texture: ground_id.clone() },
+        MaterialConfig::Lambertian { texture: Some(ground_id.clone()) },
     );
     scene_config.materials.insert(
         earth_id.clone(),
-        MaterialConfig::Lambertian { texture: earth_id.clone() },
+        MaterialConfig::Lambertian { texture: Some(earth_id.clone()) },
     );
     scene_config.materials.insert(
         moon_id.clone(),
-        MaterialConfig::Lambertian { texture: moon_id.clone() },
+        MaterialConfig::Lambertian { texture: Some(moon_id.clone()) },
     );
 
     scene_config.scene.push(ObjectConfig::Sphere {
         center: GROUND_SPHERE_RADIUS*DVec3::NEG_Y,
         radius: GROUND_SPHERE_RADIUS,
-        material: ground_id.clone(),
+        material: Some(ground_id.clone()),
     });
     scene_config.scene.push(ObjectConfig::Sphere {
         center: DVec3::new(0., 10., 0.),
         radius: 10.,
-        material: earth_id.clone(),
+        material: Some(earth_id.clone()),
     });
     scene_config.scene.push(ObjectConfig::Sphere {
         center: DVec3::new(-12., 12., -20.),
         radius: 3.,
-        material: moon_id.clone(),
+        material: Some(moon_id.clone()),
     });
 
     let contents = match args.format {

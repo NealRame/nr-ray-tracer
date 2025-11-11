@@ -15,8 +15,8 @@ pub fn run(args: &CreateArgs) -> Result<()> {
     scene_config.camera
         .merge_with(&CameraConfig {
             background_color: Some(DVec3::new(0.7, 0.8, 1.0)),
-            look_from: Some(70.*DVec3::X + 30.*DVec3::Y),
-            look_at: Some(10.*DVec3::Y + 2.*DVec3::NEG_Z),
+            look_from: Some(DVec3::new(30., 20., -60.)),
+            look_at: Some(DVec3::new(20., 10., -20.)),
             field_of_view: Some(30.),
             ray_max_bounces: Some(10),
             samples_per_pixel: Some(10),
@@ -33,12 +33,12 @@ pub fn run(args: &CreateArgs) -> Result<()> {
         );
         scene_config.materials.insert(
             id.clone(),
-            MaterialConfig::Lambertian { texture: id.clone() },
+            MaterialConfig::Lambertian { texture: Some(id.clone()) },
         );
         scene_config.scene.push(ObjectConfig::Sphere {
             center: GROUND_SPHERE_RADIUS*DVec3::NEG_Y,
             radius: GROUND_SPHERE_RADIUS,
-            material: id.clone(),
+            material: Some(id.clone()),
         });
     } {
         let id: Box<str> = Box::from("sphere1");
@@ -55,12 +55,15 @@ pub fn run(args: &CreateArgs) -> Result<()> {
         );
         scene_config.materials.insert(
             id.clone(),
-            MaterialConfig::Metal { texture: id.clone(), fuzz: 0.05 },
+            MaterialConfig::Metal {
+                texture: Some(id.clone()),
+                fuzz: 0.05,
+            },
         );
         scene_config.scene.push(ObjectConfig::Sphere {
-            center: DVec3::new(-40., 10., 20.),
+            center: DVec3::new(-30., 10., 10.),
             radius: 10.,
-            material: id.clone(),
+            material: Some(id.clone()),
         });
     } {
         let id: Box<str> = Box::from("sphere2");
@@ -74,12 +77,15 @@ pub fn run(args: &CreateArgs) -> Result<()> {
         );
         scene_config.materials.insert(
             id.clone(),
-            MaterialConfig::Metal { texture: id.clone(), fuzz: 0.9 }
+            MaterialConfig::Metal {
+                texture: Some(id.clone()),
+                fuzz: 0.9,
+            }
         );
         scene_config.scene.push(ObjectConfig::Sphere {
-            center: DVec3::new(30., 10., -20.),
+            center: DVec3::new(20., 10., -20.),
             radius: 10.,
-            material: id.clone(),
+            material: Some(id.clone()),
         });
     } {
         let id: Box<str> = Box::from("sphere3");
@@ -90,12 +96,15 @@ pub fn run(args: &CreateArgs) -> Result<()> {
         );
         scene_config.materials.insert(
             id.clone(),
-            MaterialConfig::Metal { texture: id.clone(), fuzz: 0.8 },
+            MaterialConfig::Metal {
+                texture: Some(id.clone()),
+                fuzz: 0.8,
+            },
         );
         scene_config.scene.push(ObjectConfig::Sphere {
             center: DVec3::new(10., 10., 25.),
             radius: 10.,
-            material: id.clone(),
+            material: Some(id.clone()),
         });
     }
 

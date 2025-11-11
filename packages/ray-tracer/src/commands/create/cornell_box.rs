@@ -31,7 +31,9 @@ fn generate_lambertian_material(
 
     scene_config.materials.insert(
         id.clone(),
-        MaterialConfig::Lambertian { texture },
+        MaterialConfig::Lambertian {
+            texture: Some(texture),
+        },
     );
     id
 }
@@ -45,7 +47,10 @@ fn generate_metal_material(
 
     scene_config.materials.insert(
         id.clone(),
-        MaterialConfig::Metal { texture, fuzz },
+        MaterialConfig::Metal {
+            texture: Some(texture),
+            fuzz,
+        },
     );
     id
 }
@@ -59,7 +64,10 @@ fn generate_light(
 
     scene_config.materials.insert(
         id.clone(),
-        MaterialConfig::DiffuseLight { texture, intensity }
+        MaterialConfig::DiffuseLight {
+            texture: Some(texture),
+            intensity,
+        }
     );
     id
 }
@@ -82,47 +90,48 @@ fn generate_box(
             point: DVec3::new(min_x, min_y, max_z),
             u: dx,
             v: dy,
-            material: material.clone(),
+            material: Some(material.clone()),
         },
         ObjectConfig::Quad {
 
             point: DVec3::new(max_x, min_y, max_z),
             u: -dz,
             v: dy,
-            material: material.clone(),
+            material: Some(material.clone()),
         },
         ObjectConfig::Quad {
 
             point: DVec3::new(max_x, min_y, min_z),
             u: -dx,
             v: dy,
-            material: material.clone(),
+            material: Some(material.clone()),
         },
         ObjectConfig::Quad {
 
             point: DVec3::new(min_x, min_y, min_z),
             u: dz,
             v: dy,
-            material: material.clone(),
+            material: Some(material.clone()),
         },
         ObjectConfig::Quad {
 
             point: DVec3::new(min_x, max_y, max_z),
             u: dx,
             v: -dz,
-            material: material.clone(),
+            material: Some(material.clone()),
         },
         ObjectConfig::Quad {
 
             point: DVec3::new(min_x, min_y, min_z),
             u: dx,
             v: dz,
-            material: material.clone(),
+            material: Some(material.clone()),
         },
     ];
 
     Box::new(ObjectConfig::Group {
         objects,
+        material: None,
     })
 }
 
@@ -149,37 +158,37 @@ fn generate_scene(scene_config: &mut SceneConfig) {
         point: DVec3::ZERO,
         u: 555.*DVec3::X,
         v: 555.*DVec3::Z,
-        material: mat_white.clone(),
+        material: Some(mat_white.clone()),
     });
     scene_config.scene.push(ObjectConfig::Quad {
         point: 555.*DVec3::ONE,
         u: 555.*DVec3::NEG_X,
         v: 555.*DVec3::NEG_Z,
-        material: mat_white.clone(),
+        material: Some(mat_white.clone()),
     });
     scene_config.scene.push(ObjectConfig::Quad {
         point: 555.*DVec3::Z,
         u: 555.*DVec3::X,
         v: 555.*DVec3::Y,
-        material: mat_white.clone(),
+        material: Some(mat_white.clone()),
     });
     scene_config.scene.push(ObjectConfig::Quad {
         point: 555.*DVec3::X,
         u: 555.*DVec3::Y,
         v: 555.*DVec3::Z,
-        material: mat_green,
+        material: Some(mat_green),
     });
     scene_config.scene.push(ObjectConfig::Quad {
         point: DVec3::ZERO,
         u: 555.*DVec3::Y,
         v: 555.*DVec3::Z,
-        material: mat_red,
+        material: Some(mat_red),
     });
     scene_config.scene.push(ObjectConfig::Quad {
         point: DVec3::new(343., 554., 332.),
         u: 130.*DVec3::NEG_X,
         v: 105.*DVec3::NEG_Z,
-        material: mat_ligth,
+        material: Some(mat_ligth),
     });
 
     scene_config.scene.push(ObjectConfig::Translate {

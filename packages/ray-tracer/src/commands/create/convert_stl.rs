@@ -86,19 +86,6 @@ pub fn run(args: &ConvertSTLArgs) -> Result<()> {
 
     let mut scene_config = SceneConfig::default();
 
-    let tex_id = Box::<str>::from("tex_0001");
-    let mat_id = Box::<str>::from("mat_0001");
-    let obj_id = Box::<str>::from("obj_0001");
-
-    scene_config.textures.insert(
-        tex_id.clone(),
-        TextureConfig::SolidColor { color: DVec3::X + DVec3::Y },
-    );
-    scene_config.materials.insert(
-        mat_id.clone(),
-        MaterialConfig::Lambertian { texture: tex_id.clone() },
-    );
-
     let objects =
         stl_triangles
             .iter().copied()
@@ -111,17 +98,15 @@ pub fn run(args: &ConvertSTLArgs) -> Result<()> {
                     point,
                     u,
                     v,
-                    material: mat_id.clone(),
+                    material: None,
                 }
             })
             .collect::<Vec<_>>();
 
-    scene_config.instances.insert(
-        obj_id.clone(),
-        ObjectConfig::Group { objects },
-    );
-
-    scene_config.scene.push(ObjectConfig::Ref { id: obj_id.clone() });
+    scene_config.scene.push(ObjectConfig::Group {
+        objects,
+        material: None,
+    });
 
     let look_at = DVec3::new(k*l/2.0, k*h/2.0, 0.0);
     let look_from = look_at + DVec3::Z;

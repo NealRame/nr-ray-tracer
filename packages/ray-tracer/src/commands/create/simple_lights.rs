@@ -21,7 +21,7 @@ fn generate_lambertian(
     scene_config.materials.insert(
         mat_id.clone(),
         MaterialConfig::Lambertian {
-            texture: tex_id,
+            texture: Some(tex_id),
         },
     );
     mat_id
@@ -40,7 +40,7 @@ fn generate_marble(
     scene_config.materials.insert(
         mat_id.clone(),
         MaterialConfig::Lambertian {
-            texture: tex_id,
+            texture: Some(tex_id),
         },
     );
     mat_id
@@ -62,7 +62,7 @@ fn generate_light(
         mat_id.clone(),
         MaterialConfig::DiffuseLight {
             intensity,
-            texture: tex_id,
+            texture: Some(tex_id),
         },
     );
     mat_id
@@ -75,7 +75,7 @@ fn generate_objects(
     const SMALL_SPHERE_RADIUS: f64 = 2.0;
 
     {
-        let material = generate_lambertian(scene_config, 0.4*DVec3::ONE);
+        let material = Some(generate_lambertian(scene_config, 0.4*DVec3::ONE));
 
         scene_config.scene.push(ObjectConfig::Sphere {
             center: GROUND_SPHERE_RADIUS*DVec3::NEG_Y,
@@ -83,7 +83,7 @@ fn generate_objects(
             material,
         });
     } {
-        let material = generate_marble(scene_config);
+        let material = Some(generate_marble(scene_config));
 
         scene_config.scene.push(ObjectConfig::Sphere {
             center: SMALL_SPHERE_RADIUS*DVec3::Y,
@@ -91,7 +91,7 @@ fn generate_objects(
             material,
         });
     } {
-        let material = generate_light(scene_config, DVec3::new(1.00, 0.50, 0.25), 4.0);
+        let material = Some(generate_light(scene_config, DVec3::new(1.00, 0.50, 0.25), 4.0));
 
         scene_config.scene.push(ObjectConfig::Quad {
             point: DVec3::new(3.0, 1.0, -2.0),
@@ -100,7 +100,7 @@ fn generate_objects(
             material,
         });
     } {
-        let material = generate_light(scene_config, DVec3::new(0.25, 0.50, 1.00), 4.0);
+        let material = Some(generate_light(scene_config, DVec3::new(0.25, 0.50, 1.00), 4.0));
 
         scene_config.scene.push(ObjectConfig::Sphere {
             center: 7.0*DVec3::Y,

@@ -33,23 +33,23 @@ fn generate_textures(scene_config: &mut SceneConfig) {
 fn generate_materials(scene_config: &mut SceneConfig) {
     scene_config.materials.insert(
         Box::from("lambertian_red"),
-        MaterialConfig::Lambertian { texture: Box::from("solid_red") },
+        MaterialConfig::Lambertian { texture: Some(Box::from("solid_red")) },
     );
     scene_config.materials.insert(
         Box::from("lambertian_green"),
-        MaterialConfig::Lambertian { texture: Box::from("solid_green") }
+        MaterialConfig::Lambertian { texture: Some(Box::from("solid_green")) }
     );
     scene_config.materials.insert(
         Box::from("lambertian_blue"),
-        MaterialConfig::Lambertian { texture: Box::from("solid_blue") },
+        MaterialConfig::Lambertian { texture: Some(Box::from("solid_blue")) },
     );
     scene_config.materials.insert(
         Box::from("lambertian_orange"),
-        MaterialConfig::Lambertian { texture: Box::from("solid_orange") },
+        MaterialConfig::Lambertian { texture: Some(Box::from("solid_orange")) },
     );
     scene_config.materials.insert(
         Box::from("lambertian_cyan"),
-        MaterialConfig::Lambertian { texture: Box::from("solid_cyan") },
+        MaterialConfig::Lambertian { texture: Some(Box::from("solid_cyan")) },
     );
 }
 
@@ -58,31 +58,31 @@ fn generate_objects(scene_config: &mut SceneConfig) {
         point: DVec3::new(-3.0, -2.0, 5.0),
         u: 4.0*DVec3::NEG_Z,
         v: 4.0*DVec3::Y,
-        material: Box::from("lambertian_red"),
+        material: Some(Box::from("lambertian_red")),
     });
     scene_config.scene.push(ObjectConfig::Triangle {
         point: DVec3::new(-2.0, -2.0, 0.),
         u: 4.0*DVec3::X,
         v: 4.0*DVec3::Y,
-        material: Box::from("lambertian_green"),
+        material: Some(Box::from("lambertian_green")),
     });
     scene_config.scene.push(ObjectConfig::Triangle {
         point: DVec3::new(3.0, -2.0, 1.),
         u: 4.0*DVec3::Z,
         v: 4.0*DVec3::Y,
-        material: Box::from("lambertian_blue"),
+        material: Some(Box::from("lambertian_blue")),
     });
     scene_config.scene.push(ObjectConfig::Triangle {
         point: DVec3::new(-2.0, 3.0, 1.),
         u: 4.0*DVec3::X,
         v: 4.0*DVec3::Z,
-        material: Box::from("lambertian_orange"),
+        material: Some(Box::from("lambertian_orange")),
     });
     scene_config.scene.push(ObjectConfig::Triangle {
         point: DVec3::new(-2.0, -3.0, 5.0),
         u: 4.0*DVec3::X,
         v: 4.0*DVec3::NEG_Z,
-        material: Box::from("lambertian_cyan"),
+        material: Some(Box::from("lambertian_cyan")),
     });
 }
 

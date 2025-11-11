@@ -5,18 +5,25 @@ background_color = [
     1.0,
 ]
 look_at = [
-    0.0,
+    20.0,
     10.0,
-    -2.0,
+    -20.0,
 ]
 look_from = [
-    70.0,
+    45.0,
     30.0,
-    0.0,
+    -50.0,
 ]
 field_of_view = 30.0
 samples_per_pixel = 10
 ray_max_bounces = 10
+
+[textures.ground.SolidColor]
+color = [
+    0.5,
+    0.5,
+    0.5,
+]
 
 [textures.sphere2.Marble]
 frequency = 0.2
@@ -32,12 +39,9 @@ color = [
 frequency = 0.2
 octaves = 8
 
-[textures.ground.SolidColor]
-color = [
-    0.5,
-    0.5,
-    0.5,
-]
+[materials.sphere3.Metal]
+fuzz = 0.8
+texture = "sphere3"
 
 [materials.ground.Lambertian]
 texture = "ground"
@@ -49,12 +53,6 @@ texture = "sphere2"
 [materials.sphere1.Metal]
 fuzz = 0.05
 texture = "sphere1"
-
-[materials.sphere3.Metal]
-fuzz = 0.8
-texture = "sphere3"
-
-[instances]
 
 [[scene]]
 
@@ -71,9 +69,9 @@ material = "ground"
 
 [scene.Sphere]
 center = [
-    -40.0,
+    -30.0,
     10.0,
-    20.0,
+    10.0,
 ]
 radius = 10.0
 material = "sphere1"
@@ -82,7 +80,7 @@ material = "sphere1"
 
 [scene.Sphere]
 center = [
-    30.0,
+    20.0,
     10.0,
     -20.0,
 ]

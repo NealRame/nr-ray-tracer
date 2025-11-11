@@ -18,6 +18,13 @@ field_of_view = 40.0
 samples_per_pixel = 200
 ray_max_bounces = 50
 
+[textures.tex_0000000.SolidColor]
+color = [
+    0.73,
+    0.73,
+    0.73,
+]
+
 [textures.tex_0000005.SolidColor]
 color = [
     0.0,
@@ -32,11 +39,11 @@ color = [
     0.05,
 ]
 
-[textures.tex_0000000.SolidColor]
+[textures.tex_0000004.SolidColor]
 color = [
-    0.73,
-    0.73,
-    0.73,
+    0.93,
+    1.0,
+    0.6,
 ]
 
 [textures.tex_0000003.SolidColor]
@@ -53,25 +60,6 @@ color = [
     0.15,
 ]
 
-[textures.tex_0000004.SolidColor]
-color = [
-    0.93,
-    1.0,
-    0.6,
-]
-
-[materials.mat_0000002.Lambertian]
-texture = "tex_0000002"
-
-[materials.mat_0000000.Lambertian]
-texture = "tex_0000000"
-
-[materials.mat_0000001.Lambertian]
-texture = "tex_0000001"
-
-[materials.mat_0000004.Lambertian]
-texture = "tex_0000004"
-
 [materials.mat_0000003.DiffuseLight]
 intensity = 15.0
 texture = "tex_0000003"
@@ -79,6 +67,18 @@ texture = "tex_0000003"
 [materials.mat_0000005.Metal]
 fuzz = 0.0
 texture = "tex_0000005"
+
+[materials.mat_0000004.Lambertian]
+texture = "tex_0000004"
+
+[materials.mat_0000001.Lambertian]
+texture = "tex_0000001"
+
+[materials.mat_0000002.Lambertian]
+texture = "tex_0000002"
+
+[materials.mat_0000000.Lambertian]
+texture = "tex_0000000"
 
 [instances]
 

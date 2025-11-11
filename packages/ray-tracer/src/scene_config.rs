@@ -129,21 +129,41 @@ pub enum MaterialConfig {
     },
     DiffuseLight {
         intensity: f64,
-        texture: Box<str>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        texture: Option<Box<str>>,
     },
     Lambertian {
-        texture: Box<str>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        texture: Option<Box<str>>,
     },
     Metal {
         fuzz: f64,
-        texture: Box<str>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        texture: Option<Box<str>>,
     },
+}
+
+fn get_texture(
+    id: &Option<Box<str>>,
+    textures: &HashMap<Box<str>, Arc<dyn Texture + Send + Sync>>,
+    texture_fallback: Arc<dyn Texture + Send + Sync>,
+) -> Result<Arc<dyn Texture + Send + Sync>> {
+    if let Some(id) = id {
+        Ok(textures
+            .get(id)
+            .ok_or(anyhow!("invalid texture id: '{id}'"))?
+            .clone()
+        )
+    } else {
+        Ok(texture_fallback)
+    }
 }
 
 impl MaterialConfig {
     pub fn try_make_material(
         &self,
         textures: &HashMap<Box<str>, Arc<dyn Texture + Send + Sync>>,
+        texture_fallback: Arc<dyn Texture + Send + Sync>,
     ) -> Result<Arc<dyn Material + Send + Sync>> {
         match self {
             Self::Dielectric {refraction_index } => {
@@ -151,34 +171,24 @@ impl MaterialConfig {
             },
             Self::DiffuseLight { intensity, texture } => {
                 let mut diffuse_light_builder = DiffuseLightBuilder::default();
+                let texture = get_texture(texture, textures, texture_fallback)?;
 
                 diffuse_light_builder.with_intensity(*intensity);
-                diffuse_light_builder.with_texture(textures
-                    .get(texture)
-                    .ok_or(anyhow!("invalid texture index"))?
-                    .clone()
-                );
+                diffuse_light_builder.with_texture(texture);
 
                 Ok(Arc::new(diffuse_light_builder.build()))
             },
             Self::Lambertian { texture } => {
-                let lambertian = Lambertian::with_texture(textures
-                    .get(texture)
-                    .ok_or(anyhow!("invalid texture index"))?
-                    .clone()
-                );
+                let texture = get_texture(texture, textures, texture_fallback)?;
+                let lambertian = Lambertian::with_texture(texture);
 
                 Ok(Arc::new(lambertian))
             },
             Self::Metal { texture, fuzz } => {
+                let texture = get_texture(texture, textures, texture_fallback)?;
                 let mut metal_builder = MetalBuilder::default();
 
-                metal_builder.with_texture(Some(
-                    textures
-                        .get(texture)
-                        .ok_or(anyhow!("invalid texture index"))?
-                        .clone()
-                ));
+                metal_builder.with_texture(Some(texture));
                 metal_builder.with_fuzz(Some(*fuzz));
 
                 Ok(Arc::new(metal_builder.build()))
@@ -193,21 +203,34 @@ pub enum ObjectConfig {
         point: DVec3,
         u: DVec3,
         v: DVec3,
-        material: Box<str>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        material: Option<Box<str>>,
     },
     Triangle {
         point: DVec3,
         u: DVec3,
         v: DVec3,
-        material: Box<str>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        material: Option<Box<str>>,
     },
     Sphere {
         center: DVec3,
         radius: f64,
-        material: Box<str>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        material: Option<Box<str>>,
     },
     Group {
         objects: Vec<ObjectConfig>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        material: Option<Box<str>>,
+    },
+    Scene {
+        path: PathBuf,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        material: Option<Box<str>>,
+    },
+    Ref {
+        id: Box<str>,
     },
     RotateY {
         angle: f64,
@@ -221,12 +244,22 @@ pub enum ObjectConfig {
         offset: DVec3,
         object: Box<ObjectConfig>,
     },
-    Scene {
-        path: PathBuf,
-    },
-    Ref {
-        id: Box<str>,
-    },
+}
+
+fn get_material(
+    id: &Option<Box<str>>,
+    materials: &HashMap<Box<str>, Arc<dyn Material + Send + Sync>>,
+    material_fallback: Arc<dyn Material + Send + Sync>,
+) -> Result<Arc<dyn Material + Send + Sync>> {
+    if let Some(id) = id {
+        Ok(materials
+            .get(id)
+            .ok_or(anyhow!("invalid material id: '{id}'"))?
+            .clone()
+        )
+    } else {
+        Ok(material_fallback)
+    }
 }
 
 impl ObjectConfig {
@@ -234,14 +267,11 @@ impl ObjectConfig {
         &self,
         instances: &HashMap<Box<str>, Arc<dyn Hitable + Send + Sync>>,
         materials: &HashMap<Box<str>, Arc<dyn Material + Send + Sync>>,
+        material_fallback: Arc<dyn Material + Send + Sync>,
     ) -> Result<Arc<dyn Hitable + Send + Sync>> {
         match self {
             Self::Quad { point, u, v, material } => {
-                let material = materials
-                    .get(material)
-                    .ok_or(anyhow!("invalid material index"))?
-                    .clone();
-
+                let material = get_material(material, materials, material_fallback)?;
                 let mut plane_builder = PlaneBuilder::default();
 
                 plane_builder.with_point(*point);
@@ -253,11 +283,7 @@ impl ObjectConfig {
                 Ok(Arc::new(plane_builder.build()))
             },
             Self::Triangle { point, u, v, material } => {
-                let material = materials
-                    .get(material)
-                    .ok_or(anyhow!("invalid material index"))?
-                    .clone();
-
+                let material = get_material(material, materials, material_fallback)?;
                 let mut plane_builder = PlaneBuilder::default();
 
                 plane_builder.with_point(*point);
@@ -269,11 +295,7 @@ impl ObjectConfig {
                 Ok(Arc::new(plane_builder.build()))
             },
             Self::Sphere { center, radius, material } => {
-                let material = materials
-                    .get(material)
-                    .ok_or(anyhow!("invalid material index"))?
-                    .clone();
-
+                let material = get_material(material, materials, material_fallback)?;
                 let mut sphere_builder = SphereBuilder::default();
 
                 sphere_builder.with_center(*center);
@@ -282,34 +304,25 @@ impl ObjectConfig {
 
                 Ok(Arc::new(sphere_builder.build()))
             },
-            Self::Group { objects } => {
+            Self::Group { objects, material } => {
+                let material = get_material(material, materials, material_fallback)?;
                 let mut group = Vec::new();
 
                 for object_config in objects {
-                    let object = object_config.try_make_object(instances, materials)?;
+                    let object = object_config.try_make_object(
+                        instances,
+                        materials,
+                        material.clone(),
+                    )?;
 
                     group.push(object);
                 }
 
                 Ok(Arc::new(BVH::from(group.as_mut_slice())))
             },
-            Self::RotateY { object, angle } => {
-                let object = object.try_make_object(instances, materials)?;
-
-                Ok(Arc::new(RotateY::new(object, *angle)))
-            },
-            Self::Scale { object, factor } => {
-                let object = object.try_make_object(instances, materials)?;
-
-                Ok(Arc::new(Scale::new(object, *factor)))
-            },
-            Self::Translate { object, offset } => {
-                let object = object.try_make_object(instances, materials)?;
-
-                Ok(Arc::new(Translate::new(object, *offset)))
-            },
-            Self::Scene { path } => {
-                let scene = SceneConfig::try_load_scene(path)?.try_build()?;
+            Self::Scene { path, material } => {
+                let material = get_material(material, materials, material_fallback)?;
+                let scene = SceneConfig::try_load_scene(path)?.try_build_aux(Some(material))?;
 
                 Ok(Arc::new(scene.objects))
             },
@@ -321,6 +334,21 @@ impl ObjectConfig {
 
                 Ok(object)
             },
+            Self::RotateY { object, angle } => {
+                let object = object.try_make_object(instances, materials, material_fallback)?;
+
+                Ok(Arc::new(RotateY::new(object, *angle)))
+            },
+            Self::Scale { object, factor } => {
+                let object = object.try_make_object(instances, materials, material_fallback)?;
+
+                Ok(Arc::new(Scale::new(object, *factor)))
+            },
+            Self::Translate { object, offset } => {
+                let object = object.try_make_object(instances, materials, material_fallback)?;
+
+                Ok(Arc::new(Translate::new(object, *offset)))
+            },
         }
     }
 }
@@ -328,9 +356,23 @@ impl ObjectConfig {
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct SceneConfig {
     pub camera: CameraConfig,
+
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub textures: HashMap<Box<str>, TextureConfig>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub texture_fallback: Option<TextureConfig>,
+
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub materials: HashMap<Box<str>, MaterialConfig>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub material_fallback: Option<MaterialConfig>,
+
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub instances: HashMap<Box<str>, ObjectConfig>,
+
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub scene: Vec<ObjectConfig>,
 }
 
@@ -339,24 +381,46 @@ type MaterialMap = HashMap<Box<str>, Arc<dyn Material + Send + Sync>>;
 type InstanceMap = HashMap<Box<str>, Arc<dyn Hitable + Send + Sync>>;
 
 impl SceneConfig {
-    pub fn try_build(self) -> Result<Scene> {
+    fn try_build_aux(
+        self,
+        material_fallback: Option<Arc<dyn Material + Send + Sync>>,
+    ) -> Result<Scene> {
         let mut textures = TextureMap::new();
         for (texture_id, texture_config) in self.textures {
             let texture = texture_config.try_make_texture(&textures)?;
             textures.insert(texture_id.clone(), texture);
         }
 
+        let texture_fallback =
+            if let Some(texture_fallback) = self.texture_fallback {
+                texture_fallback.try_make_texture(&textures)?
+            } else {
+                Arc::new(SolidColor::new(0.5*DVec3::ONE))
+            };
+
         let mut materials = MaterialMap::new();
         for (material_id, material_config) in self.materials {
-            let material = material_config.try_make_material(&textures)?;
+            let material = material_config.try_make_material(
+                &textures,
+                texture_fallback.clone(),
+            )?;
             materials.insert(material_id.clone(), material);
         }
+
+        let material_fallback = material_fallback.unwrap_or(
+            if let Some(material_fallback) = self.material_fallback {
+                material_fallback.try_make_material(&textures, texture_fallback.clone())?
+            } else {
+                Arc::new(Lambertian::with_texture(texture_fallback.clone()))
+            }
+        );
 
         let mut instances = InstanceMap::new();
         for (instance_id, instance_config) in self.instances {
             let object = instance_config.try_make_object(
                 &instances,
                 &materials,
+                material_fallback.clone(),
             )?;
             instances.insert(instance_id.clone(), object);
         }
@@ -366,6 +430,7 @@ impl SceneConfig {
             let object = object_config.try_make_object(
                 &instances,
                 &materials,
+                material_fallback.clone(),
             )?;
             objects.push(object);
         }
@@ -399,5 +464,9 @@ impl SceneConfig {
         };
 
         Ok(scene_config)
+    }
+
+    pub fn try_build(self) -> Result<Scene> {
+        self.try_build_aux(Option::None)
     }
 }

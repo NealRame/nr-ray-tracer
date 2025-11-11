@@ -18,18 +18,25 @@ field_of_view = 80.0
 samples_per_pixel = 10
 ray_max_bounces = 10
 
-[textures.solid_blue.SolidColor]
-color = [
-    0.2,
-    0.2,
-    1.0,
-]
-
 [textures.solid_red.SolidColor]
 color = [
     1.0,
     0.2,
     0.2,
+]
+
+[textures.solid_green.SolidColor]
+color = [
+    0.2,
+    1.0,
+    0.2,
+]
+
+[textures.solid_blue.SolidColor]
+color = [
+    0.2,
+    0.2,
+    1.0,
 ]
 
 [textures.solid_orange.SolidColor]
@@ -46,29 +53,20 @@ color = [
     0.8,
 ]
 
-[textures.solid_green.SolidColor]
-color = [
-    0.2,
-    1.0,
-    0.2,
-]
-
-[materials.lambertian_orange.Lambertian]
-texture = "solid_orange"
-
-[materials.lambertian_cyan.Lambertian]
-texture = "solid_cyan"
-
 [materials.lambertian_green.Lambertian]
 texture = "solid_green"
-
-[materials.lambertian_red.Lambertian]
-texture = "solid_red"
 
 [materials.lambertian_blue.Lambertian]
 texture = "solid_blue"
 
-[instances]
+[materials.lambertian_orange.Lambertian]
+texture = "solid_orange"
+
+[materials.lambertian_red.Lambertian]
+texture = "solid_red"
+
+[materials.lambertian_cyan.Lambertian]
+texture = "solid_cyan"
 
 [[scene]]
 

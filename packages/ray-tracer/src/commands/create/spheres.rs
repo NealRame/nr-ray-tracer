@@ -44,7 +44,7 @@ fn generate_lambertian(
     scene_config.materials.insert(
         mat_id.clone(),
         MaterialConfig::Lambertian {
-            texture: tex_id,
+            texture: Some(tex_id),
         },
     );
     mat_id
@@ -66,7 +66,7 @@ fn generate_metal(
         mat_id.clone(),
         MaterialConfig::Metal {
             fuzz,
-            texture: tex_id,
+            texture: Some(tex_id),
         },
     );
     mat_id
@@ -82,14 +82,14 @@ fn generate_objects(scene_config: &mut SceneConfig, seed: u64) {
     let dist = WeightedIndex::new(MATERIAL_DISTRIBUTION).unwrap();
 
     {
-        let material = generate_lambertian(scene_config, 0.5*DVec3::ONE);
+        let material = Some(generate_lambertian(scene_config, 0.5*DVec3::ONE));
         scene_config.scene.push(ObjectConfig::Sphere {
             center: GROUND_SPHERE_RADIUS*DVec3::NEG_Y,
             radius: GROUND_SPHERE_RADIUS,
             material,
         });
     } {
-        let material = generate_dielectric(scene_config);
+        let material = Some(generate_dielectric(scene_config));
         scene_config.scene.push(ObjectConfig::Sphere {
             center: LARGE_SPHERE_RADIUS*DVec3::Y,
             radius: LARGE_SPHERE_RADIUS,
@@ -97,7 +97,7 @@ fn generate_objects(scene_config: &mut SceneConfig, seed: u64) {
         });
     } {
         let color = DVec3::from_rng(&mut rng);
-        let material = generate_lambertian(scene_config, color);
+        let material = Some(generate_lambertian(scene_config, color));
 
         scene_config.scene.push(ObjectConfig::Sphere {
             center: LARGE_SPHERE_RADIUS*DVec3::Y - 4.0*DVec3::X,
@@ -107,7 +107,7 @@ fn generate_objects(scene_config: &mut SceneConfig, seed: u64) {
     } {
         let color = DVec3::from_rng(&mut rng);
         let fuzz = rng.random();
-        let material = generate_metal(scene_config, color, fuzz);
+        let material = Some(generate_metal(scene_config, color, fuzz));
 
         scene_config.scene.push(ObjectConfig::Sphere {
             center: LARGE_SPHERE_RADIUS*DVec3::Y + 4.0*DVec3::X,
@@ -124,11 +124,11 @@ fn generate_objects(scene_config: &mut SceneConfig, seed: u64) {
             b as f64 + 0.9*rng.random::<f64>(),
         );
 
-        let material = match dist.sample(&mut rng) {
+        let material = Some(match dist.sample(&mut rng) {
             0 => generate_dielectric(scene_config),
             1 => generate_lambertian(scene_config, DVec3::from_rng(&mut rng)),
             _ => generate_metal(scene_config, DVec3::from_rng(&mut rng), rng.random()),
-        };
+        });
 
         scene_config.scene.push(ObjectConfig::Sphere {
             center,

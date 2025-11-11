@@ -18,6 +18,13 @@ field_of_view = 20.0
 samples_per_pixel = 10
 ray_max_bounces = 10
 
+[textures.tex_0000000.SolidColor]
+color = [
+    0.4,
+    0.4,
+    0.4,
+]
+
 [textures.tex_0000002.SolidColor]
 color = [
     1.0,
@@ -35,28 +42,19 @@ color = [
 [textures.tex_0000001.Marble]
 frequency = 0.2
 
-[textures.tex_0000000.SolidColor]
-color = [
-    0.4,
-    0.4,
-    0.4,
-]
-
 [materials.mat_0000000.Lambertian]
 texture = "tex_0000000"
-
-[materials.mat_0000001.Lambertian]
-texture = "tex_0000001"
 
 [materials.mat_0000003.DiffuseLight]
 intensity = 4.0
 texture = "tex_0000003"
 
+[materials.mat_0000001.Lambertian]
+texture = "tex_0000001"
+
 [materials.mat_0000002.DiffuseLight]
 intensity = 4.0
 texture = "tex_0000002"
-
-[instances]
 
 [[scene]]
 
