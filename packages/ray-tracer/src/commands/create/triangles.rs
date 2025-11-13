@@ -8,49 +8,49 @@ use crate::scene_config::*;
 use super::create::*;
 
 fn generate_textures(scene_config: &mut SceneConfig) {
-    scene_config.textures.insert(
+    scene_config.textures.push((
         Box::from("solid_red"),
         TextureConfig::SolidColor { color: DVec3::new(1.0, 0.2, 0.2) },
-    );
-    scene_config.textures.insert(
+    ));
+    scene_config.textures.push((
         Box::from("solid_green"),
         TextureConfig::SolidColor { color: DVec3::new(0.2, 1.0, 0.2) },
-    );
-    scene_config.textures.insert(
+    ));
+    scene_config.textures.push((
         Box::from("solid_blue"),
         TextureConfig::SolidColor { color: DVec3::new(0.2, 0.2, 1.0) },
-    );
-    scene_config.textures.insert(
+    ));
+    scene_config.textures.push((
         Box::from("solid_orange"),
         TextureConfig::SolidColor { color: DVec3::new(1.0, 0.5, 0.0) },
-    );
-    scene_config.textures.insert(
+    ));
+    scene_config.textures.push((
         Box::from("solid_cyan"),
         TextureConfig::SolidColor { color: DVec3::new(0.2, 0.8, 0.8) },
-    );
+    ));
 }
 
 fn generate_materials(scene_config: &mut SceneConfig) {
-    scene_config.materials.insert(
+    scene_config.materials.push((
         Box::from("lambertian_red"),
         MaterialConfig::Lambertian { texture: Some(Box::from("solid_red")) },
-    );
-    scene_config.materials.insert(
+    ));
+    scene_config.materials.push((
         Box::from("lambertian_green"),
         MaterialConfig::Lambertian { texture: Some(Box::from("solid_green")) }
-    );
-    scene_config.materials.insert(
+    ));
+    scene_config.materials.push((
         Box::from("lambertian_blue"),
         MaterialConfig::Lambertian { texture: Some(Box::from("solid_blue")) },
-    );
-    scene_config.materials.insert(
+    ));
+    scene_config.materials.push((
         Box::from("lambertian_orange"),
         MaterialConfig::Lambertian { texture: Some(Box::from("solid_orange")) },
-    );
-    scene_config.materials.insert(
+    ));
+    scene_config.materials.push((
         Box::from("lambertian_cyan"),
         MaterialConfig::Lambertian { texture: Some(Box::from("solid_cyan")) },
-    );
+    ));
 }
 
 fn generate_objects(scene_config: &mut SceneConfig) {

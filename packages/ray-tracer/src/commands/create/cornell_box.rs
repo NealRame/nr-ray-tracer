@@ -16,10 +16,10 @@ fn generate_solid_color_texture(
 ) -> Box<str> {
     let id = get_next_texture_id();
 
-    scene_config.textures.insert(
+    scene_config.textures.push((
         id.clone(),
         TextureConfig::SolidColor { color },
-    );
+    ));
     id
 }
 
@@ -29,12 +29,12 @@ fn generate_lambertian_material(
 ) -> Box<str> {
     let id = get_next_material_id();
 
-    scene_config.materials.insert(
+    scene_config.materials.push((
         id.clone(),
         MaterialConfig::Lambertian {
             texture: Some(texture),
         },
-    );
+    ));
     id
 }
 
@@ -45,13 +45,13 @@ fn generate_metal_material(
 ) -> Box<str> {
     let id = get_next_material_id();
 
-    scene_config.materials.insert(
+    scene_config.materials.push((
         id.clone(),
         MaterialConfig::Metal {
             texture: Some(texture),
             fuzz,
         },
-    );
+    ));
     id
 }
 
@@ -62,13 +62,13 @@ fn generate_light(
 ) -> Box<str> {
     let id = get_next_material_id();
 
-    scene_config.materials.insert(
+    scene_config.materials.push((
         id.clone(),
         MaterialConfig::DiffuseLight {
             texture: Some(texture),
             intensity,
         }
-    );
+    ));
     id
 }
 

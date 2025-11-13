@@ -1,3 +1,30 @@
+textures = [
+    [
+    "ground",
+    { SolidColor = { color = [
+    0.5,
+    0.5,
+    0.5,
+] } },
+],
+    [
+    "sphere1",
+    { Noise = { frequency = 0.2, octaves = 8 } },
+],
+    [
+    "sphere2",
+    { Marble = { frequency = 0.2 } },
+],
+    [
+    "sphere3",
+    { SolidColor = { color = [
+    1.0,
+    0.5,
+    0.65,
+] } },
+],
+]
+
 [camera]
 background_color = [
     0.7,
@@ -10,49 +37,28 @@ look_at = [
     -20.0,
 ]
 look_from = [
-    45.0,
     30.0,
-    -50.0,
+    20.0,
+    -60.0,
 ]
 field_of_view = 30.0
 samples_per_pixel = 10
 ray_max_bounces = 10
 
-[textures.ground.SolidColor]
-color = [
-    0.5,
-    0.5,
-    0.5,
-]
-
-[textures.sphere2.Marble]
-frequency = 0.2
-
-[textures.sphere3.SolidColor]
-color = [
-    1.0,
-    0.5,
-    0.65,
-]
-
-[textures.sphere1.Noise]
-frequency = 0.2
-octaves = 8
-
-[materials.sphere3.Metal]
-fuzz = 0.8
-texture = "sphere3"
-
-[materials.ground.Lambertian]
-texture = "ground"
-
 [materials.sphere2.Metal]
 fuzz = 0.9
 texture = "sphere2"
 
+[materials.ground.Lambertian]
+texture = "ground"
+
 [materials.sphere1.Metal]
 fuzz = 0.05
 texture = "sphere1"
+
+[materials.sphere3.Metal]
+fuzz = 0.8
+texture = "sphere3"
 
 [[scene]]
 

@@ -28,31 +28,31 @@ pub fn run(args: &CreateArgs) -> Result<()> {
     let earth_id = Box::<str>::from("earth");
     let moon_id = Box::<str>::from("moon");
 
-    scene_config.textures.insert(
+    scene_config.textures.push((
         ground_id.clone(),
         TextureConfig::SolidColor { color: 0.5*DVec3::ONE },
-    );
-    scene_config.textures.insert(
+    ));
+    scene_config.textures.push((
         earth_id.clone(),
         TextureConfig::Image { path: "scenes/textures/earth.jpg".into(), },
-    );
-    scene_config.textures.insert(
+    ));
+    scene_config.textures.push((
         moon_id.clone(),
         TextureConfig::Image { path: "scenes/textures/moon.jpg".into(), },
-    );
+    ));
 
-    scene_config.materials.insert(
+    scene_config.materials.push((
         ground_id.clone(),
         MaterialConfig::Lambertian { texture: Some(ground_id.clone()) },
-    );
-    scene_config.materials.insert(
+    ));
+    scene_config.materials.push((
         earth_id.clone(),
         MaterialConfig::Lambertian { texture: Some(earth_id.clone()) },
-    );
-    scene_config.materials.insert(
+    ));
+    scene_config.materials.push((
         moon_id.clone(),
         MaterialConfig::Lambertian { texture: Some(moon_id.clone()) },
-    );
+    ));
 
     scene_config.scene.push(ObjectConfig::Sphere {
         center: GROUND_SPHERE_RADIUS*DVec3::NEG_Y,

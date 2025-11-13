@@ -357,20 +357,20 @@ impl ObjectConfig {
 pub struct SceneConfig {
     pub camera: CameraConfig,
 
-    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    pub textures: HashMap<Box<str>, TextureConfig>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub textures: Vec<(Box<str>, TextureConfig)>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub texture_fallback: Option<TextureConfig>,
 
-    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    pub materials: HashMap<Box<str>, MaterialConfig>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub materials: Vec<(Box<str>, MaterialConfig)>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub material_fallback: Option<MaterialConfig>,
 
-    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    pub instances: HashMap<Box<str>, ObjectConfig>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub instances: Vec<(Box<str>, ObjectConfig)>,
 
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub scene: Vec<ObjectConfig>,

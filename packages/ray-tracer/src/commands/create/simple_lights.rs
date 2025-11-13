@@ -14,16 +14,16 @@ fn generate_lambertian(
     let tex_id = get_next_texture_id();
     let mat_id = get_next_material_id();
 
-    scene_config.textures.insert(
+    scene_config.textures.push((
         tex_id.clone(),
        TextureConfig::SolidColor { color },
-    );
-    scene_config.materials.insert(
+    ));
+    scene_config.materials.push((
         mat_id.clone(),
         MaterialConfig::Lambertian {
             texture: Some(tex_id),
         },
-    );
+    ));
     mat_id
 }
 
@@ -33,16 +33,16 @@ fn generate_marble(
     let tex_id = get_next_texture_id();
     let mat_id = get_next_material_id();
 
-    scene_config.textures.insert(
+    scene_config.textures.push((
         tex_id.clone(),
         TextureConfig::Marble { seed: None, frequency: Some(0.2) },
-    );
-    scene_config.materials.insert(
+    ));
+    scene_config.materials.push((
         mat_id.clone(),
         MaterialConfig::Lambertian {
             texture: Some(tex_id),
         },
-    );
+    ));
     mat_id
 }
 
@@ -54,17 +54,17 @@ fn generate_light(
     let tex_id = get_next_texture_id();
     let mat_id = get_next_material_id();
 
-    scene_config.textures.insert(
+    scene_config.textures.push((
         tex_id.clone(),
         TextureConfig::SolidColor { color },
-    );
-    scene_config.materials.insert(
+    ));
+    scene_config.materials.push((
         mat_id.clone(),
         MaterialConfig::DiffuseLight {
             intensity,
             texture: Some(tex_id),
         },
-    );
+    ));
     mat_id
 }
 

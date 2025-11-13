@@ -23,10 +23,10 @@ fn generate_dielectric(
 ) -> Box<str> {
     let id = get_next_material_id();
 
-    scene_config.materials.insert(
+    scene_config.materials.push((
         id.clone(),
         MaterialConfig::Dielectric { refraction_index: 1.5 },
-    );
+    ));
     id
 }
 
@@ -37,16 +37,16 @@ fn generate_lambertian(
     let mat_id = get_next_material_id();
     let tex_id = get_next_texture_id();
 
-    scene_config.textures.insert(
+    scene_config.textures.push((
         tex_id.clone(),
         TextureConfig::SolidColor { color },
-    );
-    scene_config.materials.insert(
+    ));
+    scene_config.materials.push((
         mat_id.clone(),
         MaterialConfig::Lambertian {
             texture: Some(tex_id),
         },
-    );
+    ));
     mat_id
 }
 
@@ -58,17 +58,17 @@ fn generate_metal(
     let mat_id = get_next_material_id();
     let tex_id = get_next_texture_id();
 
-    scene_config.textures.insert(
+    scene_config.textures.push((
         tex_id.clone(),
         TextureConfig::SolidColor { color },
-    );
-    scene_config.materials.insert(
+    ));
+    scene_config.materials.push((
         mat_id.clone(),
         MaterialConfig::Metal {
             fuzz,
             texture: Some(tex_id),
         },
-    );
+    ));
     mat_id
 }
 
