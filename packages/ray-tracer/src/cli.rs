@@ -323,6 +323,9 @@ impl CameraConfig {
         if let Some(height) = other.height {
             self.height.replace(height);
         }
+        if let Some(aspect_ratio) = other.aspect_ratio {
+            self.aspect_ratio.replace(aspect_ratio);
+        }
         if let Some(field_of_view) = other.field_of_view {
             self.field_of_view.replace(field_of_view);
         }
