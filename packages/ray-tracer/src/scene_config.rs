@@ -414,7 +414,6 @@ impl SceneConfig {
                 Arc::new(Lambertian::with_texture(texture_fallback.clone()))
             }
         );
-
         let mut instances = InstanceMap::new();
         for (instance_id, instance_config) in self.instances {
             let object = instance_config.try_make_object(
@@ -424,7 +423,6 @@ impl SceneConfig {
             )?;
             instances.insert(instance_id.clone(), object);
         }
-
         let mut objects = Vec::new();
         for object_config in self.scene {
             let object = object_config.try_make_object(
