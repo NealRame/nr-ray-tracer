@@ -10,51 +10,48 @@ use crate::hitable::*;
 use crate::interval::Interval;
 use crate::ray::Ray;
 
+fn rotate_bbox(
+    bbox: &AABB,
+    rotation_mat: &DMat3,
+) -> AABB {
+    let mut min = DVec3::INFINITY;
+    let mut max = DVec3::NEG_INFINITY;
+
+    for i in 0..2 {
+        for j in 0..2 {
+            for k in 0..2 {
+                let x = (i as f64)*bbox.x.max + (1.0 - (i as f64))*bbox.x.min;
+                let y = (j as f64)*bbox.y.max + (1.0 - (j as f64))*bbox.y.min;
+                let z = (k as f64)*bbox.z.max + (1.0 - (k as f64))*bbox.z.min;
+
+                let tester = rotation_mat*DVec3::new(x, y, z);
+
+                min = min.min(tester);
+                max = max.max(tester);
+            }
+        }
+    }
+
+    AABB::from_points(min, max)
+}
+
 #[derive(Clone, Debug)]
-pub struct RotateY {
+pub struct Rotate {
     object: Arc<dyn Hitable + Send + Sync>,
     rotation_mat: DMat3,
     rotation_mat_inv: DMat3,
     bbox: AABB,
 }
 
-impl RotateY {
-    pub fn new(
+impl Rotate {
+    fn new(
         object: Arc<dyn Hitable + Send + Sync>,
+        axis: DVec3,
         angle: f64,
     ) -> Self {
-        let mut bbox = object.bbox();
-
-        let mut min = DVec3::INFINITY.to_array();
-        let mut max = DVec3::NEG_INFINITY.to_array();
-
-        let cos_theta = f64::cos(angle);
-        let sin_theta = f64::sin(angle);
-
-        for i in 0..2 {
-            for j in 0..2 {
-                for k in 0..2 {
-                    let x = (i as f64)*bbox.x.max + (1.0 - (i as f64))*bbox.x.min;
-                    let y = (j as f64)*bbox.y.max + (1.0 - (j as f64))*bbox.y.min;
-                    let z = (k as f64)*bbox.z.max + (1.0 - (k as f64))*bbox.z.min;
-
-                    let newx = cos_theta*x + sin_theta*z;
-                    let newz = cos_theta*z - sin_theta*x;
-
-                    let tester = DVec3::new(newx, y, newz);
-
-                    for c in 0..=2 {
-                        min[c] = f64::min(min[c], tester[c]);
-                        max[c] = f64::max(max[c], tester[c]);
-                    }
-                }
-            }
-        }
-
-        bbox = AABB::from_points(DVec3::from_array(min), DVec3::from_array(max));
-
-        let rotation_mat = DMat3::from_axis_angle(DVec3::Y, -angle);
-        let rotation_mat_inv = DMat3::from_axis_angle(DVec3::Y, angle);
+        let rotation_mat = DMat3::from_axis_angle(axis, -angle);
+        let rotation_mat_inv = DMat3::from_axis_angle(axis, angle);
+        let bbox = rotate_bbox(&object.bbox(), &rotation_mat);
 
         Self {
             object,
@@ -63,9 +60,30 @@ impl RotateY {
             bbox,
         }
     }
+
+    pub fn axis_x(
+        object: Arc<dyn Hitable + Send + Sync>,
+        angle: f64,
+    ) -> Self {
+        Self::new(object, DVec3::X, angle)
+    }
+
+    pub fn axis_y(
+        object: Arc<dyn Hitable + Send + Sync>,
+        angle: f64,
+    ) -> Self {
+        Self::new(object, DVec3::Y, angle)
+    }
+
+    pub fn axis_z(
+        object: Arc<dyn Hitable + Send + Sync>,
+        angle: f64,
+    ) -> Self {
+        Self::new(object, DVec3::Z, angle)
+    }
 }
 
-impl Hitable for RotateY {
+impl Hitable for Rotate {
     fn bbox(&self) -> AABB {
         self.bbox
     }

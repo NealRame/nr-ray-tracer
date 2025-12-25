@@ -232,7 +232,15 @@ pub enum ObjectConfig {
     Ref {
         id: Box<str>,
     },
+    RotateX {
+        angle: f64,
+        object: Box<ObjectConfig>,
+    },
     RotateY {
+        angle: f64,
+        object: Box<ObjectConfig>,
+    },
+    RotateZ {
         angle: f64,
         object: Box<ObjectConfig>,
     },
@@ -334,10 +342,20 @@ impl ObjectConfig {
 
                 Ok(object)
             },
+            Self::RotateX { object, angle } => {
+                let object = object.try_make_object(instances, materials, material_fallback)?;
+
+                Ok(Arc::new(Rotate::axis_x(object, *angle)))
+            },
             Self::RotateY { object, angle } => {
                 let object = object.try_make_object(instances, materials, material_fallback)?;
 
-                Ok(Arc::new(RotateY::new(object, *angle)))
+                Ok(Arc::new(Rotate::axis_y(object, *angle)))
+            },
+            Self::RotateZ { object, angle } => {
+                let object = object.try_make_object(instances, materials, material_fallback)?;
+
+                Ok(Arc::new(Rotate::axis_z(object, *angle)))
             },
             Self::Scale { object, factor } => {
                 let object = object.try_make_object(instances, materials, material_fallback)?;
