@@ -1,0 +1,86 @@
+{
+    "camera": {
+        "background_color": [1, 1, 1],
+        "look_at": [1.5, 1.5, 0],
+        "look_from": [1.5, 1.5, 3],
+        "field_of_view": 80,
+        "samples_per_pixel": 200,
+        "ray_max_bounces": 50
+    },
+    "textures": [
+        [
+            "red", {
+                "SolidColor": {
+                    "color": [1, 0, 0]
+                }
+            }
+        ],
+        [
+            "green", {
+                "SolidColor": {
+                    "color": [0, 1, 0]
+                }
+            }
+        ]
+    ],
+    "materials": [
+        [
+            "red", {
+                "Lambertian": {
+                    "texture": "red"
+                }
+            }
+        ],
+        [
+            "green", {
+                "Lambertian": {
+                    "texture": "green"
+                }
+            }
+        ]
+    ],
+    "instances": [
+        [
+            "quad1", {
+                "RotateZ": {
+                    "angle": 0.7853981634,
+                    "object": {
+                        "Quad": {
+                            "point": [0, 0, 0],
+                            "u": [1, 0, 0],
+                            "v": [0, 1, 0],
+                            "material": "red"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            "quad2", {
+                "ScaleV": {
+                    "scale": [2, 1.4142135624, 1],
+                    "object": {
+                        "Quad": {
+                            "point": [0, 0, 0],
+                            "u": [1, 0, 0],
+                            "v": [0, 1, 0],
+                            "material": "green"
+                        }
+                    }
+                }
+            }
+        ]
+    ],
+    "scene": [
+        {
+            "Ref": {
+                "id": "quad2"
+            }
+        },
+        {
+            "Ref": {
+                "id": "quad1"
+            }
+        }
+    ]
+}

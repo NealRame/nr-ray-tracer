@@ -1,0 +1,125 @@
+{
+    "camera": {
+        "background_color": [1, 1, 1],
+        "look_at": [1.5, 0.5, 0.5],
+        "look_from": [1.5, 3, 8],
+        "field_of_view": 35,
+        "samples_per_pixel": 200,
+        "ray_max_bounces": 50
+    },
+    "textures": [
+        [
+            "cube1",
+            {
+                "SolidColor": {
+                    "color": [0.9529411765, 0.5450980392, 0.6588235294]
+                }
+            }
+        ],
+        [
+            "cube2",
+            {
+                "SolidColor": {
+                    "color": [0.537254902, 0.7058823529, 0.9803921569]
+                }
+            }
+        ],
+        [
+            "cube3",
+            {
+                "SolidColor": {
+                    "color": [0.6509803922, 0.8901960784, 0.631372549]
+                }
+            }
+        ]
+    ],
+    "materials": [
+        [
+            "cube1",
+            {
+                "Lambertian": {
+                    "texture": "cube1"
+                }
+            }
+        ],
+        [
+            "cube2",
+            {
+                "Lambertian": {
+                    "texture": "cube2"
+                }
+            }
+        ],
+        [
+            "cube3",
+            {
+                "Lambertian": {
+                    "texture": "cube3"
+                }
+            }
+        ]
+    ],
+    "instances": [
+        [
+            "cube1", {
+                "Scene": {
+                    "path": "scenes/cube-model.toml",
+                    "material": "cube1"
+                }
+            }
+        ],
+        [
+            "cube2", {
+                "Scene": {
+                    "path": "scenes/cube-model.toml",
+                    "material": "cube2"
+                }
+            }
+        ],
+        [
+            "cube3", {
+                "Scene": {
+                    "path": "scenes/cube-model.toml",
+                    "material": "cube3"
+                }
+            }
+        ]
+    ],
+    "scene": [
+        {
+            "Ref": {
+                "id": "cube1"
+            }
+        },
+        {
+            "Translate": {
+                "offset": [1, 0, 0],
+                "object": {
+                    "ScaleV": {
+                        "scale": [2, 1.5, 0.5],
+                        "object": {
+                            "Ref": {
+                                "id": "cube2"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "Translate": {
+                "offset": [0, 0, 1],
+                "object": {
+                    "ScaleU": {
+                        "factor": 0.5,
+                        "object": {
+                            "Ref": {
+                                "id": "cube3"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ]
+}

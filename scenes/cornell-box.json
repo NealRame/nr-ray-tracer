@@ -1,0 +1,236 @@
+{
+  "camera": {
+    "width": null,
+    "height": null,
+    "aspect_ratio": null,
+    "background_color": [
+      0,
+      0,
+      0
+    ],
+    "look_at": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "look_from": [
+      0.5,
+      0.5,
+      -1.5
+    ],
+    "view_up": null,
+    "focal_length": null,
+    "field_of_view": 40.0,
+    "defocus_angle": null,
+    "focus_distance": null,
+    "samples_per_pixel": 200,
+    "ray_max_bounces": 50
+  },
+  "textures": [
+    [
+      "tex_0000000",
+      {
+        "SolidColor": {
+          "color": [
+            0.73,
+            0.73,
+            0.73
+          ]
+        }
+      }
+    ],
+    [
+      "tex_0000001",
+      {
+        "SolidColor": {
+          "color": [
+            0.12,
+            0.45,
+            0.15
+          ]
+        }
+      }
+    ],
+    [
+      "tex_0000002",
+      {
+        "SolidColor": {
+          "color": [
+            0.65,
+            0.05,
+            0.05
+          ]
+        }
+      }
+    ],
+    [
+      "tex_0000003",
+      {
+        "SolidColor": {
+          "color": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      }
+    ]
+  ],
+  "materials": [
+    [
+      "mat_0000000",
+      {
+        "Lambertian": {
+          "texture": "tex_0000000"
+        }
+      }
+    ],
+    [
+      "mat_0000001",
+      {
+        "Lambertian": {
+          "texture": "tex_0000001"
+        }
+      }
+    ],
+    [
+      "mat_0000002",
+      {
+        "Lambertian": {
+          "texture": "tex_0000002"
+        }
+      }
+    ],
+    [
+      "mat_0000003",
+      {
+        "DiffuseLight": {
+          "intensity": 15.0,
+          "texture": "tex_0000003"
+        }
+      }
+    ]
+  ],
+  "scene": [
+    {
+      "Quad": {
+        "point": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "u": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "v": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "material": "mat_0000000"
+      }
+    },
+    {
+      "Quad": {
+        "point": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "u": [
+          -1.0,
+          0.0,
+          0.0
+        ],
+        "v": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "material": "mat_0000000"
+      }
+    },
+    {
+      "Quad": {
+        "point": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "u": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "v": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "material": "mat_0000000"
+      }
+    },
+    {
+      "Quad": {
+        "point": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "u": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "v": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "material": "mat_0000001"
+      }
+    },
+    {
+      "Quad": {
+        "point": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "u": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "v": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "material": "mat_0000002"
+      }
+    },
+    {
+      "Quad": {
+        "point": [
+          0.333,
+          0.999,
+          0.333
+        ],
+        "u": [
+          0.333,
+          0.0,
+          0.0
+        ],
+        "v": [
+          0.0,
+          0.0,
+          0.333
+        ],
+        "material": "mat_0000003"
+      }
+    }
+  ]
+}

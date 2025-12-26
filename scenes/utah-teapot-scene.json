@@ -1,0 +1,58 @@
+{
+    "camera": {
+        "background_color": [1, 1, 1],
+        "look_at": [0, 0, 0],
+        "look_from": [0, 0, -2],
+        "field_of_view": 24,
+        "samples_per_pixel": 200,
+        "ray_max_bounces": 50
+    },
+    "textures": [
+        [
+            "teapot",
+            {
+                "SolidColor": {
+                    "color": [0, 0.659, 0.420]
+                }
+            }
+        ]
+    ],
+    "materials": [
+        [
+            "teapot",
+            {
+                "Lambertian": {
+                    "texture": "teapot"
+                }
+            }
+        ]
+    ],
+    "instances": [
+        [
+            "teapot",
+            {
+                "RotateZ": {
+                    "angle": 1.5707963268,
+                    "object": {
+                        "Translate": {
+                            "offset": [-0.5, -0.244, -0.311],
+                            "object": {
+                                "Scene": {
+                                    "path": "scenes/utah-teapot-model.toml",
+                                    "material": "teapot"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    ],
+    "scene": [
+        {
+            "Ref": {
+                "id": "teapot"
+            }
+        }
+    ]
+}
