@@ -39,9 +39,10 @@ pub fn get_output<P: AsRef<Path>>(
     Ok(output)
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, ValueEnum)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, ValueEnum)]
 pub(super) enum SceneConfigFormat {
     Json,
+    #[default]
     Toml,
 }
 
@@ -56,8 +57,8 @@ pub(super) struct CreateArgs {
     pub force_overwrite: bool,
 
     /// Specify the output format of the scene configuration
-    #[arg(short = 'F', long, default_value = "toml")]
-    pub format: SceneConfigFormat,
+    #[arg(short = 'F', long)]
+    pub format: Option<SceneConfigFormat>,
 
     /// Output file path.
     #[arg(short = 'o', long, value_name = "FILE")]
@@ -88,6 +89,27 @@ pub(super) struct ConvertSTLArgs {
 
     /// STL input file
     pub stl_file: PathBuf,
+}
+
+pub(super) fn get_format(
+    format: Option<SceneConfigFormat>,
+    output: Option<&PathBuf>,
+) -> SceneConfigFormat {
+    if let Some(format) = format {
+        return format;
+    }
+
+    output
+        .and_then(|output| output.extension())
+        .and_then(|ext| ext.to_str().map(str::to_lowercase))
+        .and_then(|ext| {
+            match ext.as_str() {
+                "json" => Some(SceneConfigFormat::Json),
+                "toml" => Some(SceneConfigFormat::Toml),
+                _ => None
+            }
+        })
+        .unwrap_or_default()
 }
 
 #[derive(Subcommand)]
