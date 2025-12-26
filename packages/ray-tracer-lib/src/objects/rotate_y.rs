@@ -51,7 +51,7 @@ impl Rotate {
     ) -> Self {
         let rotation_mat = DMat3::from_axis_angle(axis, -angle);
         let rotation_mat_inv = DMat3::from_axis_angle(axis, angle);
-        let bbox = rotate_bbox(&object.bbox(), &rotation_mat);
+        let bbox = rotate_bbox(&object.bbox(), &rotation_mat_inv);
 
         Self {
             object,
