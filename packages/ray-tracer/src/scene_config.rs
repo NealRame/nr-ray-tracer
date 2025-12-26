@@ -244,8 +244,12 @@ pub enum ObjectConfig {
         angle: f64,
         object: Box<ObjectConfig>,
     },
-    Scale {
+    ScaleU {
         factor: f64,
+        object: Box<ObjectConfig>,
+    },
+    ScaleV {
+        scale: DVec3,
         object: Box<ObjectConfig>,
     },
     Translate {
@@ -357,10 +361,15 @@ impl ObjectConfig {
 
                 Ok(Arc::new(Rotate::axis_z(object, *angle)))
             },
-            Self::Scale { object, factor } => {
+            Self::ScaleU { object, factor } => {
                 let object = object.try_make_object(instances, materials, material_fallback)?;
 
-                Ok(Arc::new(Scale::new(object, *factor)))
+                Ok(Arc::new(Scale::uniform(object, *factor)))
+            },
+            Self::ScaleV { object, scale } => {
+                let object = object.try_make_object(instances, materials, material_fallback)?;
+
+                Ok(Arc::new(Scale::new(object, *scale)))
             },
             Self::Translate { object, offset } => {
                 let object = object.try_make_object(instances, materials, material_fallback)?;
