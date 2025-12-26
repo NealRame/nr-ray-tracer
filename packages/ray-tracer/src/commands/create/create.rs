@@ -92,25 +92,28 @@ pub(super) struct ConvertSTLArgs {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Render cornell box scene
+    /// Create cornell box scene
     CornellBox(CreateArgs),
 
-    /// Render earth scene
+    /// Create a cube scene
+    Cube(CreateArgs),
+
+    /// Create earth scene
     Earth(CreateArgs),
 
-    /// Render noise scene
+    /// Create noise scene
     Noise(CreateArgs),
 
-    /// Render five quads scene
+    /// Create five quads scene
     Quads(CreateArgs),
 
-    /// Render five triangles scene
+    /// Create five triangles scene
     Triangles(CreateArgs),
 
-    /// Render sphere1 scene
+    /// Create sphere1 scene
     Spheres(CreateArgs),
 
-    /// Render simple-lights scene
+    /// Create simple-lights scene
     SimpleLights(CreateArgs),
 
     /// Convert STL file
@@ -127,6 +130,7 @@ pub struct Create {
 pub fn run(create: &Create) -> Result<()> {
     match &create.command {
         Commands::CornellBox(args) => super::cornell_box::run(args)?,
+        Commands::Cube(args) => super::cube::run(args)?,
         Commands::Earth(args) => super::earth::run(args)?,
         Commands::Noise(args) => super::noise::run(args)?,
         Commands::Quads(args) => super::quads::run(args)?,
