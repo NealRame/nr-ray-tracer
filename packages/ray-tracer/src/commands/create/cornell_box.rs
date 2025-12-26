@@ -54,77 +54,14 @@ fn generate_light(
     id
 }
 
-// fn generate_box(
-//     a: DVec3,
-//     b: DVec3,
-//     material: Box<str>,
-// ) -> Box<ObjectConfig> {
-//     let [min_x, min_y, min_z] = a.min(b).to_array();
-//     let [max_x, max_y, max_z] = a.max(b).to_array();
-
-//     let dx = (max_x - min_x)*DVec3::X;
-//     let dy = (max_y - min_y)*DVec3::Y;
-//     let dz = (max_z - min_z)*DVec3::Z;
-
-//     let objects = vec![
-//         ObjectConfig::Quad {
-
-//             point: DVec3::new(min_x, min_y, max_z),
-//             u: dx,
-//             v: dy,
-//             material: Some(material.clone()),
-//         },
-//         ObjectConfig::Quad {
-
-//             point: DVec3::new(max_x, min_y, max_z),
-//             u: -dz,
-//             v: dy,
-//             material: Some(material.clone()),
-//         },
-//         ObjectConfig::Quad {
-
-//             point: DVec3::new(max_x, min_y, min_z),
-//             u: -dx,
-//             v: dy,
-//             material: Some(material.clone()),
-//         },
-//         ObjectConfig::Quad {
-
-//             point: DVec3::new(min_x, min_y, min_z),
-//             u: dz,
-//             v: dy,
-//             material: Some(material.clone()),
-//         },
-//         ObjectConfig::Quad {
-
-//             point: DVec3::new(min_x, max_y, max_z),
-//             u: dx,
-//             v: -dz,
-//             material: Some(material.clone()),
-//         },
-//         ObjectConfig::Quad {
-
-//             point: DVec3::new(min_x, min_y, min_z),
-//             u: dx,
-//             v: dz,
-//             material: Some(material.clone()),
-//         },
-//     ];
-
-//     Box::new(ObjectConfig::Group {
-//         objects,
-//         material: None,
-//     })
-// }
-
 fn generate_scene(scene_config: &mut SceneConfig) {
-    let tex_white = generate_solid_color_texture(scene_config, DVec3::new(0.73, 0.73, 0.73));
+    let tex_white = generate_solid_color_texture(scene_config, DVec3::new(0.3450980392, 0.3568627451, 0.4392156863));
     let mat_white = generate_lambertian_material(scene_config, tex_white.clone());
 
-    let tex_green = generate_solid_color_texture(scene_config, DVec3::new(0.12, 0.45, 0.15));
+    let tex_green = generate_solid_color_texture(scene_config, DVec3::new(0.6509803922, 0.8901960784, 0.631372549));
     let mat_green = generate_lambertian_material(scene_config, tex_green.clone());
 
-    let tex_red = generate_solid_color_texture(scene_config, DVec3::new(0.65, 0.05, 0.05));
+    let tex_red = generate_solid_color_texture(scene_config, DVec3::new(0.9529411765, 0.5450980392, 0.6588235294));
     let mat_red = generate_lambertian_material(scene_config, tex_red.clone());
 
     let tex_ligth = generate_solid_color_texture(scene_config, DVec3::ONE);

@@ -1,0 +1,129 @@
+{
+    "camera": {
+        "background_color": [0, 0, 0],
+        "look_at": [0.5, 0.5, 0.5],
+        "look_from": [0.5, 0.5, -1.625],
+        "field_of_view": 35,
+        "samples_per_pixel": 200,
+        "ray_max_bounces": 50
+    },
+    "textures": [
+        [
+            "cube1",
+            {
+                "SolidColor": {
+                    "color": [0.9803921569, 0.7019607843, 0.5294117647]
+                }
+            }
+        ],
+        [
+            "cube2",
+            {
+                "SolidColor": {
+                    "color": [0.537254902, 0.7058823529, 0.9803921569]
+                }
+            }
+        ]
+    ],
+    "materials": [
+        [
+            "cube1",
+            {
+                "Lambertian": {
+                    "texture": "cube1"
+                }
+            }
+        ],
+        [
+            "cube2",
+            {
+                "Metal": {
+                    "fuzz": 0.025,
+                    "texture": "cube2"
+                }
+            }
+        ]
+    ],
+    "instances": [
+        [
+            "cornell-box", {
+                "Scene": {
+                    "path": "scenes/cornell-box-model.json"
+                }
+            }
+        ],
+        [
+            "cube1", {
+                "Scene": {
+                    "path": "scenes/cube-model.toml",
+                    "material": "cube1"
+                }
+            }
+        ],
+        [
+            "cube2", {
+                "Scene": {
+                    "path": "scenes/cube-model.toml",
+                    "material": "cube2"
+                }
+            }
+        ]
+    ],
+    "scene": [
+        {
+            "Ref": {
+                "id": "cornell-box"
+            }
+        },
+        {
+            "Translate": {
+                "offset": [0.25, 0, 0.25],
+                "object": {
+                    "RotateY": {
+                        "angle": 0.7853981634,
+                        "object": {
+                            "ScaleU": {
+                                "factor": 0.25,
+                                "object": {
+                                    "Translate": {
+                                        "offset": [-0.5, 0, -0.5],
+                                        "object": {
+                                            "Ref": {
+                                                "id": "cube1"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "Translate": {
+                "offset": [0.750, 0, 0.625],
+                "object": {
+                    "RotateY": {
+                        "angle": -1.0471975512,
+                        "object": {
+                            "ScaleV": {
+                                "scale": [0.25, 0.75, 0.25],
+                                "object": {
+                                    "Translate": {
+                                        "offset": [-0.5, 0, -0.5],
+                                        "object": {
+                                            "Ref": {
+                                                "id": "cube2"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ]
+}
