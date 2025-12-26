@@ -108,7 +108,7 @@ pub fn run(args: &CreateArgs) -> Result<()> {
         });
     }
 
-    let contents = match args.format {
+    let contents = match get_format(args.format, args.output.as_ref()) {
         SceneConfigFormat::Json => serde_json::to_string_pretty(&scene_config)?,
         SceneConfigFormat::Toml => toml::to_string_pretty(&scene_config)?,
     };
