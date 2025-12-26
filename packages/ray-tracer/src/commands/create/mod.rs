@@ -2,6 +2,7 @@ mod create;
 
 mod convert_stl;
 
+mod cube;
 mod cornell_box;
 mod earth;
 mod noise;
