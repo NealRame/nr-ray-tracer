@@ -1,4 +1,3 @@
-use std::f64::consts::PI;
 use std::io::Write;
 
 use anyhow::Result;
@@ -38,23 +37,6 @@ fn generate_lambertian_material(
     id
 }
 
-fn generate_metal_material(
-    scene_config: &mut SceneConfig,
-    texture: Box<str>,
-    fuzz: f64,
-) -> Box<str> {
-    let id = get_next_material_id();
-
-    scene_config.materials.push((
-        id.clone(),
-        MaterialConfig::Metal {
-            texture: Some(texture),
-            fuzz,
-        },
-    ));
-    id
-}
-
 fn generate_light(
     scene_config: &mut SceneConfig,
     texture: Box<str>,
@@ -72,68 +54,68 @@ fn generate_light(
     id
 }
 
-fn generate_box(
-    a: DVec3,
-    b: DVec3,
-    material: Box<str>,
-) -> Box<ObjectConfig> {
-    let [min_x, min_y, min_z] = a.min(b).to_array();
-    let [max_x, max_y, max_z] = a.max(b).to_array();
+// fn generate_box(
+//     a: DVec3,
+//     b: DVec3,
+//     material: Box<str>,
+// ) -> Box<ObjectConfig> {
+//     let [min_x, min_y, min_z] = a.min(b).to_array();
+//     let [max_x, max_y, max_z] = a.max(b).to_array();
 
-    let dx = (max_x - min_x)*DVec3::X;
-    let dy = (max_y - min_y)*DVec3::Y;
-    let dz = (max_z - min_z)*DVec3::Z;
+//     let dx = (max_x - min_x)*DVec3::X;
+//     let dy = (max_y - min_y)*DVec3::Y;
+//     let dz = (max_z - min_z)*DVec3::Z;
 
-    let objects = vec![
-        ObjectConfig::Quad {
+//     let objects = vec![
+//         ObjectConfig::Quad {
 
-            point: DVec3::new(min_x, min_y, max_z),
-            u: dx,
-            v: dy,
-            material: Some(material.clone()),
-        },
-        ObjectConfig::Quad {
+//             point: DVec3::new(min_x, min_y, max_z),
+//             u: dx,
+//             v: dy,
+//             material: Some(material.clone()),
+//         },
+//         ObjectConfig::Quad {
 
-            point: DVec3::new(max_x, min_y, max_z),
-            u: -dz,
-            v: dy,
-            material: Some(material.clone()),
-        },
-        ObjectConfig::Quad {
+//             point: DVec3::new(max_x, min_y, max_z),
+//             u: -dz,
+//             v: dy,
+//             material: Some(material.clone()),
+//         },
+//         ObjectConfig::Quad {
 
-            point: DVec3::new(max_x, min_y, min_z),
-            u: -dx,
-            v: dy,
-            material: Some(material.clone()),
-        },
-        ObjectConfig::Quad {
+//             point: DVec3::new(max_x, min_y, min_z),
+//             u: -dx,
+//             v: dy,
+//             material: Some(material.clone()),
+//         },
+//         ObjectConfig::Quad {
 
-            point: DVec3::new(min_x, min_y, min_z),
-            u: dz,
-            v: dy,
-            material: Some(material.clone()),
-        },
-        ObjectConfig::Quad {
+//             point: DVec3::new(min_x, min_y, min_z),
+//             u: dz,
+//             v: dy,
+//             material: Some(material.clone()),
+//         },
+//         ObjectConfig::Quad {
 
-            point: DVec3::new(min_x, max_y, max_z),
-            u: dx,
-            v: -dz,
-            material: Some(material.clone()),
-        },
-        ObjectConfig::Quad {
+//             point: DVec3::new(min_x, max_y, max_z),
+//             u: dx,
+//             v: -dz,
+//             material: Some(material.clone()),
+//         },
+//         ObjectConfig::Quad {
 
-            point: DVec3::new(min_x, min_y, min_z),
-            u: dx,
-            v: dz,
-            material: Some(material.clone()),
-        },
-    ];
+//             point: DVec3::new(min_x, min_y, min_z),
+//             u: dx,
+//             v: dz,
+//             material: Some(material.clone()),
+//         },
+//     ];
 
-    Box::new(ObjectConfig::Group {
-        objects,
-        material: None,
-    })
-}
+//     Box::new(ObjectConfig::Group {
+//         objects,
+//         material: None,
+//     })
+// }
 
 fn generate_scene(scene_config: &mut SceneConfig) {
     let tex_white = generate_solid_color_texture(scene_config, DVec3::new(0.73, 0.73, 0.73));
@@ -148,71 +130,41 @@ fn generate_scene(scene_config: &mut SceneConfig) {
     let tex_ligth = generate_solid_color_texture(scene_config, DVec3::ONE);
     let mat_ligth = generate_light(scene_config, tex_ligth.clone(), 15.0);
 
-    let tex_box1 = generate_solid_color_texture(scene_config, DVec3::new(0.93, 1.00, 0.60));
-    let mat_box1 = generate_lambertian_material(scene_config, tex_box1.clone());
-
-    let tex_box2 = generate_solid_color_texture(scene_config, DVec3::new(0.00, 0.82, 1.00));
-    let mat_box2 = generate_metal_material(scene_config, tex_box2.clone(), 0.0);
-
     scene_config.scene.push(ObjectConfig::Quad {
         point: DVec3::ZERO,
-        u: 555.*DVec3::X,
-        v: 555.*DVec3::Z,
+        u: DVec3::X,
+        v: DVec3::Z,
         material: Some(mat_white.clone()),
     });
     scene_config.scene.push(ObjectConfig::Quad {
-        point: 555.*DVec3::ONE,
-        u: 555.*DVec3::NEG_X,
-        v: 555.*DVec3::NEG_Z,
+        point: DVec3::ONE,
+        u: DVec3::NEG_X,
+        v: DVec3::NEG_Z,
         material: Some(mat_white.clone()),
     });
     scene_config.scene.push(ObjectConfig::Quad {
-        point: 555.*DVec3::Z,
-        u: 555.*DVec3::X,
-        v: 555.*DVec3::Y,
+        point: DVec3::Z,
+        u: DVec3::X,
+        v: DVec3::Y,
         material: Some(mat_white.clone()),
     });
     scene_config.scene.push(ObjectConfig::Quad {
-        point: 555.*DVec3::X,
-        u: 555.*DVec3::Y,
-        v: 555.*DVec3::Z,
+        point: DVec3::X,
+        u: DVec3::Y,
+        v: DVec3::Z,
         material: Some(mat_green),
     });
     scene_config.scene.push(ObjectConfig::Quad {
         point: DVec3::ZERO,
-        u: 555.*DVec3::Y,
-        v: 555.*DVec3::Z,
+        u: DVec3::Y,
+        v: DVec3::Z,
         material: Some(mat_red),
     });
     scene_config.scene.push(ObjectConfig::Quad {
-        point: DVec3::new(343., 554., 332.),
-        u: 130.*DVec3::NEG_X,
-        v: 105.*DVec3::NEG_Z,
+        point: DVec3::new(0.670, 0.998, 0.598),
+        u: 0.234*DVec3::NEG_X,
+        v: 0.189*DVec3::NEG_Z,
         material: Some(mat_ligth),
-    });
-
-    scene_config.scene.push(ObjectConfig::Translate {
-        offset: DVec3::new(130.0, 0.0, 65.0),
-        object: Box::new(ObjectConfig::RotateY {
-            angle: -18.0*PI/180.0,
-            object: generate_box(
-                DVec3::ZERO,
-                DVec3::new(165.0, 165.0, 165.0),
-                mat_box1,
-            ),
-        }),
-    });
-
-    scene_config.scene.push(ObjectConfig::Translate {
-        offset: DVec3::new(265.0, 0.0, 295.0),
-        object: Box::new(ObjectConfig::RotateY {
-            angle: 15.0*PI/180.0,
-            object: generate_box(
-                DVec3::ZERO,
-                DVec3::new(165.0, 330.0, 165.0),
-                mat_box2,
-            ),
-        }),
     });
 }
 
@@ -222,8 +174,8 @@ pub fn run(args: &CreateArgs) -> Result<()> {
     scene_config.camera
         .merge_with(&CameraConfig {
             background_color: Some(DVec3::ZERO),
-            look_from: Some(278.*DVec3::X + 278.*DVec3::Y - 800.*DVec3::Z),
-            look_at: Some(278.*(DVec3::X + DVec3::Y)),
+            look_from: Some(DVec3::new(0.0, 0.5, 0.0)),
+            look_at: Some(DVec3::new(0.0, 0.0, 0.0)),
             field_of_view: Some(40.),
             ray_max_bounces: Some(50),
             samples_per_pixel: Some(200),
